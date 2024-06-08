@@ -1,0 +1,321 @@
+                                                 /* Home Page */
+                    
+#home-main-container{
+    width:100%;
+    padding:20px 50px;
+    border:var(--universal-border);
+    display:flex;
+    justify-content:space-between;
+
+}                                                 
+#filters-section{
+    width:30%;
+    border:var(--universal-border);
+    border-radius:10px;
+    background-color:var( --section-container-bg-color);
+    color:var(--list-item-color);
+    padding:20px;
+} 
+
+#tasks-section{
+    width:65%;
+    border:var(--universal-border);
+    border-radius:10px;
+    background-color:var( --section-container-bg-color);
+    padding:20px;
+
+}
+
+                                              /* Filters Section */
+#filters-heading {
+    font-size:var( --heading-h2-font-size);
+    color:var(--heading-h2);
+    margin-bottom:10px;
+}                                             
+#filters-list{
+    list-style-type:none;
+    margin-bottom:50px;
+}
+#filters-list li{
+    width:95%;
+    border:var(--universal-border);
+    margin-block:15px;
+    padding:10px;
+    display:flex;
+    align-items: center;
+   
+}    
+                                        
+#filters-list li:hover{
+    background-color:var(--list-bg-color);
+    border-radius:10px;
+    cursor: pointer;
+}
+.li-active{
+    background-color:var(--list-bg-color);
+    border-radius:10px;
+    
+}
+.icon{
+    height:1.5em;
+    /* margin-right:5px; */
+}
+.fl-text{
+    width:80%;
+    margin-left:8px;
+}
+.count-badge{
+    color:white;
+    font-size:1.1em;
+    font-weight:500;
+
+}
+/* Project Section */
+#projects-heading{
+    font-size:var( --heading-h2-font-size);
+    color:var(--heading-h2);
+    margin:10px 0px 10px 0px;
+
+}
+#project-list{
+    list-style-type:none;
+}
+#project-list li{
+    width:95%;
+    border:var(--universal-border);
+    margin-block:15px;
+    padding:10px;
+    display:flex;
+    align-items:center;
+}
+#project-list li:hover,#project-list li:active{
+    background-color:var(--list-bg-color);
+    border-radius:10px;
+    cursor: pointer;
+}
+.pl-text{
+    margin-left:8px;
+}
+
+/* Tasks section */
+#tasks-main-container{
+    height:450px;
+    /* border:0.1px solid #B1B9C8;
+    border-radius:10px; */
+    overflow:auto;
+}
+#tasks-main-container::-webkit-scrollbar{
+    width:0px;
+    display:none;
+}
+#tasks-head{
+    display:flex;
+    justify-content:space-between;
+
+}
+#tasks-heading{
+    font-size:var( --heading-h2-font-size);
+    color:var(--heading-h2);
+    margin-bottom:10px;
+
+}
+#notify-icon-container{
+    display:flex;
+    justify-content:space-around;
+    gap:10px;
+}
+.notify-icon{
+    height:2.5em;
+    width:2.5em;
+    background-color:#6F2DA8;
+    border:2px solid white;
+    border-radius:50%;
+    display:flex;
+    justify-content: center;
+    align-items:center;
+
+}
+
+#tasks-list{
+    list-style-type:none;
+}
+#tasks-list li{
+    display:flex;
+    flex-direction:row;
+    justify-content:space-between;
+    align-items: center;
+    width:98%;
+    border:none;
+    border-radius:10px;
+    margin-block:15px;
+    padding:10px;
+    background-color:var(--list-bg-color);
+}
+#tasks-list li:hover{
+    outline:1px solid var(--list-bg-color);
+    outline-offset:2px;
+}
+.list-content{
+    width:90%;
+    border:var(--universal-border);
+
+}
+.list-strike{
+    text-decoration:white line-through;
+}
+
+.completed-mark{
+    height:1.5em;
+    width:1.5em;
+    border:2px solid #D6DAE1;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor: pointer;
+}
+.inner-circle{
+    height:1em;
+    width:1em;
+    background-color:#D6DAE1 ;
+    border-radius:50%;
+
+}
+.starred-mark{
+    position:relative;
+    right:10px;
+    
+}
+.star-icon{
+    height:1.7em;
+    cursor: pointer;
+}
+/* tasks footer section */
+#tasks-footer{
+    width:95%;
+    border:var(--universal-border);
+    padding:10px;
+    display:flex;
+    justify-content: flex-end;
+    position: relative;
+}
+#add-task-btn{
+    padding:10px 20px;
+    border:0.1px solid #6F2DA8;
+    border-radius:20px;
+    font-size:1.1em;
+    font-weight:500;
+    background-color:#6F2DA8;
+    color:white;
+    cursor: pointer;
+}
+
+
+#add-task-btn:hover{
+    outline:2px solid #6F2DA8;
+    outline-offset:2px;
+}
+
+/* Tasks Create section */
+#CT-main-container{
+    width:30%;
+    padding:20px;
+    position:absolute;
+    top:50%;
+    left:50%;
+    z-index:10;
+    background:#16161d;
+    border-radius:10px;
+
+    box-shadow:0px 0px 5px 0px white;
+}
+#CT-main-container:hover{
+    outline:2px solid white;
+    outline-offset:-2.5px;
+}
+#CT-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+#CT-heading{
+    margin-bottom:15px;
+    font-size:var( --heading-h2-font-size);
+    color:var(--heading-h2);
+}
+#CT-cross-btn{
+    height:1.2em;
+    align-self:flex-start;
+    filter:invert(100%);
+    cursor: pointer;
+}
+#CT-1 input{
+    width:100%;
+    padding:15px;
+    border:none;
+    outline:none;
+    border-radius:10px;
+
+    font-size:1.1em;
+    font-weight:300;
+
+}
+#CT-2{
+    margin-top:30px;
+    display:flex;
+    justify-content:space-between;
+}
+.CT-btn{
+    padding:10px 20px;
+    border-radius:20px;
+    font-size:1.1em;
+    font-weight:500;
+    color:white;
+    cursor: pointer;
+
+}
+
+#CT-cancel-btn{
+    background-color:red;
+    border:2px solid #861621;
+}
+#CT-create-btn{
+    background-color:green;
+    border:2px solid #1B4C1C;
+}
+#CT-cancel-btn:hover{
+    outline:2px solid red;
+    outline-offset:-2px;
+}
+#CT-create-btn:hover{
+    outline:2px solid green;
+    outline-offset:-2px;
+
+}
+
+/* toast styling section */
+
+
+/* text section */
+#text-main-container{
+    width:95%;
+    margin:100px auto;
+    /* border:2px solid white; */
+}
+
+#text-main-container >section{
+    border:2px solid #6F2DA8;
+    margin:10px;
+    padding:20px;
+    display:flex;
+    /* align-items:center; */
+}
+#text-main-container :is(img){
+    height:20em;
+    margin-right:10px;
+    outline:2px solid white;
+}
+#text-main-container :is(p){
+   text-align:justify;
+
+}
