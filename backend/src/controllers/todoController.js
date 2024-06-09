@@ -16,3 +16,5 @@ function markComplete(req,res){
 function markStarred(req,res){
 
 }
+
+module.exports = {addTask,deleteTask,markComplete,markStarred}
