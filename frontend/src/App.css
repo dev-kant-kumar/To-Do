@@ -146,6 +146,7 @@
     align-items: center;
     width:98%;
     border:none;
+    gap: 10px;
     border-radius:10px;
     margin-block:15px;
     padding:10px;
@@ -226,7 +227,7 @@
     z-index:10;
     background:#16161d;
     border-radius:10px;
-
+    min-width: 300px;
     box-shadow:0px 0px 5px 0px white;
 }
 #CT-main-container:hover{
@@ -317,5 +318,93 @@
 }
 #text-main-container :is(p){
    text-align:justify;
+}
+.menu{
+    display: none;
+}
+.close{
+    display: none;
+}
+.show{
+    display: none;
+}
+.hide{
+    display: block;
+}
+#btn{
+    display: none;
+}
+@media only screen and (max-width: 750px){
+    #filters-section{
+        display: block;
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100vh;
+        min-width:260px ;
+        z-index: 999;
+    }
+    #tasks-section{
+        width: 100%;
+    }
+    #home-main-container{
+        padding: 20px 25px;
+    }
+    .header{
+        display: flex;
+        justify-content: space-between;
+    }
+    .menu{
+        display: block;
+        font-size: 2rem;
+    }
+    .filter-top{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
 
+    }
+    .close{
+        display: block;
+        width: 25px;
+        height: 25px;
+        background-color: #6F2DA8;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .show{
+        display: block !important;
+    }
+    .hide{
+        display: none !important;
+    }
+    #btn{
+    padding: 10px 20px;
+    width: 100%;
+    text-align: center;
+    border: 0.1px solid #6F2DA8;
+    border-radius: 20px;
+    font-size: 1.1em;
+    font-weight: 500;
+    background-color: #6F2DA8;
+    color: white;
+    cursor: pointer;
+    display: block;
+    }
+    #CT-main-container {
+        width: 83%;
+        padding: 15px;
+        position: absolute;
+        top: 52%;
+        left: 9%;
+        z-index: 10;
+        background: #16161d;
+        border-radius: 8px;
+        box-shadow: 0px 0px 5px 0px white;
+        min-width: none;
+    }
 }
