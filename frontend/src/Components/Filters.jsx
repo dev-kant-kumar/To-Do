@@ -8,7 +8,7 @@ import { setCount } from '../Store/Reducers/CountSlice'
 import { useDispatch} from 'react-redux';
 
 
-function Filters() {
+function Filters(props) {
 
   const [isActive,setIsActive]=useState({
 
@@ -26,12 +26,17 @@ function Filters() {
     weekCount:null,
     deletedCount:null
   })
-
+  const closeHandler = () => {
+    props.setShow(false);
+  };
   
 
   return (
     <div>
+        <div className="filter-top">
         <h2 id="filters-heading">Filters</h2>
+        <div className="close"><i onClick={closeHandler} className="ri-close-fill"></i></div>
+        </div>
         <ul id="filters-list">
 
             <li 

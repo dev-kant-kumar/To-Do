@@ -1,9 +1,13 @@
-import React from 'react'
+import React, { useState } from 'react'
 
-function Header() {
+function Header(props) {
+  const closeHandler = () => {
+    props.setShow(true);
+  };
   return (
-    <div>
+    <div className='header'>
       <h1 id="logo">to<span>do</span>.</h1>
+      <div className="menu"><i onClick={closeHandler} className="ri-menu-3-line"></i></div>
     </div>
   )
 }
