@@ -9,6 +9,8 @@ function Tasks() {
 
  const handleListDataFromChild=(taskAdded)=>{
   setTasks((preTasks)=>[...preTasks,{ text: taskAdded, complete: false, starred: false }]);
+
+
  }
   
   const taskHandler=()=>{

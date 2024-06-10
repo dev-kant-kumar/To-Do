@@ -2,7 +2,7 @@ import {React,useState,useRef} from 'react'
 import crossBtn from '../assets/crossBtn.png'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import axios from 'axios'
 
 function CreateTask({taskToAdd}) {
 
@@ -10,6 +10,28 @@ function CreateTask({taskToAdd}) {
   
   const refElement=useRef();
    
+ 
+  function sendCreatedTask(typedValue){
+    axios.post("http://localhost:5000/todo/addTask",{
+    task:typedValue
+
+  }).then((res)=>{
+
+    console.log(res);
+
+    if(res.data.status==true){
+      taskToAdd(inputValue);
+    }
+
+  }).catch((err)=>{
+    console.error(err)
+    if(err.response){
+      console.log(err.response.data)
+    }
+  })
+
+
+  }
 
   function handleInput(e){
     setInputValue(e.target.value);
@@ -19,7 +41,8 @@ function CreateTask({taskToAdd}) {
     e.preventDefault()
 
     if (inputValue.trim() !== "") {
-      taskToAdd(inputValue);
+
+      sendCreatedTask(inputValue);
       setInputValue("");
     } else {
       toast('Task cannot be empty');
