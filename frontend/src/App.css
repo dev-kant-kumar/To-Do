@@ -319,6 +319,157 @@
 #text-main-container :is(p){
    text-align:justify;
 }
+
+/* form styling section */
+
+.form-main-container{
+    width:98%;
+    border:var(--universal-border);
+    margin:20px auto;
+    padding:25px;
+    display:flex;
+    justify-content:space-around;
+}
+
+#main-img{
+    height:37em;
+    width:50%;
+    border:2px solid white;
+    border-radius:20px;
+}
+
+form :is(h2) {
+    width: 100%;
+    padding: 15px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom: 1px solid white;
+    background: #16161d;
+    margin-bottom: 20px;
+    font-size: 1.4em;
+    text-align: center;
+}
+.SignUp-signIn-form{
+    height:fit-content;
+    width:30%;
+    border:2px solid white;
+    border-radius: 20px;
+    display:flex;
+    flex-direction: column;
+}
+.SignUp-signIn-form:hover{
+    box-shadow:0px 0px 20px 0px #6F2DA8;
+}
+.SignUp-signIn-form>input ,.password-field > input{
+    width:80%;
+    border:none;
+    outline:none;
+    border-radius:10px;
+    margin:10px auto;
+    padding:15px;
+    font-size:1.1em;
+    font-weight: 400;
+} 
+
+
+.SignUp-signIn-form>input:hover, .password-field>input:hover{
+    outline:2px solid #6F2DA8;
+    outline-offset:1.5px;;
+}
+
+.password-field {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.set-view-password {
+    height: 1.2em;
+    filter: invert(100%);
+    position: absolute;
+    right: 55px;
+    z-index: 10;
+}
+
+#sig-up-btn{
+    background:#6F2DA8;
+    color:white;
+    font-weight:700;
+    cursor: pointer;
+}
+
+#terms-conditions {
+    width:80%;
+    margin:10px auto;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+}
+
+#terms-conditions input {
+    width: fit-content;
+}
+#terms-conditions>p>a{
+    text-decoration: none;
+    font-weight: 700;
+    color: #9040DD;
+    cursor: pointer;
+
+}
+#login-section {
+    display: flex;
+    margin: 10px auto;
+    margin-bottom:20px;
+}
+
+#login-section a{
+    text-decoration: none;
+    font-weight: 700;
+    margin-left: 10px;
+    color: #9040DD;
+    cursor: pointer;
+}
+
+
+
+
+/* sign In form section 
+  - contain only those properties which changed from sign Up form and rest property are applying from above sign Up form
+ */ 
+#stay-signed-in-and-forgot-password{
+    width:80%;
+    margin: 10px auto;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+
+}
+#stay-signed-in-and-forgot-password>p>a{
+    text-decoration: none;
+    margin-left:40px;
+    font-weight: 700;
+    color: #9040DD;
+    cursor: pointer;
+}
+
+#login-section-sign-In-form {
+    display: flex;
+    margin:auto;
+    margin-top:25px;
+    margin-bottom: 20px;
+}
+
+#login-section-sign-In-form a {
+    text-decoration: none;
+    font-weight: 700;
+    margin-left: 5px;
+    color: #9040DD;
+    cursor: pointer;
+}    
 .menu{
     display: none;
 }

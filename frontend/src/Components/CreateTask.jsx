@@ -95,7 +95,7 @@ function CreateTask({taskToAdd}) {
        pauseOnFocusLoss
        draggable
        pauseOnHover
-       theme="light"
+       theme="dark"
        
       />
 

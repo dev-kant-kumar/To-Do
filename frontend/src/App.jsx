@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-// import Home from "./Pages/Home";
 import Header from "./Components/Header";
-import "./App.css";
 import Filters from "./Components/Filters";
 import Projects from "./Components/Projects";
 import Tasks from "./Components/Tasks";
@@ -15,11 +13,12 @@ function App() {
     <div >
       <Header setShow={setShow}/>
       <div id="home-main-container">
+
        {<section id="filters-section" className={show?"show":"hide"}>
         <Filters setShow={setShow}/> 
         <Projects />
         <button id="btn" onClick={closeHandler}>Apply</button>
-      </section>
+        </section>
        }
 
         <section id="tasks-section">
