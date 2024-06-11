@@ -2,8 +2,13 @@ import React, { useState } from 'react'
 import openEye from '../assets/heroicons-solid--eye.png'
 import closeEye from '../assets/tabler--eye-off.png'
 import MainImg from '../assets/MainImg.png'
+import axios from 'axios'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { Link, useNavigate } from 'react-router-dom'
 
-function SigninForm({ switchToSignUp }) {
+function SigninForm() {
+      const navigate = useNavigate()
 
       const [inputValue,setInputValue]=useState({
         username:"",
@@ -13,7 +18,7 @@ function SigninForm({ switchToSignUp }) {
      const [showPassword,setShowPassword]=useState(false);
 
     const handleFormInput=(e)=>{
-      console.log(e.target.name)
+      console.log(e.target.value )
         setInputValue({...inputValue,[e.target.name]:e.target.value});  
     }
 
@@ -21,10 +26,37 @@ function SigninForm({ switchToSignUp }) {
       setShowPassword(!showPassword);
     }
 
+    const sendDataToBackend=(e)=>{
+       e.preventDefault();
+       axios.post("http://localhost:5000/user/signin",{
+
+        username:inputValue.username,
+        password:inputValue.password
+       }).then((res)=>{
+        if(res.data.status==true){
+          toast(res.data.message);
+          navigate("/home");
+          console.log(res.data.token);
+          console.log(res.data.username);
+          console.log(res.data.id);
+
+        }
+        else{
+          toast(res.data.message);
+        }
+
+       }).catch((err)=>{
+        console.log(err);
+
+       })
+
+
+    }
+
   return (
     <div className="form-main-container">
         <img src={MainImg} alt="" id="main-img"/>
-        <form action=""  className="SignUp-signIn-form">
+        <form action=""  className="SignUp-signIn-form" onSubmit={sendDataToBackend}>
 
               <h2>Sign In</h2>
 
@@ -57,7 +89,7 @@ function SigninForm({ switchToSignUp }) {
 
        <div id="login-section-sign-In-form">
         <p>Don't have an account? </p>
-        <a onClick={switchToSignUp}>Sign Up</a>
+        <Link to ="/">Sign Up</Link>
       </div>
       
         </form>

@@ -5,11 +5,10 @@ import MainImg from '../assets/MainImg.png'
 import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Welcome from '../Pages/WelcomePage'
+import { Link } from 'react-router-dom'
 
-function SignUpForm({ switchToSignIn }) {
+function SignUpForm() {
 
-    // const [showWelcomePage,setShowWelcomePage]=useState(false);
     const [inputValue,setInputValue]=useState({
         name:"",
         username:"",
@@ -17,9 +16,9 @@ function SignUpForm({ switchToSignIn }) {
         password:"",
         confirmPassword:""
     })
+    console.log(inputValue.name,inputValue.username,inputValue.email,inputValue.password);
 
     const handleFormInput=(e)=>{
-      e.preventDefault()
       console.log(e.target.name)
         setInputValue({...inputValue,[e.target.name]:e.target.value});  
     }
@@ -33,22 +32,26 @@ function SignUpForm({ switchToSignIn }) {
         setShowConfirmPassword(!showConfirmPassword);
     }
 
-    const sendDataToBackend=()=>{
-        axios.post("",{
+    const sendDataToBackend=(e)=>{
+       e.preventDefault()
+
+        axios.post("http://localhost:5000/user/signup",{
             name:inputValue.name,
             username:inputValue.username,
             email:inputValue.email,
             password:inputValue.password
         }).then((res)=>{
+          console.log(res.data)
             if(res.data.status==true){
-                toast("Account Created Successful");
+                toast(res.data.message);
+                toast("Welcome onboard! please login to start managing tasks");
             }
             else{
-                toast("Something went wrong ! Please try again");
+                toast(res.data.message);
             }
             
         }).catch((err)=>{
-            console.log(err.response.data)
+            console.log(err.response.data);
         })
         
 
@@ -122,23 +125,10 @@ function SignUpForm({ switchToSignIn }) {
 
        <div id="login-section">
         <p>Already have an account ? </p>
-        <a onClick={switchToSignIn}>Login Here</a>
+        <Link to ="/login">Login Here</Link>
       </div>
 
       </form>
-      <ToastContainer
-       position="top-right"
-       autoClose={5000}
-       hideProgressBar={false}
-       newestOnTop={false}
-       closeOnClick
-       rtl={false}
-       pauseOnFocusLoss
-       draggable
-       pauseOnHover
-       theme="dark"
-       
-      />
     </div>
   )
 }

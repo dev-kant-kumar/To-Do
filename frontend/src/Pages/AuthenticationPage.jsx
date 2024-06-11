@@ -1,28 +1,39 @@
-import React,{useState} from 'react'
-import SignUp from '../Components/SignUpForm.jsx'
-import SignIn from '../Components/SigninForm.jsx'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { BrowserRouter, Routes, Route} from "react-router-dom";
+import SignUp from '../Components/SignUpForm';
+import SignIn from '../Components/SigninForm';
+import Home from '../Pages/Home';
 import "../App.css";
 
 function AuthenticationPage() {
 
-    const [isSignUp, setIsSignUp] = useState(true);
-   
-    const switchToSignIn = () => {
-        setIsSignUp(false);
-    };
-
-    const switchToSignUp = () => {
-        setIsSignUp(true);
-    };
-
 
   return (
     <div>
-        {isSignUp ? (
-                <SignUp switchToSignIn={switchToSignIn} />
-            ) : (
-                <SignIn switchToSignUp={switchToSignUp} />
-            )}
+
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<SignUp/>} />
+        <Route path="/login" element={<SignIn/>} />
+        <Route path="/home" element={<Home/>} />
+        
+      </Routes>
+    </BrowserRouter>
+
+    <ToastContainer
+       position="top-right"
+       autoClose={5000}
+       hideProgressBar={false}
+       newestOnTop={false}
+       closeOnClick
+       rtl={false}
+       pauseOnFocusLoss
+       draggable
+       pauseOnHover
+       theme="dark"
+       
+      />
     </div>
   )
 }

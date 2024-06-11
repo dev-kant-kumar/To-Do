@@ -407,6 +407,7 @@ form :is(h2) {
     justify-content: flex-start;
     align-items: center;
     gap: 10px;
+    font-size: 0.9em;
 }
 
 #terms-conditions input {
@@ -446,11 +447,12 @@ form :is(h2) {
     justify-content: flex-start;
     align-items: center;
     gap: 10px;
+    font-size: 0.9em;
 
 }
 #stay-signed-in-and-forgot-password>p>a{
     text-decoration: none;
-    margin-left:40px;
+    margin-left:35px;
     font-weight: 700;
     color: #9040DD;
     cursor: pointer;
