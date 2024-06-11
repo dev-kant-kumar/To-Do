@@ -3,7 +3,7 @@ const Todo =require("../models/todoModel")
 async function showAllTasks(req,res){
     console.log("Show all tasks reached")
 
-    const allTasks = await Todo.find({},'task');
+    const allTasks = await Todo.find({});
 
     if(allTasks.length==0){
         res.send({

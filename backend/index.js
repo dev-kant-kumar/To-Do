@@ -7,7 +7,7 @@ const port = 5000;
 const connectDB = require("./src/config/db");
 const TodoRoutes = require("./src/routes/todoRoutes");
 const UserRoutes = require("./src/routes/userRoutes");
-// const TodoFiltersRoutes=require("./src/routes/todoFiltersRoutes")
+const TodoFiltersRoutes = require("./src/routes/todoFiltersRoutes");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -18,7 +18,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/todo", TodoRoutes);
-// app.use("/filters",TodoFiltersRoutes);
+app.use("/filters", TodoFiltersRoutes);
 
 app.use("/user", UserRoutes);
 
