@@ -8,7 +8,6 @@ import "../App.css";
 
 function AuthenticationPage() {
 
-
   return (
     <div>
 

@@ -1,12 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
-import CountSlice from "./Reducers/CountSlice";
+import TodoFilterSlice from "./Reducers/TodoFilterSlice";
+import UserSlice from "./Reducers/UserSlice";
 
+const store = configureStore({
+  reducer: {
+    TodoFilterSlice: TodoFilterSlice,
+    UserSlice: UserSlice,
+  },
+});
 
-
-const store =configureStore({
-    reducer : {
-       countHandler:CountSlice ,
-    }
-})
-
-export default store
+export default store;

@@ -41,7 +41,7 @@ body{
 #account-center{
     width: fit-content;
     height:fit-content;
-    border:2px solid var(--list-item-color);
+    border:2px solid var(--list-bg-color);
     border-radius: 30px;
     padding-inline-start:10px;
    
@@ -61,8 +61,45 @@ body{
 #account-center >p{
     width:fit-content;
     font-size:0.8em;
-    color:#B1B9C8;
+    color:var(--list-item-color);
 }
 #arrow-down-drop{
     height:2.3rem;
+}
+
+/* Account Center Drop Down section  */
+#parent-of-container{
+    position: relative;
+    top:50px;
+    right:70px;
+}
+#ACDD-main-container{
+    height:fit-content;
+    width:fit-content;
+    border:0.5px solid white;
+    border-radius:20px;
+    position:absolute;
+    z-index:10;
+    background-color:var(--section-container-bg-color);
+
+}
+#ACDD-main-container >section{
+    width:fit-content;
+    padding-inline:20px;
+    padding-block:10px;
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    cursor: pointer;
+}
+ #ACDD-main-container >#profile{
+    border-bottom:0.1px solid var(--list-bg-color);
+ }
+#ACDD-main-container >section >img{
+    height:1.7em;
+    margin-left:10px;
+}
+#ACDD-main-container>section>p{
+    color:var(--list-item-color);
+   
 }

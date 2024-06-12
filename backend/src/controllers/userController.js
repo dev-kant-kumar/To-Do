@@ -49,18 +49,20 @@ async function signIn(req, res) {
 
     const token = jwt.sign(
       { id: existingUser._id, username: username },
-      SECRET_KEY,
-      { expiresIn: "1h" }
+      SECRET_KEY
     );
     console.log(token);
 
     if (checkPwd) {
       res.send({
         status: true,
-        message: "Authentication successful",
-        id: existingUser._id,
-        username: username,
+        message: "Authentication successful", // for signIn response purpose
         token: token,
+
+        name: existingUser.name, // to user to create user profile dashboard
+        username: username,
+        email: existingUser.email,
+        date: existingUser.date,
       });
     } else {
       res.send({
@@ -69,10 +71,36 @@ async function signIn(req, res) {
       });
     }
   }
-
-  const isThisUserRegistered = user.findOne({ username: username });
 }
 
 async function forgotPassword(req, res) {}
 
-module.exports = { signUp, signIn, forgotPassword };
+async function getUserData(req, res) {
+  const token = req.headers["x-authorization"];
+  if (token) {
+    const finalToken = token.split(" ")[1];
+    const decodedToken = jwt.verify(finalToken, SECRET_KEY);
+    const username = decodedToken.username;
+    if (username) {
+      const userData = await user.findOne({ username: username });
+      if (userData) {
+        res.json({
+          status: true,
+          data: userData,
+        });
+      } else {
+        res.json({
+          status: false,
+          message: "Unauthorised",
+        });
+      }
+    }
+  } else {
+    res.json({
+      status: false,
+      message: "Unauthenticated",
+    });
+  }
+}
+
+module.exports = { signUp, signIn, forgotPassword, getUserData };

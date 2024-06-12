@@ -6,8 +6,15 @@ import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux';
+import { setUserInfo } from '../Store/Reducers/UserSlice';
+
 
 function SignUpForm() {
+
+  const dispatch = useDispatch()
+  const navigate = useNavigate();
 
     const [inputValue,setInputValue]=useState({
         name:"",
@@ -56,6 +63,31 @@ function SignUpForm() {
         
 
     }
+  
+
+  const token = localStorage.getItem("token");
+
+  if(token){
+    axios.get("http://localhost:5000/user/getUserData",{
+      headers:{
+        "X-Authorization": "Bearer " + token
+      }
+    }).then((res)=>{
+      if(res.data.status == true){
+
+      const {name,username,email,date} =res.data.data
+      dispatch(setUserInfo({name,username,email,date}))
+      navigate("/home");
+      
+      }
+
+    }).catch((err)=>{
+      console.log(err)
+    })
+  }
+  else{
+    navigate("/");
+  }
 
 
   return (

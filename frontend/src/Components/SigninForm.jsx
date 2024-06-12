@@ -6,9 +6,12 @@ import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch} from 'react-redux'
+import { setUserInfo } from '../Store/Reducers/UserSlice'
 
 function SigninForm() {
-      const navigate = useNavigate()
+      const navigate = useNavigate();
+      const dispatch=useDispatch();
 
       const [inputValue,setInputValue]=useState({
         username:"",
@@ -32,17 +35,21 @@ function SigninForm() {
 
         username:inputValue.username,
         password:inputValue.password
-       }).then((res)=>{
-        if(res.data.status==true){
-          toast(res.data.message);
-          navigate("/home");
-          console.log(res.data.token);
-          console.log(res.data.username);
-          console.log(res.data.id);
 
+       })
+       .then((res)=>{
+        const {status,message,name,username,email,date,token} =res.data
+
+        if(status==true){
+        
+          toast(message);
+          navigate("/home");
+
+          dispatch(setUserInfo({name,username,email,date,token}))
+          localStorage.setItem("token" ,token);
         }
         else{
-          toast(res.data.message);
+          toast(message);
         }
 
        }).catch((err)=>{
@@ -52,6 +59,30 @@ function SigninForm() {
 
 
     }
+
+  const token = localStorage.getItem("token");
+
+  if(token){
+    axios.get("http://localhost:5000/user/getUserData",{
+      headers:{
+        "X-Authorization": "Bearer " + token
+      }
+    }).then((res)=>{
+      if(res.data.status == true){
+
+      const {name,username,email,date} =res.data.data
+      dispatch(setUserInfo({name,username,email,date}))
+      navigate("/home");
+      
+      }
+
+    }).catch((err)=>{
+      console.log(err)
+    })
+  }
+  else{
+    navigate("/login");
+  }
 
   return (
     <div className="form-main-container">
