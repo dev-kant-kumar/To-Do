@@ -91,7 +91,7 @@ async function getUserData(req, res) {
       } else {
         res.json({
           status: false,
-          message: "Unauthorised",
+          message: "Unauthorized",
         });
       }
     }

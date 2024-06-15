@@ -157,7 +157,7 @@
     outline-offset:2px;
 }
 .list-content{
-    width:90%;
+    width:65%;
     border:var(--universal-border);
 
 }
@@ -334,8 +334,6 @@
 #main-img{
     height:37em;
     width:50%;
-    border:2px solid white;
-    border-radius:20px;
 }
 
 form :is(h2) {
@@ -393,11 +391,17 @@ form :is(h2) {
     z-index: 10;
 }
 
-#sig-up-btn{
+.sig-up-btn-active{
     background:#6F2DA8;
     color:white;
     font-weight:700;
     cursor: pointer;
+}
+.disable-btn{
+    background-color:#C27BFF;
+    color:white;
+    font-weight: 700;
+    cursor:not-allowed;
 }
 
 #terms-conditions {
@@ -471,7 +475,69 @@ form :is(h2) {
     margin-left: 5px;
     color: #9040DD;
     cursor: pointer;
-}    
+} 
+
+
+
+
+/* error page */
+
+#error-page-main-container{
+    width:90%;
+    height:80%;
+    margin:auto;
+    border:0.1px solid var(--list-bg-color);
+    border-radius:20px;
+    text-align:center;
+    padding:50px;
+
+}
+#error-page-main-container> #epmc-sec-1 >h1{
+    font-size:5.5em;
+}
+#error-page-main-container>#epmc-sec-1>p {
+    font-size: 1.2em;
+}
+#error-page-main-container>#epmc-sec-1>:nth-child(3){
+ color:var(--list-item-color);
+ margin-top:5px;
+}
+#error-page-main-container>#epmc-sec-1>:nth-child(4){
+    color: var(--list-item-color);
+    
+}
+
+#epmc-sec-2{
+    height:5%;
+    width:100%;
+    margin-top:20px;
+
+}
+#epmc-sec-2 >button{
+    
+    border:none;
+    outline:none;
+    background-color:#9040DD;
+    padding: 15px;
+    border-radius:30px;
+   
+}
+#epmc-sec-2>button:hover{
+    outline:2px solid #9040DD;
+    outline-offset:2px;
+}
+#epmc-sec-2>button>#link{
+   text-decoration: none !important;
+   color: white;
+   font-size:1.2em;
+   font-weight:500;
+   padding:10px;
+  
+}
+#img-page-not-found{
+    height:15em;;
+}
+
 .menu{
     display: none;
 }

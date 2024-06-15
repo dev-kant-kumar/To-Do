@@ -11,17 +11,19 @@ function AccountCenterDropDown() {
   
   const dispatch=useDispatch();
   const navigate=useNavigate();
-  const profileHandler=()=>{
-    toast("Profile Section is under development");
 
+  const profileHandler=()=>{
+    
+    toast.info("Profile Section is under development");
 
   }
 
   const logoutHandler=()=>{
-    toast("You have been logged out");
+    
     localStorage.clear();
     dispatch(setUserInfo({}));
     navigate("/login");
+    toast.info("You have been logged out");
   }
 
   return (

@@ -14,6 +14,10 @@
     --list-item-color:#B1B9C8;
     --swiper-theme-color:#9040DD;
 }
+::selection{
+    color:white;
+    background-color:#9040DD;
+}
 body{
  
     background-color:#16161d;
@@ -68,33 +72,51 @@ body{
 }
 
 /* Account Center Drop Down section  */
+
 #parent-of-container{
     position: relative;
     top:50px;
-    right:70px;
+    right:70px; 
 }
+
 #ACDD-main-container{
     height:fit-content;
     width:fit-content;
     border:0.5px solid white;
     border-radius:20px;
+    padding:5px;
     position:absolute;
     z-index:10;
     background-color:var(--section-container-bg-color);
+    }
 
-}
 #ACDD-main-container >section{
     width:fit-content;
     padding-inline:20px;
     padding-block:10px;
+    margin-top:5px;
     display:flex;
     justify-content:space-around;
     align-items:center;
     cursor: pointer;
+    border:0.1px solid var(--section-container-bg-color);
+    border-radius:20px;
+    
 }
+
+#ACDD-main-container >section:hover{
+    border: 0.1px solid var(--list-item-color);
+    background-color:#16161d;
+   
+}
+
  #ACDD-main-container >#profile{
-    border-bottom:0.1px solid var(--list-bg-color);
+    /* border-bottom:0.1px solid var(--list-bg-color); */
+    border-top-left-radius: ;
+    border-top-right-radius: ;
  }
+
+
 #ACDD-main-container >section >img{
     height:1.7em;
     margin-left:10px;
@@ -102,4 +124,23 @@ body{
 #ACDD-main-container>section>p{
     color:var(--list-item-color);
    
+}
+
+
+/* disable text selection */
+.no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* styling for form validation */
+.valid{
+    border:1.5px solid green !important;
+    outline:0.1px solid green !important;
+}
+.in-valid{
+    border:1.5px solid red !important;
+    outline:0.1px solid red !important;
 }

@@ -4,38 +4,13 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios'
 
-function CreateTask({taskToAdd}) {
+function CreateTask() {
 
   const [inputValue,setInputValue]=useState("");
   
   const refElement=useRef();
    
- 
-  function sendCreatedTask(typedValue){
-    axios.post("http://localhost:5000/todo/addTask",{
-    task:typedValue
-
-  }).then((res)=>{
-
-    console.log(res);
-
-    if(res.data.status==true){
-      taskToAdd(inputValue);
-    }
-
-  }).catch((err)=>{
-    console.error(err)
-    if(err.response){
-      console.log(err.response.data)
-    }
-  })
-
-
-  }
-
-  function handleInput(e){
-    setInputValue(e.target.value);
-  }
+  function handleInput(e){setInputValue(e.target.value);}
 
   function createTaskBtn(e){
     e.preventDefault()
@@ -44,22 +19,24 @@ function CreateTask({taskToAdd}) {
 
       sendCreatedTask(inputValue);
       setInputValue("");
-    } else {
-      toast('Task cannot be empty');
-    }
+    } 
+    else {toast.error('Task cannot be empty');}
   } 
 
   function cancelBtn(){
 
-    toast("Cancelling");
+    toast.info("Cancelling");
     setInputValue("");
   }
 
-  function closeCreateTask(){
-    refElement.current.style.display="none";
-
+  function sendCreatedTask(typedValue){
+   axios.post("http://localhost:5000/todo/addTask",{task:typedValue})
+   .then((res)=>{res.data.status ? toast.success(res.data.message): "";})
+   .catch((err)=>{err.response ? console.log(err.response.data) :'';})
+   
   }
-  
+
+  function closeCreateTask(){refElement.current.style.display="none";}
 
   return (
     

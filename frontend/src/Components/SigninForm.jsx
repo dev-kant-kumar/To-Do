@@ -1,92 +1,65 @@
-import React, { useState } from 'react'
+import React, { useState ,useEffect} from 'react'
 import openEye from '../assets/heroicons-solid--eye.png'
 import closeEye from '../assets/tabler--eye-off.png'
-import MainImg from '../assets/MainImg.png'
+import TodoIllustrationForSignIn from '../assets/TodoSignIn.png'
 import axios from 'axios'
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch} from 'react-redux'
 import { setUserInfo } from '../Store/Reducers/UserSlice'
 
 function SigninForm() {
+
       const navigate = useNavigate();
       const dispatch=useDispatch();
 
-      const [inputValue,setInputValue]=useState({
-        username:"",
-        password:"",
-    })
-
-     const [showPassword,setShowPassword]=useState(false);
+      const [inputValue,setInputValue]=useState({username:"",password:""})
+      const [showPassword,setShowPassword]=useState(false);
 
     const handleFormInput=(e)=>{
-      console.log(e.target.value )
+        console.log(e.target.value );
         setInputValue({...inputValue,[e.target.name]:e.target.value});  
     }
+    
+    //Handler functions section - has - functions
 
-     const passwordHandler=()=>{
+    const passwordHandler=()=>{
       setShowPassword(!showPassword);
     }
 
-    const sendDataToBackend=(e)=>{
+    const sendDataToBackend= (e)=>{
        e.preventDefault();
-       axios.post("http://localhost:5000/user/signin",{
 
-        username:inputValue.username,
-        password:inputValue.password
-
-       })
+      axios.post("http://localhost:5000/user/signin",{username:inputValue.username,password:inputValue.password})
        .then((res)=>{
-        const {status,message,name,username,email,date,token} =res.data
+         const {status,message,name,username,email,date,token} =res.data
 
-        if(status==true){
-        
-          toast(message);
-          navigate("/home");
+           if(status==true){
+           
+               toast.success(message);
+               dispatch(setUserInfo({name,username,email,date,token})) //storing in store
+               localStorage.setItem("token" ,token);
+               navigate("/home");
+           }
+   
+           else{toast.error(message);}
 
-          dispatch(setUserInfo({name,username,email,date,token}))
-          localStorage.setItem("token" ,token);
-        }
-        else{
-          toast(message);
-        }
-
-       }).catch((err)=>{
+        })
+       .catch((err)=>{
         console.log(err);
-
-       })
-
-
+      })
     }
 
   const token = localStorage.getItem("token");
 
-  if(token){
-    axios.get("http://localhost:5000/user/getUserData",{
-      headers:{
-        "X-Authorization": "Bearer " + token
-      }
-    }).then((res)=>{
-      if(res.data.status == true){
-
-      const {name,username,email,date} =res.data.data
-      dispatch(setUserInfo({name,username,email,date}))
-      navigate("/home");
-      
-      }
-
-    }).catch((err)=>{
-      console.log(err)
-    })
-  }
-  else{
-    navigate("/login");
-  }
+  useEffect(()=>{
+    token ? navigate("/home") : navigate("/login");
+  },[token]);
 
   return (
     <div className="form-main-container">
-        <img src={MainImg} alt="" id="main-img"/>
+        <img src={TodoIllustrationForSignIn} alt="" id="main-img"/>
         <form action=""  className="SignUp-signIn-form" onSubmit={sendDataToBackend}>
 
               <h2>Sign In</h2>
@@ -94,6 +67,7 @@ function SigninForm() {
         <input 
         type="text" 
         name="username"
+        className="valid-input"
         value={inputValue.username} 
         placeholder="Username" 
         onChange={handleFormInput}
@@ -116,7 +90,7 @@ function SigninForm() {
          <p>Keep me signed in <a>Forgot Password?</a></p>
       </div>
 
-      <input type="submit" id="sig-up-btn" value="Sign In"/>
+      <input type="submit" className="sig-up-btn-active" value="Sign In"/>
 
        <div id="login-section-sign-In-form">
         <p>Don't have an account? </p>
