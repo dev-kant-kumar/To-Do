@@ -6,18 +6,17 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 
 
+
 function Tasks() {
- 
+
+  const userInfo = useSelector(state=>state.UserSlice);
   const todoData=useSelector(state=>state.TodoFilterSlice);
-  const todoDataArray=todoData.todo || [];
-  // const newTodoDataArray = [...todoDataArray].reverse();
+  console.log(todoData.todo);
+  
   const [showCreateTask, setShowCreateTask] = useState(false);
-  const [tasks,setTasks]=useState(todoDataArray);
+  const [tasks,setTasks]=useState(todoData.todo);
   console.log(tasks);
   
-  // [{text:"Create your task to see here",complete:false,starred:false}]
-
- 
   const taskHandler=()=>{
     setShowCreateTask((prevShowCreateTask) => !prevShowCreateTask);
   }
@@ -27,7 +26,9 @@ function Tasks() {
     if(status==true){
       
     axios.post("http://localhost:5000/todo/unMarkComplete",{
-      taskID:taskID
+      taskID:taskID,
+      userId:userInfo.userId
+      
     })
     .then((res)=>{
       console.log(res.data.message);
@@ -39,7 +40,8 @@ function Tasks() {
     }
     else{
       axios.post("http://localhost:5000/todo/markComplete",{
-      taskID:taskID
+      taskID:taskID,
+      userId:userInfo.userId
     })
     .then((res)=>{
       console.log(res.data.message);
@@ -56,7 +58,8 @@ function Tasks() {
     if(status==true){
       
     axios.post("http://localhost:5000/todo/unMarkStarred",{
-      taskID:taskID
+      taskID:taskID,
+      userId:userInfo.userId
     })
     .then((res)=>{
       console.log(res.data.message);
@@ -68,7 +71,8 @@ function Tasks() {
     }
     else{
       axios.post("http://localhost:5000/todo/markStarred",{
-      taskID:taskID
+      taskID:taskID,
+      userId:userInfo.userId
     })
     .then((res)=>{
       console.log(res.data.message);

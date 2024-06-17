@@ -37,6 +37,7 @@ async function signIn(req, res) {
   const { username, password } = req.body;
 
   const existingUser = await user.findOne({ username: username });
+  console.log(existingUser);
 
   if (!existingUser) {
     res.send({
@@ -44,7 +45,6 @@ async function signIn(req, res) {
       message: "No account found!",
     });
   } else {
-    // console.log(password, existingUser);
     const checkPwd = await bcrypt.compare(password, existingUser.password);
 
     const token = jwt.sign(
@@ -58,11 +58,7 @@ async function signIn(req, res) {
         status: true,
         message: "Authentication successful", // for signIn response purpose
         token: token,
-
-        name: existingUser.name, // to user to create user profile dashboard
-        username: username,
-        email: existingUser.email,
-        date: existingUser.date,
+        userData: existingUser,
       });
     } else {
       res.send({

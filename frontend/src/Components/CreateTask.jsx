@@ -3,11 +3,14 @@ import crossBtn from '../assets/crossBtn.png'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios'
+import { useDispatch, useSelector } from 'react-redux';
+import { setTodo } from '../Store/Reducers/TodoFilterSlice'
 
 function CreateTask() {
 
+  const userInfo = useSelector(state=>state.UserSlice);
+  const dispatch = useDispatch();
   const [inputValue,setInputValue]=useState("");
-  
   const refElement=useRef();
    
   function handleInput(e){setInputValue(e.target.value);}
@@ -29,14 +32,47 @@ function CreateTask() {
     setInputValue("");
   }
 
-  function sendCreatedTask(typedValue){
-   axios.post("http://localhost:5000/todo/addTask",{task:typedValue})
-   .then((res)=>{res.data.status ? toast.success(res.data.message): "";})
-   .catch((err)=>{err.response ? console.log(err.response.data) :'';})
-   
-  }
-
   function closeCreateTask(){refElement.current.style.display="none";}
+
+  function sendCreatedTask(typedValue){
+   axios.post("http://localhost:5000/todo/addTask",{
+    task:typedValue,
+    userId:userInfo.userId,
+  })
+   .then((res)=>{
+    res.data.status ? toast.success(res.data.message): toast.error(res.data.message);
+    getTodoData();
+  })
+   .catch((err)=>{
+    err.response ? console.log(err.response.data) :'';
+  })
+ }
+   
+  
+  const getTodoData=()=>{
+
+    axios.post("http://localhost:5000/filters/all",{
+        userId:userInfo.userId,
+      })
+      .then((res)=>{
+
+        if(res.data.status===false){
+          toast.info(res.data.message);
+        }
+        else{
+          console.log(res.data);
+          dispatch(setTodo(res.data));
+
+        }
+        
+      })
+      .catch((err)=>{
+        console.log(err);
+      })
+    } 
+  
+
+  
 
   return (
     
@@ -77,9 +113,6 @@ function CreateTask() {
       />
 
     </div>
-    
-   
-  
 
   )
 }

@@ -1,32 +1,43 @@
 const Todo = require("../models/todoModel");
+const User = require("../models/userModel");
 
 async function addTask(req, res) {
   console.log("Reached Add Task");
 
-  const { task } = req.body;
+  const { task, userId } = req.body;
+  console.log(userId);
 
-  const newTask = new Todo({
-    task: task,
-    completed: false,
-    starred: false,
-    deleted: false,
-    date: new Date(),
-  });
+  const existingUser = await User.findOne({ _id: userId });
+  if (existingUser) {
+    const newTask = new Todo({
+      userId: userId,
+      task: task,
+      completed: false,
+      starred: false,
+      deleted: false,
+      date: new Date(),
+    });
 
-  await newTask.save();
-  res.send({
-    status: true,
-    message: "Task added successfully",
-  });
+    await newTask.save();
+    res.send({
+      status: true,
+      message: "Task added successfully",
+    });
+  } else {
+    res.send({
+      status: false,
+      message: "No such user found!",
+    });
+  }
 }
 
 async function markCompleted(req, res) {
   console.log("Reached mark completed task");
 
-  const { taskID } = req.body;
+  const { taskID, userId } = req.body;
 
   const markCompleteStatus = await Todo.findOneAndUpdate(
-    { _id: taskID },
+    { _id: taskID, userId: userId },
     { $set: { completed: true } }
   );
 
@@ -46,10 +57,10 @@ async function markCompleted(req, res) {
 async function unMarkCompleted(req, res) {
   console.log("Reached un mark completed task");
 
-  const { taskID } = req.body;
+  const { taskID, userId } = req.body;
 
   const unMarkCompletedStatus = await Todo.findOneAndUpdate(
-    { _id: taskID },
+    { _id: taskID, userId: userId },
     { $set: { completed: false } }
   );
 
@@ -61,7 +72,7 @@ async function unMarkCompleted(req, res) {
   } else {
     res.send({
       status: false,
-      message: "No such task found",
+      message: "No such task found!",
     });
   }
 }
@@ -69,10 +80,10 @@ async function unMarkCompleted(req, res) {
 async function markStarred(req, res) {
   console.log("Reached mark starred task");
 
-  const { taskID } = req.body;
+  const { taskID, userId } = req.body;
 
   const markStarredStatus = await Todo.findOneAndUpdate(
-    { _id: taskID },
+    { _id: taskID, userId: userId },
     { $set: { starred: true } }
   );
 
@@ -92,10 +103,10 @@ async function markStarred(req, res) {
 async function unMarkStarred(req, res) {
   console.log("Reached un mark starred task");
 
-  const { taskID } = req.body;
+  const { taskID, userId } = req.body;
 
   const unMarkStarredStatus = await Todo.findOneAndUpdate(
-    { _id: taskID },
+    { _id: taskID, userId: userId },
     { $set: { starred: false } }
   );
 
@@ -107,7 +118,7 @@ async function unMarkStarred(req, res) {
   } else {
     res.send({
       status: false,
-      message: "No such task found",
+      message: "No such task found!",
     });
   }
 }
@@ -115,10 +126,10 @@ async function unMarkStarred(req, res) {
 async function deleteTask(req, res) {
   console.log("Reached deleted task");
 
-  const { taskID } = req.body;
+  const { taskID, userId } = req.body;
 
   const deleteStatus = await Todo.findOneAndUpdate(
-    { _id: taskID },
+    { _id: taskID, userId: userId },
     { $set: { deleted: true } }
   );
 
@@ -130,7 +141,7 @@ async function deleteTask(req, res) {
   } else {
     res.send({
       status: false,
-      message: "No such Task found",
+      message: "No such Task found!",
     });
   }
 }
@@ -138,10 +149,10 @@ async function deleteTask(req, res) {
 async function undoDelete(req, res) {
   console.log("Reached undo deleted task");
 
-  const { taskID } = req.body;
+  const { taskID, userId } = req.body;
 
   const deleteStatus = await Todo.findOneAndUpdate(
-    { _id: taskID },
+    { _id: taskID, userId: userId },
     { $set: { deleted: false } }
   );
 
@@ -153,7 +164,7 @@ async function undoDelete(req, res) {
   } else {
     res.send({
       status: false,
-      message: "No such Task found",
+      message: "No such Task found!",
     });
   }
 }

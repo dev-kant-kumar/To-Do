@@ -34,8 +34,8 @@ function AuthenticationPage() {
      }).then((res)=>{
        if(res.data.status == true){
  
-       const {name,username,email,date} =res.data.data
-       dispatch(setUserInfo({name,username,email,date}))
+       const {_id,name,username,email,date} =res.data.data;
+       dispatch(setUserInfo({_id,name,username,email,date}))
        
        }
        dispatch(setPreLoader(false));

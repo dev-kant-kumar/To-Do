@@ -10,11 +10,11 @@ const {
   showDeletedTask,
 } = require("../controllers/todoFiltersController");
 
-TodoFiltersRoutes.get("/all", showAllTasks);
-TodoFiltersRoutes.get("/completed", showCompletedTasks);
-TodoFiltersRoutes.get("/starred", showStarredTasks);
-TodoFiltersRoutes.get("/today", showTasksCreatedToday);
-TodoFiltersRoutes.get("/week", showTasksCreatedWeekAgo);
-TodoFiltersRoutes.get("/deleted", showDeletedTask);
+TodoFiltersRoutes.post("/all", showAllTasks);
+TodoFiltersRoutes.post("/completed", showCompletedTasks);
+TodoFiltersRoutes.post("/starred", showStarredTasks);
+TodoFiltersRoutes.post("/today", showTasksCreatedToday);
+TodoFiltersRoutes.post("/week", showTasksCreatedWeekAgo);
+TodoFiltersRoutes.post("/deleted", showDeletedTask);
 
 module.exports = TodoFiltersRoutes;

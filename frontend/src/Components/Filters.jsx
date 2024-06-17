@@ -4,13 +4,17 @@ import Starred from '../assets/ic--round-star.png'
 import Today from '../assets/material-symbols-light--today.png'  
 import Week from '../assets/tabler--calendar-week.png'
 import Delete from '../assets/Delete.png'
-import { setCount } from '../Store/Reducers/CountSlice'
 import { useDispatch} from 'react-redux';
 import axios from 'axios'
 import { setTodo } from '../Store/Reducers/TodoFilterSlice'
+import { useSelector } from 'react-redux';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 function Filters(props) {
+
+   const userInfo = useSelector(state=>state.UserSlice);
 
   const dispatch=useDispatch();
 
@@ -70,13 +74,26 @@ function Filters(props) {
 
     if(filterType){
       const url= "http://localhost:5000/filters/" + filterType;
-      axios.get(url)
+
+      axios.post(url,{
+        userId:userInfo.userId,
+      })
       .then((res)=>{
-        dispatch(setTodo(res.data));
-         setCount(prevCount => ({
+
+        if(res.data.status===false){
+          toast.info(res.data.message);
+
+        }
+        else{
+          console.log(res.data);
+          dispatch(setTodo(res.data));
+           setCount(prevCount => ({
             ...prevCount,
             [`${filterType}Count`]: res.data.length
           }))
+
+        }
+        
       })
       .catch((err)=>{
         console.log(err);

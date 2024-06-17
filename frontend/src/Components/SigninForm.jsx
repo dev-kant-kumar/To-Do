@@ -33,12 +33,15 @@ function SigninForm() {
 
       axios.post("http://localhost:5000/user/signin",{username:inputValue.username,password:inputValue.password})
        .then((res)=>{
-         const {status,message,name,username,email,date,token} =res.data
-
+         const {status,message} =res.data
+         
            if(status==true){
+
+            const {token,userData}=res.data;
+            const {_id,name,username,email,date}=userData;
            
                toast.success(message);
-               dispatch(setUserInfo({name,username,email,date,token})) //storing in store
+               dispatch(setUserInfo({_id,name,username,email,date})) //storing in store
                localStorage.setItem("token" ,token);
                navigate("/home");
            }

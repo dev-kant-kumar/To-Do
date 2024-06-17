@@ -3,21 +3,20 @@ import { createSlice } from "@reduxjs/toolkit";
 const UserSlice = createSlice({
   name: "userinfo",
   initialState: {
+    userId: "",
     name: "",
     username: "",
     email: "",
     dateOfAccountCreation: "",
-    token: "",
   },
   reducers: {
     setUserInfo(state, action) {
-      const { name, username, email, date, token } = action.payload;
-
-      (state.name = name),
+      const { _id, name, username, email, date } = action.payload;
+      (state.userId = _id),
+        (state.name = name),
         (state.username = username),
         (state.email = email),
-        (state.dateOfAccountCreation = date),
-        (state.token = token);
+        (state.dateOfAccountCreation = date);
     },
   },
 });

@@ -19,7 +19,6 @@ app.get("/", (req, res) => {
 
 app.use("/todo", TodoRoutes);
 app.use("/filters", TodoFiltersRoutes);
-
 app.use("/user", UserRoutes);
 
 app.listen(port, () => {
