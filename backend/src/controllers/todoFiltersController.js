@@ -5,7 +5,7 @@ async function showAllTasks(req, res) {
 
   const { userId } = req.body;
 
-  const allTasks = await Todo.find({ userId: userId });
+  const allTasks = await Todo.find({ userId: userId, deleted: false });
 
   if (allTasks.length == 0) {
     res.send({

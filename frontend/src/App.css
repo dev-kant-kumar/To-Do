@@ -149,7 +149,7 @@
   outline-offset: 2px;
 }
 .list-content {
-  width: 65%;
+  width: 60%;
   border: var(--universal-border);
 }
 .list-strike {
@@ -176,9 +176,23 @@
   position: relative;
   right: 10px;
 }
+.delete-task-btn {
+  margin-right: 5px;
+  padding-inline: 10px;
+  padding-block: 5px;
+  border: none;
+  border-radius: 20px;
+  background-color: #ff96a1;
+  color: white;
+  cursor: pointer;
+}
+.delete-task-btn:hover {
+  background-color: #ff5a6c;
+}
 .star-icon {
   height: 1.7em;
   cursor: pointer;
+  margin-left: 10px;
 }
 /* tasks footer section */
 #tasks-footer {

@@ -70,6 +70,26 @@ function Tasks() {
     }
   };
 
+  const deleteTask = async (taskID, status) => {
+    if (status === false)
+      await axios
+        .post("http://localhost:5000/todo/deleteTask", {
+          taskID,
+          userId: userInfo.userId,
+        })
+        .then((res) => {
+          if (res.data.status === true) {
+            toast.success(res.data.message);
+            fetchTodos(userInfo.userId);
+          } else {
+            toast.error(res.data.message);
+          }
+        })
+        .catch((err) => {
+          console.log(err.message);
+        });
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const options = {
@@ -102,6 +122,12 @@ function Tasks() {
               >
                 {task.task}
               </span>
+              <button
+                className="delete-task-btn"
+                onClick={() => deleteTask(task._id, task.deleted)}
+              >
+                Delete
+              </button>
               <span>{formatDate(task.date)}</span>
               <span
                 className="starred-mark list-items"
