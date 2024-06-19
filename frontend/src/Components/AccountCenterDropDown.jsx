@@ -1,52 +1,40 @@
-import React from 'react'
-import LogoutIcon from '../assets/majesticons--logout.png'
-import ProfileIcon from '../assets/iconamoon--profile-fill.png'
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useDispatch } from 'react-redux';
-import { setUserInfo } from '../Store/Reducers/UserSlice';
-import {useNavigate } from 'react-router-dom'
-
+import React from "react";
+import LogoutIcon from "../assets/majesticons--logout.png";
+import ProfileIcon from "../assets/iconamoon--profile-fill.png";
+import { useDispatch } from "react-redux";
+import { setUserInfo } from "../Store/Reducers/UserSlice";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
 function AccountCenterDropDown() {
-  
-  const dispatch=useDispatch();
-  const navigate=useNavigate();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const profileHandler=()=>{
-    
+  const profileHandler = () => {
     toast.info("Profile Section is under development");
+  };
 
-  }
-
-  const logoutHandler=()=>{
-    
+  const logoutHandler = () => {
     localStorage.clear();
     dispatch(setUserInfo({}));
     navigate("/login");
     toast.info("You have been logged out");
-  }
+  };
 
   return (
     <div id="parent-of-container">
-    <div id="ACDD-main-container">
-
+      <div id="ACDD-main-container">
         <section id="profile" onClick={profileHandler}>
-
-            <p>Profile</p>
-            <img src={ProfileIcon} alt="profile-icon" />
-
+          <p>Profile</p>
+          <img src={ProfileIcon} alt="profile-icon" />
         </section>
 
         <section id="logout" onClick={logoutHandler}>
-
-            <p>Logout</p>
-            <img src={LogoutIcon} alt="logout-icon" />
-
+          <p>Logout</p>
+          <img src={LogoutIcon} alt="logout-icon" />
         </section>
-      
+      </div>
     </div>
-    </div>
-  )
+  );
 }
 
-export default AccountCenterDropDown
+export default AccountCenterDropDown;

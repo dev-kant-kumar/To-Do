@@ -2,7 +2,9 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const TodoFilterSlice = createSlice({
   name: "todo",
-  initialState: {},
+  initialState: {
+    todo: [],
+  },
   reducers: {
     setTodo(state, action) {
       state.todo = action.payload;

@@ -4,6 +4,7 @@ import Filters from "./Components/Filters";
 import Projects from "./Components/Projects";
 import Tasks from "./Components/Tasks";
 
+
 function App() {
   const [show, setShow] = useState(false);
   const closeHandler = () => {

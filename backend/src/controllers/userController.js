@@ -72,30 +72,20 @@ async function signIn(req, res) {
 async function forgotPassword(req, res) {}
 
 async function getUserData(req, res) {
-  const token = req.headers["x-authorization"];
-  if (token) {
-    const finalToken = token.split(" ")[1];
-    const decodedToken = jwt.verify(finalToken, SECRET_KEY);
-    const username = decodedToken.username;
-    if (username) {
-      const userData = await user.findOne({ username: username });
-      if (userData) {
-        res.json({
-          status: true,
-          data: userData,
-        });
-      } else {
-        res.json({
-          status: false,
-          message: "Unauthorized",
-        });
-      }
+  const username = req.username;
+  if (username) {
+    const userData = await user.findOne({ username: username });
+    if (userData) {
+      res.json({
+        status: true,
+        data: userData,
+      });
+    } else {
+      res.json({
+        status: false,
+        message: "Unauthorized",
+      });
     }
-  } else {
-    res.json({
-      status: false,
-      message: "Unauthenticated",
-    });
   }
 }
 
