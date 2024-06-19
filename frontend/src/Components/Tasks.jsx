@@ -1,21 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, act } from "react";
 import CreateTask from "./CreateTask";
 import StarredIcon from "../assets/ic--round-star.png";
 import StarredMark from "../assets/white-star.png";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { setTodo } from "../Store/Reducers/TodoFilterSlice";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 function Tasks() {
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.UserSlice);
   const todoData = useSelector((state) => state.TodoFilterSlice);
   const todoList = todoData.todo.toReversed();
   const [showCreateTask, setShowCreateTask] = useState(false);
-
-  // useEffect(() => {
-  //   fetchTodos(userInfo.userId);
-  // }, [userInfo.userId]);
+  const activeFilter = useSelector((state) => state.ActiveDeletedFilter);
+  console.log(activeFilter);
 
   const fetchTodos = async (userId) => {
     try {
@@ -101,6 +99,25 @@ function Tasks() {
     return date.toLocaleDateString("en-IN", options);
   };
 
+  const deleteAllTaskInDeletedTasks = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/todo/deleteall",
+        {
+          userId: userInfo.userId,
+        }
+      );
+      if (response.data.status === true) {
+        toast.success(response.data.message);
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("An error occurred while deleting tasks.");
+    }
+  };
+
   return (
     <>
       <div id="tasks-main-container">
@@ -144,8 +161,15 @@ function Tasks() {
         </ul>
       </div>
       <div id="tasks-footer">
-        <button id="add-task-btn" onClick={taskHandler}>
-          Add Task
+        <button
+          id={activeFilter.isDeletedActive ? "delete-task-btn" : "add-task-btn"}
+          onClick={
+            activeFilter.isDeletedActive
+              ? deleteAllTaskInDeletedTasks
+              : taskHandler
+          }
+        >
+          {activeFilter.isDeletedActive ? "Delete All" : "New Task"}
         </button>
       </div>
       {showCreateTask && <CreateTask />}

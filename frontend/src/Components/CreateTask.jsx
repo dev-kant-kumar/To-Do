@@ -88,7 +88,7 @@ function CreateTask() {
           <button id="CT-create-btn" className="CT-btn" onClick={createTaskBtn}>
             Create Task
           </button>
-          <button id="CT-cancel-btn" className="CT-btn" onClick={cancelBtn}>
+          <button id="" className="CT-btn CT-cancel-btn" onClick={cancelBtn}>
             Cancel
           </button>
         </section>

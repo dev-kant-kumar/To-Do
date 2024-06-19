@@ -169,6 +169,47 @@ async function undoDelete(req, res) {
   }
 }
 
+async function deleteDeletedTask(req, res) {
+  // this function will finally delete the task from the database
+
+  console.log("Reached deleteDeletedTask");
+
+  const { userId } = req.body;
+
+  try {
+    const noOfTaskToDelete = await Todo.find({ userId: userId, deleted: true });
+
+    if (noOfTaskToDelete.length === 0) {
+      return res.send({
+        status: false,
+        message: "No tasks found to delete!",
+      });
+    } else {
+      const finalDeleteStatus = await Todo.deleteMany({
+        userId: userId,
+        deleted: true,
+      });
+
+      if (finalDeleteStatus.deletedCount === noOfTaskToDelete.length) {
+        res.send({
+          status: true,
+          message: "All tasks deleted successfully.",
+        });
+      } else {
+        res.send({
+          status: false,
+          message: "Error deleting tasks. Not all tasks were deleted!",
+        });
+      }
+    }
+  } catch (err) {
+    res.send({
+      status: false,
+      message: "An error occurred while deleting tasks.",
+    });
+  }
+}
+
 module.exports = {
   addTask,
   markCompleted,
@@ -177,4 +218,5 @@ module.exports = {
   unMarkStarred,
   deleteTask,
   undoDelete,
+  deleteDeletedTask,
 };

@@ -219,6 +219,21 @@
   outline-offset: 2px;
 }
 
+#delete-task-btn {
+  padding: 10px 20px;
+  border: 0.1px solid #6f2da8;
+  border-radius: 20px;
+  font-size: 1.1em;
+  font-weight: 500;
+  background-color: red;
+  color: white;
+  cursor: pointer;
+}
+#delete-task-btn:hover {
+  outline: 2px solid red;
+  outline-offset: 2px;
+}
+
 /* Tasks Create section */
 #CT-main-container {
   width: 30%;
@@ -276,7 +291,7 @@
   cursor: pointer;
 }
 
-#CT-cancel-btn {
+.CT-cancel-btn {
   background-color: red;
   border: 2px solid #861621;
 }
@@ -284,7 +299,7 @@
   background-color: green;
   border: 2px solid #1b4c1c;
 }
-#CT-cancel-btn:hover {
+.CT-cancel-btn:hover {
   outline: 2px solid red;
   outline-offset: -2px;
 }

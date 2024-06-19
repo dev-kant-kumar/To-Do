@@ -7,8 +7,9 @@ import Delete from "../assets/Delete.png";
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import { setTodo } from "../Store/Reducers/TodoFilterSlice";
+import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
 import { useSelector } from "react-redux";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 function Filters(props) {
   const userInfo = useSelector((state) => state.UserSlice);
@@ -22,6 +23,10 @@ function Filters(props) {
     isWeekActive: false,
     isDeletedActive: false,
   });
+
+  useEffect(() => {
+    dispatch(setActiveDeletedFilter(isActive));
+  }, [isActive]);
 
   const [count, setCount] = useState({
     allCount: "",
