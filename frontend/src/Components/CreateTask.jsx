@@ -9,6 +9,7 @@ function CreateTask() {
   const userInfo = useSelector((state) => state.UserSlice);
   const [inputValue, setInputValue] = useState("");
   const refElement = useRef();
+  const apiUrl = process.env.REACT_APP_API_BASE_URL;
 
   function handleInput(e) {
     setInputValue(e.target.value);
@@ -35,7 +36,7 @@ function CreateTask() {
 
   async function sendCreatedTask(typedValue) {
     try {
-      const response = await axios.post("http://localhost:5000/todo/addTask", {
+      const response = await axios.post(apiUrl + "/todo/addTask", {
         task: typedValue,
         userId: userInfo.userId,
       });
@@ -51,7 +52,7 @@ function CreateTask() {
 
   const fetchTodos = async (userId) => {
     try {
-      const response = await axios.post("http://localhost:5000/filters/all", {
+      const response = await axios.post(apiUrl + "/filters/all", {
         userId: userId,
       });
       if (response.data.status === false) {

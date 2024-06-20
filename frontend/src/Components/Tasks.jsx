@@ -8,6 +8,7 @@ import { setTodo } from "../Store/Reducers/TodoFilterSlice";
 import { toast } from "react-toastify";
 function Tasks() {
   const dispatch = useDispatch();
+  const apiUrl = process.env.REACT_APP_API_BASE_URL;
   const userInfo = useSelector((state) => state.UserSlice);
   const todoData = useSelector((state) => state.TodoFilterSlice);
   const todoList = todoData.todo.toReversed();
@@ -36,8 +37,8 @@ function Tasks() {
 
   const toggleTaskComplete = async (taskID, status) => {
     const url = status
-      ? "http://localhost:5000/todo/unMarkComplete"
-      : "http://localhost:5000/todo/markComplete";
+      ? apiUrl + "/todo/unMarkComplete"
+      : apiUrl + "/todo/markComplete";
 
     try {
       const response = await axios.post(url, {
@@ -53,8 +54,8 @@ function Tasks() {
 
   const toggleStarred = async (taskID, status) => {
     const url = status
-      ? "http://localhost:5000/todo/unMarkStarred"
-      : "http://localhost:5000/todo/markStarred";
+      ? apiUrl + "/todo/unMarkStarred"
+      : apiUrl + "/todo/markStarred";
 
     try {
       const response = await axios.post(url, {
@@ -71,7 +72,7 @@ function Tasks() {
   const deleteTask = async (taskID, status) => {
     if (status === false)
       await axios
-        .post("http://localhost:5000/todo/deleteTask", {
+        .post(apiUrl + "/todo/deleteTask", {
           taskID,
           userId: userInfo.userId,
         })
@@ -101,12 +102,9 @@ function Tasks() {
 
   const deleteAllTaskInDeletedTasks = async () => {
     try {
-      const response = await axios.post(
-        "http://localhost:5000/todo/deleteall",
-        {
-          userId: userInfo.userId,
-        }
-      );
+      const response = await axios.post(apiUrl + "/todo/deleteall", {
+        userId: userInfo.userId,
+      });
       if (response.data.status === true) {
         toast.success(response.data.message);
       } else {

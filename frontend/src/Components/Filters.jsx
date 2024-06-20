@@ -15,6 +15,7 @@ function Filters(props) {
   const userInfo = useSelector((state) => state.UserSlice);
 
   const dispatch = useDispatch();
+  const apiUrl = process.env.REACT_APP_API_BASE_URL;
 
   const [isActive, setIsActive] = useState({
     isAllActive: true,
@@ -65,7 +66,7 @@ function Filters(props) {
 
     if (filterType) {
       if (userInfo.userId != "") {
-        const url = "http://localhost:5000/filters/" + filterType;
+        const url = apiUrl + "/filters/" + filterType;
 
         axios
           .post(url, {

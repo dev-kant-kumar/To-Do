@@ -15,6 +15,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 function AuthenticationPage() {
   const dispatch = useDispatch();
+  const apiUrl = process.env.REACT_APP_API_BASE_URL;
 
   const preloader = useSelector((state) => state.Loader.preloader);
   const userInfo = useSelector((state) => state.UserSlice.name);
@@ -26,7 +27,7 @@ function AuthenticationPage() {
 
     if (token) {
       axios
-        .get("http://localhost:5000/user/getUserData", {
+        .get(apiUrl + "user/getUserData", {
           headers: {
             "X-Authorization": "Bearer " + token,
           },

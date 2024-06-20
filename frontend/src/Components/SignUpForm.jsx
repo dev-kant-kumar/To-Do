@@ -19,6 +19,7 @@ function SignUpForm() {
   const [signUpBtnDisable, setSignUpBtnDisable] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(true);
+  const apiUrl = process.env.REACT_APP_API_BASE_URL;
 
   const handleFormInput = (e) => {
     const { name, value } = e.target;
@@ -48,7 +49,7 @@ function SignUpForm() {
     e.preventDefault();
 
     await axios
-      .post("http://localhost:5000/user/signup", {
+      .post(apiUrl + "/user/signup", {
         name: inputValue.name,
         username: inputValue.username,
         email: inputValue.email,
