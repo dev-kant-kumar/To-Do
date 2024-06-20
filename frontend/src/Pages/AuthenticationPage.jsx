@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route, HashRouter } from "react-router-dom";
 import SignUp from "../Components/SignUpForm";
 import SignIn from "../Components/SigninForm";
 import Home from "../Pages/Home";
@@ -59,7 +59,7 @@ function AuthenticationPage() {
   } else {
     return (
       <div>
-        <BrowserRouter>
+        <HashRouter>
           <Routes>
             <Route path="/" element={<SignUp />} />
             <Route path="/login" element={<SignIn />} />
@@ -71,7 +71,7 @@ function AuthenticationPage() {
             <Route path="/error" element={<ErrorPage />} />
             <Route path="/home" element={<Home />} />
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
 
         <ToastContainer
           position="top-right"
