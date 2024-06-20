@@ -1,16 +1,16 @@
-{
-  "name": "to-do",
+ {"name": "to-do",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "/https://dev-kant-kumar.github.io/To-Do/frontend",
+  "homepage": "https://dev-kant-kumar.github.io/To-Do/frontend",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-     "predeploy": "npm run build",
-  "deploy": "gh-pages -d dist && git add . && git commit -m 'Deploy' && git push origin main"},
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist && git add . && git commit -m 'Deploy' && git push origin main"
+  },
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
