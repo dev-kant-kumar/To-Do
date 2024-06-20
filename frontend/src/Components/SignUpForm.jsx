@@ -5,6 +5,7 @@ import TodoIllustrationForSignUp from "../assets/TodoSignUp.png";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import global from "../Components/Global";
 function SignUpForm() {
   const navigate = useNavigate();
 
@@ -19,7 +20,7 @@ function SignUpForm() {
   const [signUpBtnDisable, setSignUpBtnDisable] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(true);
-  const apiUrl = process.env.REACT_APP_API_BASE_URL;
+  const apiUrl = global.REACT_APP_API_BASE_URL;
 
   const handleFormInput = (e) => {
     const { name, value } = e.target;
@@ -49,7 +50,7 @@ function SignUpForm() {
     e.preventDefault();
 
     await axios
-      .post(apiUrl + "/user/signup", {
+      .post(apiUrl + "user/signup", {
         name: inputValue.name,
         username: inputValue.username,
         email: inputValue.email,

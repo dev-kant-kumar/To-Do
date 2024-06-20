@@ -12,10 +12,12 @@ import axios from "axios";
 import { setPreLoader } from "../Store/Reducers/Loader";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import global from "../Components/Global";
 
 function AuthenticationPage() {
   const dispatch = useDispatch();
-  const apiUrl = process.env.REACT_APP_API_BASE_URL;
+  const apiUrl = global.REACT_APP_API_BASE_URL;
+  console.log(apiUrl);
 
   const preloader = useSelector((state) => state.Loader.preloader);
   const userInfo = useSelector((state) => state.UserSlice.name);

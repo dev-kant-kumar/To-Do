@@ -6,19 +6,19 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { setTodo } from "../Store/Reducers/TodoFilterSlice";
 import { toast } from "react-toastify";
+import global from "../Components/Global";
 function Tasks() {
   const dispatch = useDispatch();
-  const apiUrl = process.env.REACT_APP_API_BASE_URL;
+  const apiUrl = global.REACT_APP_API_BASE_URL;
   const userInfo = useSelector((state) => state.UserSlice);
   const todoData = useSelector((state) => state.TodoFilterSlice);
   const todoList = todoData.todo.toReversed();
   const [showCreateTask, setShowCreateTask] = useState(false);
   const activeFilter = useSelector((state) => state.ActiveDeletedFilter);
-  console.log(activeFilter);
 
   const fetchTodos = async (userId) => {
     try {
-      const response = await axios.post("http://localhost:5000/filters/all", {
+      const response = await axios.post(apiUrl + "filters/all", {
         userId: userId,
       });
       if (response.data.status === false) {
@@ -37,8 +37,8 @@ function Tasks() {
 
   const toggleTaskComplete = async (taskID, status) => {
     const url = status
-      ? apiUrl + "/todo/unMarkComplete"
-      : apiUrl + "/todo/markComplete";
+      ? apiUrl + "todo/unMarkComplete"
+      : apiUrl + "todo/markComplete";
 
     try {
       const response = await axios.post(url, {
@@ -54,8 +54,8 @@ function Tasks() {
 
   const toggleStarred = async (taskID, status) => {
     const url = status
-      ? apiUrl + "/todo/unMarkStarred"
-      : apiUrl + "/todo/markStarred";
+      ? apiUrl + "todo/unMarkStarred"
+      : apiUrl + "todo/markStarred";
 
     try {
       const response = await axios.post(url, {
@@ -72,7 +72,7 @@ function Tasks() {
   const deleteTask = async (taskID, status) => {
     if (status === false)
       await axios
-        .post(apiUrl + "/todo/deleteTask", {
+        .post(apiUrl + "todo/deleteTask", {
           taskID,
           userId: userInfo.userId,
         })
@@ -102,7 +102,7 @@ function Tasks() {
 
   const deleteAllTaskInDeletedTasks = async () => {
     try {
-      const response = await axios.post(apiUrl + "/todo/deleteall", {
+      const response = await axios.post(apiUrl + "todo/deleteall", {
         userId: userInfo.userId,
       });
       if (response.data.status === true) {

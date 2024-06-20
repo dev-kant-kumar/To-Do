@@ -7,10 +7,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setUserInfo } from "../Store/Reducers/UserSlice";
 import { ToastContainer, toast } from "react-toastify";
+import global from "../Components/Global";
 function SigninForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const apiUrl = process.env.REACT_APP_API_BASE_URL;
+  const apiUrl = global.REACT_APP_API_BASE_URL;
 
   const [inputValue, setInputValue] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +31,7 @@ function SigninForm() {
     e.preventDefault();
 
     await axios
-      .post(apiUrl + "/user/signin", {
+      .post(apiUrl + "user/signin", {
         username: inputValue.username,
         password: inputValue.password,
       })

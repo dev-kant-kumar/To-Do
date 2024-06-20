@@ -10,12 +10,13 @@ import { setTodo } from "../Store/Reducers/TodoFilterSlice";
 import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import global from "../Components/Global";
 
 function Filters(props) {
   const userInfo = useSelector((state) => state.UserSlice);
 
   const dispatch = useDispatch();
-  const apiUrl = process.env.REACT_APP_API_BASE_URL;
+  const apiUrl = global.REACT_APP_API_BASE_URL;
 
   const [isActive, setIsActive] = useState({
     isAllActive: true,
@@ -66,7 +67,7 @@ function Filters(props) {
 
     if (filterType) {
       if (userInfo.userId != "") {
-        const url = apiUrl + "/filters/" + filterType;
+        const url = apiUrl + "filters/" + filterType;
 
         axios
           .post(url, {

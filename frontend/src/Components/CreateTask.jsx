@@ -4,12 +4,13 @@ import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { setTodo } from "../Store/Reducers/TodoFilterSlice";
 import { ToastContainer, toast } from "react-toastify";
+import global from "../Components/Global";
 function CreateTask() {
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.UserSlice);
   const [inputValue, setInputValue] = useState("");
   const refElement = useRef();
-  const apiUrl = process.env.REACT_APP_API_BASE_URL;
+  const apiUrl = global.REACT_APP_API_BASE_URL;
 
   function handleInput(e) {
     setInputValue(e.target.value);
@@ -36,7 +37,7 @@ function CreateTask() {
 
   async function sendCreatedTask(typedValue) {
     try {
-      const response = await axios.post(apiUrl + "/todo/addTask", {
+      const response = await axios.post(apiUrl + "todo/addTask", {
         task: typedValue,
         userId: userInfo.userId,
       });
@@ -52,7 +53,7 @@ function CreateTask() {
 
   const fetchTodos = async (userId) => {
     try {
-      const response = await axios.post(apiUrl + "/filters/all", {
+      const response = await axios.post(apiUrl + "filters/all", {
         userId: userId,
       });
       if (response.data.status === false) {
