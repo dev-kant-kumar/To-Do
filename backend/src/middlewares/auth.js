@@ -1,11 +1,13 @@
 const jwt = require("jsonwebtoken");
-const SECRET_KEY = "de3u23h3j!2gwt";
+require("dotenv").config();
+const key = process.env.SECRET_KEY;
+console.log(key);
 function auth(req, res, next) {
   const token = req.headers["x-authorization"];
   if (token) {
     const finalToken = token.split(" ")[1];
     try {
-      const decodedToken = jwt.verify(finalToken, SECRET_KEY);
+      const decodedToken = jwt.verify(finalToken, key);
 
       const username = decodedToken.username;
       const userID = decodedToken.id;

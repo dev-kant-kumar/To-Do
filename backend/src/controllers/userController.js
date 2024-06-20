@@ -1,8 +1,10 @@
 const user = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+require("dotenv").config();
+const key = process.env.SECRET_KEY;
+console.log(key);
 const saltRounds = 10;
-const SECRET_KEY = "de3u23h3j!2gwt";
 
 async function signUp(req, res) {
   const { name, username, email, password } = req.body;
@@ -47,10 +49,7 @@ async function signIn(req, res) {
   } else {
     const checkPwd = await bcrypt.compare(password, existingUser.password);
 
-    const token = jwt.sign(
-      { id: existingUser._id, username: username },
-      SECRET_KEY
-    );
+    const token = jwt.sign({ id: existingUser._id, username: username }, key);
     console.log(token);
 
     if (checkPwd) {
