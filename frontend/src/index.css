@@ -129,6 +129,7 @@ body {
 }
 
 /* styling for form validation */
+
 .valid {
   border: 1.5px solid green !important;
   outline: 0.1px solid green !important;
@@ -136,4 +137,13 @@ body {
 .in-valid {
   border: 1.5px solid red !important;
   outline: 0.1px solid red !important;
+}
+
+.sigUp-form-validation-error-display-field {
+  width: 80%;
+  margin: auto;
+  margin-bottom: 8px;
+  color: #ff5a6c;
+  font-style: italic;
+  display: none;
 }

@@ -398,11 +398,13 @@ form :is(h2) {
 }
 
 .set-view-password {
-  height: 1.2em;
+  height: 1.3em;
   filter: invert(100%);
   position: absolute;
   right: 55px;
   z-index: 10;
+  cursor: pointer;
+  /* border: 2px solid white; */
 }
 
 .sig-up-btn-active {

@@ -22,22 +22,6 @@ function SignUpForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(true);
   const apiUrl = global.REACT_APP_API_BASE_URL;
 
-  const handleFormInput = (e) => {
-    const { name, value } = e.target;
-    setInputValue((prevState) => ({ ...prevState, [name]: value }));
-
-    checkPassword(e);
-  };
-
-  function checkPassword(e) {
-    if (inputValue.password !== inputValue.confirmPassword) {
-      setSignUpBtnDisable(true);
-      toast.warning("Passwords do not match");
-    } else {
-      setSignUpBtnDisable(false);
-    }
-  }
-
   const passwordHandler = () => {
     setShowPassword(!showPassword);
   };
@@ -46,9 +30,21 @@ function SignUpForm() {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  const sendDataToBackend = async (e) => {
-    e.preventDefault();
+  const handleFormInput = (e) => {
+    const { name, value } = e.target;
+    setInputValue((prevState) => ({ ...prevState, [name]: value }));
+  };
 
+  function formValidation(e) {
+    e.preventDefault();
+    if (inputValue.password === inputValue.confirmPassword) {
+      sendDataToBackend();
+    } else {
+      toast.error("Passwords do not match");
+    }
+  }
+
+  const sendDataToBackend = async () => {
     await axios
       .post(apiUrl + "user/signup", {
         name: inputValue.name,
@@ -83,11 +79,7 @@ function SignUpForm() {
         alt="TodoIllustration"
         id="main-img"
       />
-      <form
-        action=""
-        className="SignUp-signIn-form"
-        onSubmit={sendDataToBackend}
-      >
+      <form action="" className="SignUp-signIn-form" onSubmit={formValidation}>
         <h2>Sign Up</h2>
 
         <input
@@ -98,6 +90,9 @@ function SignUpForm() {
           onChange={handleFormInput}
           required
         />
+        <p className="sigUp-form-validation-error-display-field">
+          {"name is required"}
+        </p>
 
         <input
           type="text"
@@ -108,6 +103,9 @@ function SignUpForm() {
           onChange={handleFormInput}
           required
         />
+        <p className="sigUp-form-validation-error-display-field">
+          {"name is required"}
+        </p>
 
         <input
           type="email"
@@ -118,6 +116,9 @@ function SignUpForm() {
           onChange={handleFormInput}
           required
         />
+        <p className="sigUp-form-validation-error-display-field">
+          {"name is required"}
+        </p>
 
         <div className="password-field">
           <input
@@ -135,6 +136,9 @@ function SignUpForm() {
             onClick={passwordHandler}
           />
         </div>
+        <p className="sigUp-form-validation-error-display-field">
+          {"name is required"}
+        </p>
 
         <div className="password-field">
           <input
@@ -152,6 +156,9 @@ function SignUpForm() {
             onClick={confirmPasswordHandler}
           />
         </div>
+        <p className="sigUp-form-validation-error-display-field">
+          {"name is required"}
+        </p>
 
         <div id="terms-conditions">
           <input type="checkbox" required />
