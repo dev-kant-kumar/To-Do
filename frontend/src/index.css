@@ -140,10 +140,13 @@ body {
 }
 
 .sigUp-form-validation-error-display-field {
+  display: none;
+}
+.sigUp-form-validation-error-display-field-active {
+  display: block !important;
   width: 80%;
   margin: auto;
   margin-bottom: 8px;
   color: #ff5a6c;
   font-style: italic;
-  display: none;
 }
