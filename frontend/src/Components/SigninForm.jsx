@@ -123,19 +123,21 @@ function SigninForm() {
 
         <div className="password-field">
           <input
+            className="pf-password"
             type={showPassword ? "text" : "password"}
             name="password"
             value={inputValue.password}
             placeholder="Password"
             onChange={handleFormInput}
           />
-
-          <img
-            src={showPassword ? openEye : closeEye}
-            alt="revel password/show password icon"
-            className="set-view-password"
-            onClick={passwordHandler}
-          />
+          <div className="pf-img">
+            <img
+              src={showPassword ? openEye : closeEye}
+              alt="reveal password/show password icon"
+              className="set-view-password"
+              onClick={passwordHandler}
+            />
+          </div>
         </div>
         <p
           className={

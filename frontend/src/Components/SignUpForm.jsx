@@ -241,18 +241,21 @@ function SignUpForm() {
 
         <div className="password-field">
           <input
+            className="pf-password"
             type={showPassword ? "text" : "password"}
             name="password"
             value={inputValue.password}
             placeholder="Password"
             onChange={handleFormInput}
           />
-          <img
-            src={showPassword ? openEye : closeEye}
-            alt="reveal password/show password icon"
-            className="set-view-password"
-            onClick={passwordHandler}
-          />
+          <div className="pf-img">
+            <img
+              src={showPassword ? openEye : closeEye}
+              alt="reveal password/show password icon"
+              className="set-view-password"
+              onClick={passwordHandler}
+            />
+          </div>
         </div>
         <p
           className={
@@ -266,18 +269,21 @@ function SignUpForm() {
 
         <div className="password-field">
           <input
+            className="pf-password"
             type={showConfirmPassword ? "text" : "password"}
             name="confirmPassword"
             value={inputValue.confirmPassword}
             placeholder="Confirm Password"
             onChange={handleFormInput}
           />
-          <img
-            src={showConfirmPassword ? openEye : closeEye}
-            alt="reveal password/show password icon"
-            className="set-view-password"
-            onClick={confirmPasswordHandler}
-          />
+          <div className="pf-img">
+            <img
+              src={showConfirmPassword ? openEye : closeEye}
+              alt="reveal password/show password icon"
+              className="set-view-password"
+              onClick={confirmPasswordHandler}
+            />
+          </div>
         </div>
         <p
           className={
