@@ -178,11 +178,15 @@ function SignUpForm() {
 
   return (
     <div className="form-main-container">
+      <h1 id="logo" className="logo-for-sigIn-signUp-page">
+        to<span>do</span>.
+      </h1>
       <img
         src={TodoIllustrationForSignUp}
         alt="TodoIllustration"
         id="main-img"
       />
+
       <form action="" className="SignUp-signIn-form" onSubmit={formValidation}>
         <h2>Sign Up</h2>
 

@@ -389,7 +389,7 @@ form :is(h2) {
 }
 .password-field > .pf-img {
   height: 50px;
-  width: 50px;
+  width: 15%;
   background-color: lightgray;
   display: flex;
   justify-content: center;
@@ -641,4 +641,25 @@ form :is(h2) {
     min-width: none;
   }
   /* login and signUp section */
+
+  .logo-for-sigIn-signUp-page {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .form-main-container {
+    width: 98%;
+    border: var(--universal-border);
+    margin: 20px auto;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  #main-img {
+    display: none;
+  }
+  .SignUp-signIn-form {
+    width: 100%;
+  }
 }
