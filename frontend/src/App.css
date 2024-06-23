@@ -388,7 +388,7 @@ form :is(h2) {
   font-weight: 400;
 }
 .password-field > .pf-img {
-  height: 50px;
+  height: 52px;
   width: 15%;
   background-color: lightgray;
   display: flex;
@@ -661,5 +661,14 @@ form :is(h2) {
   }
   .SignUp-signIn-form {
     width: 100%;
+  }
+  #stay-signed-in-and-forgot-password {
+    width: 80%;
+    margin: 10px auto;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.7em;
   }
 }
