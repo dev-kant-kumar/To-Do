@@ -120,6 +120,10 @@ body {
   color: var(--list-item-color);
 }
 
+/* Profile Page */
+#profile-page-main-container {
+}
+
 /* disable text selection */
 .no-select {
   -webkit-user-select: none;

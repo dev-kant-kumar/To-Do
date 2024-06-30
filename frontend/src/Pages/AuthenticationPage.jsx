@@ -3,6 +3,7 @@ import { Routes, Route, HashRouter } from "react-router-dom";
 import SignUp from "../Components/SignUpForm";
 import SignIn from "../Components/SigninForm";
 import Home from "../Pages/Home";
+import ProfilePage from "./ProfilePage";
 import "../App.css";
 import ErrorPage from "./ErrorPage";
 import TermsAndConditionsPage from "./TermsAndConditionsPage";
@@ -63,13 +64,11 @@ function AuthenticationPage() {
           <Routes>
             <Route path="/" element={<SignUp />} />
             <Route path="/login" element={<SignIn />} />
-            <Route
-              path="/terms-and-conditions"
-              element={<TermsAndConditionsPage />}
-            />
+            <Route path="/home" element={<Home />} />
+            <Route path="/profile" element={<ProfilePage/>}/>
+            <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />}/>
             <Route path="*" element={<ErrorPage />} />
             <Route path="/error" element={<ErrorPage />} />
-            <Route path="/home" element={<Home />} />
           </Routes>
         </HashRouter>
 

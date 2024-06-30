@@ -10,7 +10,8 @@ function AccountCenterDropDown() {
   const navigate = useNavigate();
 
   const profileHandler = () => {
-    toast.info("Profile Section is under development");
+    // toast.info("Profile Section is under development");
+    navigate("/profile");
   };
 
   const logoutHandler = () => {
