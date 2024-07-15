@@ -183,44 +183,44 @@ body {
   border: 1px solid #536076;
   border-radius: 20px;
 }
-#profile-body{
-  width:60%;
+#profile-body {
+  width: 60%;
   /* border:2px solid white; */
-  margin-left:20%;
-  
-#task-matrices{
+  margin-left: 20%;
+}
+
+#task-matrices {
   /* border:2px solid white; */
   /* padding:10px; */
-  display:flex;
-  justify-content:flex-start;
-  align-items:center;
-  gap:30px;
-  
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 30px;
 }
-#task-created,#task-completed{
-  border:1px solid #282c35;
-  border-radius:10px;
-  padding-inline:20px;
-  padding-block:10px;
-
+#task-created,
+#task-completed {
+  border: 1px solid #282c35;
+  border-radius: 10px;
+  padding-inline: 20px;
+  padding-block: 10px;
 }
-#task-created:hover{
-  box-shadow:0px 0px 5px 0px #9040dd;
+#task-created:hover {
+  box-shadow: 0px 0px 5px 0px #9040dd;
 }
-#task-completed:hover{
-   box-shadow:0px 0px 5px 0px green;
+#task-completed:hover {
+  box-shadow: 0px 0px 5px 0px green;
 }
-#task-created >h2,#task-completed >h2{
-  font-size:1.2em;
-  font-weight:500;
+#task-created > h2,
+#task-completed > h2 {
+  font-size: 1.2em;
+  font-weight: 500;
 }
-#task-created >h3,#task-completed >h3{
-  margin-top:10px;
-  font-size:1.1em;
-  font-weight:400;
-
+#task-created > h3,
+#task-completed > h3 {
+  margin-top: 10px;
+  font-size: 1.1em;
+  font-weight: 400;
 }
-
 
 /* disable text selection */
 .no-select {
@@ -251,4 +251,7 @@ body {
   margin-bottom: 8px;
   color: #ff5a6c;
   font-style: italic;
+}
+@media only screen and (max-width: 750px) {
+  /* profile page */
 }
