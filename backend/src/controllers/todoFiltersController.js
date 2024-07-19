@@ -11,6 +11,7 @@ async function showAllTasks(req, res) {
     res.send({
       status: false,
       message: "No task found! Create tasks first.",
+      length: 0,
     });
   } else {
     res.send(allTasks);
@@ -29,6 +30,7 @@ async function showCompletedTasks(req, res) {
     res.send({
       status: false,
       message: "There are no tasks marked as completed.",
+      length: 0,
     });
   } else {
     res.send(completedTask);
@@ -47,6 +49,7 @@ async function showStarredTasks(req, res) {
     res.send({
       status: false,
       message: "There are no tasks marked as starred.",
+      length: 0,
     });
   } else {
     res.send(starredTask);
@@ -104,6 +107,7 @@ async function showTasksCreatedWeekAgo(req, res) {
     res.send({
       status: false,
       message: "There are no tasks created a week ago.",
+      length: 0,
     });
   } else {
     res.send(TasksWeekAgo);
@@ -121,6 +125,7 @@ async function showDeletedTask(req, res) {
     res.send({
       status: false,
       message: "There are no tasks marked as deleted.",
+      length: 0,
     });
   } else {
     res.send(deletedTask);

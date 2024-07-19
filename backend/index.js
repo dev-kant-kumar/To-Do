@@ -19,9 +19,14 @@ var limiter = RateLimit({
 // apply rate limiter to all requests
 app.use(limiter);
 
+const corsOptions = {
+  origin: "*", // Allow frontend URL
+  optionsSuccessStatus: 200,
+};
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors(corsOptions));
 
 app.get("/", (req, res) => {
   res.send("Hello there you are on todo Application server");
