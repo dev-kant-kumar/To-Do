@@ -6,7 +6,7 @@ import Week from "../assets/tabler--calendar-week.png";
 import Delete from "../assets/Delete.png";
 import { useDispatch } from "react-redux";
 import axios from "axios";
-import { setTodo } from "../Store/Reducers/TodoFilterSlice";
+import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -75,9 +75,12 @@ function Filters(props) {
           })
           .then((res) => {
             if (res.data.status === false) {
-              toast.info(res.data.message);
+              // toast.info(res.data.message);
+
+              dispatch(setTodoLength(res.data.length));
             } else {
               dispatch(setTodo(res.data));
+              dispatch(setTodoLength(res.data.length));
               setCount((prevCount) => ({
                 ...prevCount,
                 [`${filterType}Count`]: res.data.length,
@@ -133,7 +136,7 @@ function Filters(props) {
           <span className="count-badge">{count.todayCount}</span>
         </li>
 
-        <li
+        {/* <li
           className={isActive.isWeekActive ? "li-active" : ""}
           onClick={() => toggleFilter("week")}
         >
@@ -142,7 +145,7 @@ function Filters(props) {
           </span>
           <span className="fl-text">Week</span>
           <span className="count-badge">{count.weekCount}</span>
-        </li>
+        </li> */}
 
         <li
           className={isActive.isDeletedActive ? "li-active" : ""}

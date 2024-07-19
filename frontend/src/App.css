@@ -234,6 +234,21 @@
   outline-offset: 2px;
 }
 
+/* Images for showing on no-tasks-available in tasks list in task section */
+
+#img-to-show-in-case-of-no-tasks {
+  align-items: center;
+  height: 25em;
+  position: relative;
+  left: 25%;
+}
+
+#text-to-show-in-case-of-no-tasks {
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
 /* Tasks Create section */
 #CT-main-container {
   width: 30%;
@@ -671,5 +686,4 @@ form :is(h2) {
     gap: 10px;
     font-size: 0.7em;
   }
-  
 }
