@@ -55,7 +55,7 @@ async function signIn(req, res) {
     if (checkPwd) {
       res.send({
         status: true,
-        message: "Authentication successful", // for signIn response purpose
+        message: "Login successful", // for signIn response purpose
         token: token,
         userData: existingUser,
       });
