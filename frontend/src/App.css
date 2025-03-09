@@ -1,7 +1,7 @@
 /* Home Page */
 
 #home-main-container {
-  outline: 2px solid white;
+  /* outline: 2px solid white; */
   width: 100%;
   padding: 20px 50px;
   display: flex;
@@ -99,6 +99,7 @@
 #tasks-main-container::-webkit-scrollbar {
   display: none;
 }
+
 #tasks-head {
   display: flex;
   justify-content: space-between;
@@ -204,9 +205,15 @@
 }
 
 .list-item-date {
+  font-size: 0.8rem;
   transition: 0.2s linear;
+  white-space: nowrap;
+  word-wrap: nowrap;
+  overflow: hidden;
 }
+
 /* actions on list item */
+
 .list-item-actions {
   display: flex;
   gap: 20px;
