@@ -5,7 +5,11 @@ async function showAllTasks(req, res) {
 
   const { userId } = req.body;
 
-  const allTasks = await Todo.find({ userId: userId, deleted: false });
+  if (typeof userId !== "string") {
+    res.status(400).json({ status: "error", message: "Invalid userId" });
+    return;
+  }
+  const allTasks = await Todo.find({ userId: { $eq: userId }, deleted: false });
 
   if (allTasks.length == 0) {
     res.send({
@@ -24,7 +28,11 @@ async function showCompletedTasks(req, res) {
 
   const { userId } = req.body;
 
-  const completedTask = await Todo.find({ userId: userId, completed: true });
+  if (typeof userId !== "string") {
+    res.status(400).json({ status: "error", message: "Invalid userId" });
+    return;
+  }
+  const completedTask = await Todo.find({ userId: { $eq: userId }, completed: true });
 
   if (completedTask.length == 0) {
     res.send({
@@ -43,7 +51,11 @@ async function showStarredTasks(req, res) {
 
   const { userId } = req.body;
 
-  const starredTask = await Todo.find({ userId: userId, starred: true });
+  if (typeof userId !== "string") {
+    res.status(400).json({ status: "error", message: "Invalid userId" });
+    return;
+  }
+  const starredTask = await Todo.find({ userId: { $eq: userId }, starred: true });
 
   if (starredTask.length == 0) {
     res.send({
@@ -99,7 +111,7 @@ async function showTasksCreatedWeekAgo(req, res) {
 
   // Find tasks created exactly a week ago
   const TasksWeekAgo = await Todo.find({
-    userId: userId,
+    userId: { $eq: userId },
     date: { $gte: startOfWeekAgo, $lt: endOfWeekAgo },
   });
 
@@ -119,7 +131,11 @@ async function showDeletedTask(req, res) {
   console.log("show all deleted tasks");
   const { userId } = req.body;
 
-  const deletedTask = await Todo.find({ userId: userId, deleted: true });
+  if (typeof userId !== "string") {
+    res.status(400).json({ status: "error", message: "Invalid userId" });
+    return;
+  }
+  const deletedTask = await Todo.find({ userId: { $eq: userId }, deleted: true });
 
   if (deletedTask.length == 0) {
     res.send({
