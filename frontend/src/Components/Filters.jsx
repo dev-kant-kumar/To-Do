@@ -134,18 +134,6 @@ function Filters(props) {
           <span className="fl-text">Today</span>
           <span className="count-badge">{count.todayCount}</span>
         </li>
-
-        {/* <li
-          className={isActive.isWeekActive ? "li-active" : ""}
-          onClick={() => toggleFilter("week")}
-        >
-          <span>
-            <img src={Week} alt="week-icon" className="icon" />
-          </span>
-          <span className="fl-text">Week</span>
-          <span className="count-badge">{count.weekCount}</span>
-        </li> */}
-
         <li
           className={isActive.isDeletedActive ? "li-active" : ""}
           onClick={() => toggleFilter("deleted")}
