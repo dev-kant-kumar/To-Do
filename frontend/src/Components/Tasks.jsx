@@ -1,7 +1,5 @@
-import React, { useState, useEffect, act } from "react";
+import { useState } from "react";
 import CreateTask from "./CreateTask";
-import StarredIcon from "../assets/ic--round-star.png";
-import StarredMark from "../assets/white-star.png";
 import ImgForAddTasks from "../assets/add-tasks.png";
 import ImgForStarredTasks from "../assets/starredTasks.png";
 import ImgForTodaysCreatedTasks from "../assets/todayCreatedTasks.png";
@@ -11,13 +9,11 @@ import axios from "axios";
 import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { toast } from "react-toastify";
 import global from "../Components/Global";
-import { CloseFullscreen } from "@mui/icons-material";
 
 import { IoMdStarOutline } from "react-icons/io";
 import { MdOutlineStar } from "react-icons/md";
 import { AiFillDelete } from "react-icons/ai";
 import { SiGoogletasks } from "react-icons/si";
-import { TbMarquee } from "react-icons/tb";
 
 function Tasks() {
   const dispatch = useDispatch();
