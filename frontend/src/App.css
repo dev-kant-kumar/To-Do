@@ -146,7 +146,7 @@
   flex: 1 1 min(80%, 800px); /* Flexible width, doesn't shrink too much */
   min-width: 150px;
   max-width: 800px;
-  outline: 1px solid white;
+  /* outline: 1px solid white; */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
