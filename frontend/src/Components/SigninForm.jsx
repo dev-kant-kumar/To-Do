@@ -6,8 +6,9 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setUserInfo } from "../Store/Reducers/UserSlice";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import global from "../Components/Global";
+
 function SigninForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -26,7 +27,6 @@ function SigninForm() {
   });
 
   const handleFormInput = (e) => {
-    console.log(e.target.value);
     setInputValue({ ...inputValue, [e.target.name]: e.target.value });
   };
 
@@ -153,10 +153,10 @@ function SigninForm() {
         </p>
 
         <div id="stay-signed-in-and-forgot-password">
-          <input type="checkbox" required />
-          <p>
+          <input type="checkbox" required id="for-checkbox" />
+          <label htmlFor="for-checkbox">
             Keep me signed in <a>Forgot Password?</a>
-          </p>
+          </label>
         </div>
 
         <input type="submit" className="sig-up-btn-active" value="Sign In" />

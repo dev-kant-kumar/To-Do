@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import App from "../App.jsx";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { setPreLoader } from "../Store/Reducers/Loader.js";
 import { useDispatch } from "react-redux";

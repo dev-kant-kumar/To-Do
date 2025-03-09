@@ -300,11 +300,11 @@ function SignUpForm() {
         </p>
 
         <div id="terms-conditions">
-          <input type="checkbox" required />
-          <p>
+          <input type="checkbox" id="for-checkbox" required />
+          <label htmlFor="for-checkbox">
             Agree With{" "}
-            <Link href="/terms-and-conditions">Terms & Conditions</Link>
-          </p>
+            <Link to="/terms-and-conditions">Terms & Conditions</Link>
+          </label>
         </div>
 
         <input
