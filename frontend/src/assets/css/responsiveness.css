@@ -1,0 +1,130 @@
+/* header responsiveness section */
+@media only screen and (max-width: 750px) {
+  #logo {
+    display: none;
+  }
+  .header {
+    padding: 18px 18px;
+  }
+}
+
+@media only screen and (max-width: 750px) {
+  #filters-section {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30%;
+    height: 100vh;
+    min-width: 260px;
+    z-index: 999;
+    box-shadow: 0px 0px 5px black;
+  }
+  #home-main-container {
+    padding: 0px 0px;
+    height: 80dvh;
+  }
+  #tasks-main-container {
+    height: 90%;
+  }
+  #tasks-section {
+    width: 100%;
+    padding-inline: 0px;
+    padding-block: 0px;
+    border-radius: 0px;
+  }
+  #tasks-list li {
+    width: 100%;
+    border-radius: 0px;
+    margin-block: 0px;
+  }
+  #tasks-footer {
+    width: 100%;
+    bottom: 0px;
+  }
+
+  .menu {
+    display: block;
+    font-size: 2rem;
+  }
+  .filter-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .close {
+    display: block;
+    width: 25px;
+    height: 25px;
+    background-color: #6f2da8;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+  .show {
+    display: block !important;
+  }
+  .hide {
+    display: none !important;
+  }
+  #btn {
+    padding: 10px 20px;
+    width: 100%;
+    text-align: center;
+    border: 0.1px solid #6f2da8;
+    border-radius: 20px;
+    font-size: 1.1em;
+    font-weight: 500;
+    background-color: #6f2da8;
+    color: white;
+    cursor: pointer;
+    display: block;
+  }
+  #CT-main-container {
+    width: 83%;
+    padding: 15px;
+    position: absolute;
+    top: 52%;
+    left: 9%;
+    z-index: 10;
+    background: #16161d;
+    border-radius: 8px;
+    box-shadow: 0px 0px 5px 0px white;
+    min-width: none;
+  }
+  /* login and signUp section */
+
+  .logo-for-sigIn-signUp-page {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .form-main-container {
+    width: 98%;
+    border: var(--universal-border);
+    margin: 20px auto;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  #main-img {
+    display: none;
+  }
+  .SignUp-signIn-form {
+    width: 100%;
+  }
+  #stay-signed-in-and-forgot-password {
+    width: 80%;
+    margin: 10px auto;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.7em;
+  }
+}

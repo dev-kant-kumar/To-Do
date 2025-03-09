@@ -100,13 +100,3 @@
 #ACDD-main-container > section > p {
   color: var(--list-item-color);
 }
-
-/* header responsiveness section */
-@media only screen and (max-width: 750px) {
-  #logo {
-    display: none;
-  }
-  .header {
-    padding: 18px 18px;
-  }
-}
