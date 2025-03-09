@@ -19,6 +19,10 @@
   position: relative;
 }
 
+.header .three-line {
+  cursor: pointer;
+}
+
 #account-center {
   width: fit-content;
   height: fit-content;
@@ -42,6 +46,9 @@
   width: fit-content;
   font-size: 0.8em;
   color: var(--list-item-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Account Center Drop Down section  */
@@ -92,4 +99,14 @@
 }
 #ACDD-main-container > section > p {
   color: var(--list-item-color);
+}
+
+/* header responsiveness section */
+@media only screen and (max-width: 750px) {
+  #logo {
+    display: none;
+  }
+  .header {
+    padding: 18px 18px;
+  }
 }

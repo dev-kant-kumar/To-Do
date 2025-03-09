@@ -100,31 +100,6 @@
   display: none;
 }
 
-#tasks-head {
-  display: flex;
-  justify-content: space-between;
-}
-#tasks-heading {
-  font-size: var(--heading-h2-font-size);
-  color: var(--heading-h2);
-  margin-bottom: 10px;
-}
-#notify-icon-container {
-  display: flex;
-  justify-content: space-around;
-  gap: 10px;
-}
-.notify-icon {
-  height: 2.5em;
-  width: 2.5em;
-  background-color: #6f2da8;
-  border: 2px solid white;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 #tasks-list {
   list-style-type: none;
 }
@@ -154,59 +129,16 @@
 .list-strike {
   text-decoration: white line-through;
 }
-
 .completed-mark {
   height: 1.4em;
   width: 1.4em;
   cursor: pointer;
   accent-color: var(--heading-h2);
 }
-
 .starred-mark {
   cursor: pointer;
   padding-inline: 10px;
 }
-
-/* tasks footer section */
-#tasks-footer {
-  width: 95%;
-  border: var(--universal-border);
-  padding: 10px;
-  display: flex;
-  justify-content: flex-end;
-  position: relative;
-}
-#add-task-btn {
-  padding: 10px 20px;
-  border: 0.1px solid #6f2da8;
-  border-radius: 20px;
-  font-size: 1.1em;
-  font-weight: 500;
-  background-color: #6f2da8;
-  color: white;
-  cursor: pointer;
-}
-
-#add-task-btn:hover {
-  outline: 2px solid #6f2da8;
-  outline-offset: 2px;
-}
-
-#delete-task-btn {
-  padding: 10px 20px;
-  border: 0.1px solid #6f2da8;
-  border-radius: 20px;
-  font-size: 1.1em;
-  font-weight: 500;
-  background-color: red;
-  color: white;
-  cursor: pointer;
-}
-#delete-task-btn:hover {
-  outline: 2px solid red;
-  outline-offset: 2px;
-}
-
 .list-item-date {
   width: 10%;
   font-size: 0.8rem;
@@ -255,6 +187,32 @@
 #tasks-list li:hover .list-item-date {
   display: none;
 }
+
+/* tasks footer section */
+#tasks-footer {
+  width: 95%;
+  border: var(--universal-border);
+  padding: 10px;
+  display: flex;
+  justify-content: flex-end;
+  position: relative;
+}
+#add-task-btn {
+  padding: 10px 20px;
+  border: 0.1px solid #6f2da8;
+  border-radius: 20px;
+  font-size: 1.1em;
+  font-weight: 500;
+  background-color: #6f2da8;
+  color: white;
+  cursor: pointer;
+}
+
+#add-task-btn:hover {
+  outline: 2px solid #6f2da8;
+  outline-offset: 2px;
+}
+
 /* Images for showing on no-tasks-available in tasks list in task section */
 
 #img-to-show-in-case-of-no-tasks {
@@ -585,25 +543,41 @@ form :is(h2) {
 }
 @media only screen and (max-width: 750px) {
   #filters-section {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
     display: block;
     position: absolute;
     top: 0;
-    right: 0;
-    width: 50%;
+    left: 0;
+    width: 30%;
     height: 100vh;
     min-width: 260px;
     z-index: 999;
+    box-shadow: 0px 0px 5px black;
+  }
+  #home-main-container {
+    padding: 0px 0px;
+    height: 80dvh;
+  }
+  #tasks-main-container {
+    height: 90%;
   }
   #tasks-section {
     width: 100%;
+    padding-inline: 0px;
+    padding-block: 0px;
+    border-radius: 0px;
   }
-  #home-main-container {
-    padding: 20px 25px;
+  #tasks-list li {
+    width: 100%;
+    border-radius: 0px;
+    margin-block: 0px;
   }
-  .header {
-    display: flex;
-    justify-content: space-between;
+  #tasks-footer {
+    width: 100%;
+    bottom: 0px;
   }
+
   .menu {
     display: block;
     font-size: 2rem;

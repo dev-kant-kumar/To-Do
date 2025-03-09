@@ -2,6 +2,7 @@ import { useState } from "react";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { useSelector } from "react-redux";
 import DropDown from "./AccountCenterDropDown";
+import { IoReorderThreeOutline } from "react-icons/io5";
 
 function Header(props) {
   const userInfo = useSelector((state) => state.UserSlice);
@@ -17,6 +18,12 @@ function Header(props) {
 
   return (
     <div className="header">
+      <div className="menu">
+        <span className="three-line">
+          {" "}
+          <IoReorderThreeOutline onClick={closeHandler} />
+        </span>
+      </div>
       <h1 id="logo">
         to<span>do</span>.
       </h1>
@@ -25,10 +32,6 @@ function Header(props) {
         <IoMdArrowDropdown size={20} />
       </section>
       {showDropDown && <DropDown />}
-
-      <div className="menu">
-        <i onClick={closeHandler} className="ri-menu-3-line"></i>
-      </div>
     </div>
   );
 }
