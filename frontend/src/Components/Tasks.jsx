@@ -17,6 +17,7 @@ import { IoMdStarOutline } from "react-icons/io";
 import { MdOutlineStar } from "react-icons/md";
 import { AiFillDelete } from "react-icons/ai";
 import { SiGoogletasks } from "react-icons/si";
+import { TbMarquee } from "react-icons/tb";
 
 function Tasks() {
   const dispatch = useDispatch();

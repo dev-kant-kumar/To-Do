@@ -144,8 +144,10 @@
 }
 
 .list-content {
-  width: 78%;
+  flex-grow: 1;
   /* outline: 1px solid white; */
+  word-wrap: nowrap;
+  white-space: nowrap;
   overflow: hidden;
 }
 .list-strike {
@@ -205,6 +207,7 @@
 }
 
 .list-item-date {
+  width: 10%;
   font-size: 0.8rem;
   transition: 0.2s linear;
   white-space: nowrap;
@@ -215,6 +218,7 @@
 /* actions on list item */
 
 .list-item-actions {
+  width: 10%;
   display: flex;
   gap: 20px;
   display: none;
