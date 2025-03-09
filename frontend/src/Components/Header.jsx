@@ -21,7 +21,7 @@ function Header(props) {
       <div className="menu">
         <span className="three-line">
           {" "}
-          <IoReorderThreeOutline onClick={closeHandler} />
+          <IoReorderThreeOutline onClick={closeHandler} color="#B0B3C0" />
         </span>
       </div>
       <h1 id="logo">
@@ -29,7 +29,7 @@ function Header(props) {
       </h1>
       <section id="account-center" onClick={dropDownHandler}>
         <p>{userInfo?.name}</p>
-        <IoMdArrowDropdown size={20} />
+        <IoMdArrowDropdown size={20} color="#536076" />
       </section>
       {showDropDown && <DropDown />}
     </div>

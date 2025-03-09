@@ -24,12 +24,12 @@ function AccountCenterDropDown() {
       <div id="ACDD-main-container">
         <section id="profile" onClick={profileHandler}>
           <p>Profile</p>
-          <IoPerson />
+          <IoPerson color="#b1b9c8" />
         </section>
 
         <section id="logout" onClick={logoutHandler}>
           <p>Logout</p>
-          <RiLogoutBoxRFill />
+          <RiLogoutBoxRFill color="#b1b9c8" />
         </section>
       </div>
     </div>

@@ -113,13 +113,15 @@
   gap: 10px;
   border-radius: 10px;
   margin-block: 15px;
-  padding: 10px 20px;
+  padding: 18px 20px;
   background-color: var(--list-bg-color);
+  transition: 0.2s linear;
+  position: relative;
 }
 
 .list-content {
-  flex: 1 1 min(80%, 800px); /* Flexible width, doesn't shrink too much */
-  min-width: 150px;
+  flex: 1 1 min(70%, 800px); /* Flexible width, doesn't shrink too much */
+  min-width: 120px;
   max-width: 800px;
   /* outline: 1px solid white; */
   white-space: nowrap;
@@ -140,18 +142,21 @@
   padding-inline: 10px;
 }
 .list-item-date {
-  width: 10%;
-  font-size: 0.8rem;
+  width: fit-content;
+  font-size: 0.7rem;
+  font-weight: 600;
   transition: 0.2s linear;
   white-space: nowrap;
   word-wrap: nowrap;
-  overflow: hidden;
+  position: absolute;
+  top: 8px;
+  right: 15px;
 }
 
 /* actions on list item */
 
 .list-item-actions {
-  width: 10%;
+  /* width: 10%; */
   display: flex;
   gap: 20px;
   display: none;
@@ -177,8 +182,7 @@
 }
 
 #tasks-list li:hover {
-  outline: 1px solid var(--list-bg-color);
-  outline-offset: 2px;
+  background-color: #3b404a;
 }
 
 #tasks-list li:hover .list-item-actions {
@@ -210,6 +214,21 @@
 
 #add-task-btn:hover {
   outline: 2px solid #6f2da8;
+  outline-offset: 2px;
+}
+
+#delete-task-btn {
+  padding: 10px 20px;
+  border: 0.1px solid #6f2da8;
+  border-radius: 20px;
+  font-size: 1.1em;
+  font-weight: 500;
+  background-color: red;
+  color: white;
+  cursor: pointer;
+}
+#delete-task-btn:hover {
+  outline: 2px solid red;
   outline-offset: 2px;
 }
 
@@ -542,6 +561,14 @@ form :is(h2) {
   display: none;
 }
 @media only screen and (max-width: 750px) {
+  /* header responsiveness section */
+  #logo {
+    display: none;
+  }
+  .header {
+    padding: 18px 18px;
+  }
+
   #filters-section {
     border-top-left-radius: 0px;
     border-bottom-left-radius: 0px;
@@ -572,12 +599,22 @@ form :is(h2) {
     width: 100%;
     border-radius: 0px;
     margin-block: 0px;
+    border-bottom: 0.1px solid whitesmoke;
+  }
+  #tasks-list li:hover {
+    outline: none;
+  }
+  .starred-mark {
+    cursor: pointer;
+    padding-inline: 5px;
   }
   #tasks-footer {
     width: 100%;
     bottom: 0px;
   }
 
+  .list-content {
+  }
   .menu {
     display: block;
     font-size: 2rem;
