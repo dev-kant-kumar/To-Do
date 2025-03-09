@@ -7,10 +7,28 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependency directories
 node_modules
 dist
 dist-ssr
-*.local
+.out
+
+# Build output
+build
+.next
+.nuxt
+.svelte-kit
+
+# Public directory cache
+.cache
+
+# TurboRepo cache
+.turbo
+
+# Lockfiles (optional, depends on package manager preference)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Editor directories and files
 .vscode/*
@@ -23,5 +41,20 @@ dist-ssr
 *.sln
 *.sw?
 
-#Environment Variable
+# Environment Variables
 *.env
+.env.local
+.env.*.local
+
+# Coverage reports (if using Jest, Cypress, or other test tools)
+coverage
+
+# Deployment-specific files
+.vercel
+.netlify
+
+# Miscellaneous
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
