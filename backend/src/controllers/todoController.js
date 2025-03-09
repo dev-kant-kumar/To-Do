@@ -152,7 +152,7 @@ async function undoDelete(req, res) {
   const { taskID, userId } = req.body;
 
   const deleteStatus = await Todo.findOneAndUpdate(
-    { _id: taskID, userId: userId },
+    { _id: taskID, userId: { $eq: userId } },
     { $set: { deleted: false } }
   );
 
@@ -177,7 +177,7 @@ async function deleteDeletedTask(req, res) {
   const { userId } = req.body;
 
   try {
-    const noOfTaskToDelete = await Todo.find({ userId: userId, deleted: true });
+    const noOfTaskToDelete = await Todo.find({ userId: { $eq: userId }, deleted: true });
 
     if (noOfTaskToDelete.length === 0) {
       return res.send({
@@ -186,7 +186,7 @@ async function deleteDeletedTask(req, res) {
       });
     } else {
       const finalDeleteStatus = await Todo.deleteMany({
-        userId: userId,
+        userId: { $eq: userId },
         deleted: true,
       });
 
