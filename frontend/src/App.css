@@ -1,15 +1,15 @@
 /* Home Page */
 
 #home-main-container {
+  outline: 2px solid white;
   width: 100%;
   padding: 20px 50px;
-  border: var(--universal-border);
   display: flex;
   justify-content: space-between;
+  gap: 30px;
 }
 #filters-section {
-  width: 30%;
-  border: var(--universal-border);
+  width: 20%;
   border-radius: 10px;
   background-color: var(--section-container-bg-color);
   color: var(--list-item-color);
@@ -17,8 +17,7 @@
 }
 
 #tasks-section {
-  width: 65%;
-  border: var(--universal-border);
+  flex-grow: 1;
   border-radius: 10px;
   background-color: var(--section-container-bg-color);
   padding: 20px;
@@ -53,12 +52,12 @@
   border-radius: 10px;
 }
 .icon {
-  height: 1.5em;
-  /* margin-right:5px; */
+  height: 25px;
+  width: 25px;
 }
 .fl-text {
   width: 80%;
-  margin-left: 8px;
+  margin-left: 10px;
 }
 .count-badge {
   color: white;
@@ -95,12 +94,9 @@
 /* Tasks section */
 #tasks-main-container {
   height: 450px;
-  /* border:0.1px solid #B1B9C8;
-    border-radius:10px; */
-  overflow: auto;
+  overflow-y: auto;
 }
 #tasks-main-container::-webkit-scrollbar {
-  width: 0px;
   display: none;
 }
 #tasks-head {
@@ -134,66 +130,39 @@
 #tasks-list li {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   align-items: center;
   width: 98%;
+  margin: auto;
   border: none;
   gap: 10px;
   border-radius: 10px;
   margin-block: 15px;
-  padding: 10px;
+  padding: 10px 20px;
   background-color: var(--list-bg-color);
 }
-#tasks-list li:hover {
-  outline: 1px solid var(--list-bg-color);
-  outline-offset: 2px;
-}
+
 .list-content {
-  width: 60%;
-  border: var(--universal-border);
+  width: 78%;
+  /* outline: 1px solid white; */
+  overflow: hidden;
 }
 .list-strike {
   text-decoration: white line-through;
 }
 
 .completed-mark {
-  height: 1.5em;
-  width: 1.5em;
-  border: 2px solid #d6dae1;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: 1.4em;
+  width: 1.4em;
   cursor: pointer;
+  accent-color: var(--heading-h2);
 }
-.inner-circle {
-  height: 1em;
-  width: 1em;
-  background-color: #d6dae1;
-  border-radius: 50%;
-}
+
 .starred-mark {
-  position: relative;
-  right: 10px;
-}
-.delete-task-btn {
-  margin-right: 5px;
+  cursor: pointer;
   padding-inline: 10px;
-  padding-block: 5px;
-  border: none;
-  border-radius: 20px;
-  background-color: #ff96a1;
-  color: white;
-  cursor: pointer;
 }
-.delete-task-btn:hover {
-  background-color: #ff5a6c;
-}
-.star-icon {
-  height: 1.7em;
-  cursor: pointer;
-  margin-left: 10px;
-}
+
 /* tasks footer section */
 #tasks-footer {
   width: 95%;
@@ -234,6 +203,46 @@
   outline-offset: 2px;
 }
 
+.list-item-date {
+  transition: 0.2s linear;
+}
+/* actions on list item */
+.list-item-actions {
+  display: flex;
+  gap: 20px;
+  display: none;
+  transition: 0.2s linear;
+}
+
+.list-item-actions span {
+  transition: 0.2s linear;
+  cursor: pointer;
+}
+
+.list-item-action-mark-task-complete {
+}
+
+.list-item-action-mark-task-complete:hover {
+  color: rgb(10, 193, 10);
+}
+.list-item-action-delete-task {
+}
+
+.list-item-action-delete-task:hover {
+  color: rgb(221, 10, 10);
+}
+
+#tasks-list li:hover {
+  outline: 1px solid var(--list-bg-color);
+  outline-offset: 2px;
+}
+
+#tasks-list li:hover .list-item-actions {
+  display: flex;
+}
+#tasks-list li:hover .list-item-date {
+  display: none;
+}
 /* Images for showing on no-tasks-available in tasks list in task section */
 
 #img-to-show-in-case-of-no-tasks {

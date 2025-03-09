@@ -12,6 +12,12 @@ import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { toast } from "react-toastify";
 import global from "../Components/Global";
 import { CloseFullscreen } from "@mui/icons-material";
+
+import { IoMdStarOutline } from "react-icons/io";
+import { MdOutlineStar } from "react-icons/md";
+import { AiFillDelete } from "react-icons/ai";
+import { SiGoogletasks } from "react-icons/si";
+
 function Tasks() {
   const dispatch = useDispatch();
   const apiUrl = global.REACT_APP_API_BASE_URL;
@@ -182,11 +188,21 @@ function Tasks() {
           <ul id="tasks-list">
             {todoList?.map((task) => (
               <li key={task._id}>
-                <span
+                <input
+                  type="checkbox"
+                  name=""
+                  id=""
                   className="completed-mark list-items"
-                  onClick={() => toggleTaskComplete(task._id, task.completed)}
+                />
+                <span
+                  className="starred-mark list-items"
+                  onClick={() => toggleStarred(task._id, task.starred)}
                 >
-                  <span className={task.completed ? "inner-circle" : ""}></span>
+                  {task.starred ? (
+                    <MdOutlineStar size={25} />
+                  ) : (
+                    <IoMdStarOutline size={25} />
+                  )}
                 </span>
                 <span
                   className={
@@ -197,23 +213,22 @@ function Tasks() {
                 >
                   {task.task}
                 </span>
-                <button
-                  className="delete-task-btn"
-                  onClick={() => deleteTask(task._id, task.deleted)}
-                >
-                  Delete
-                </button>
-                <span>{formatDate(task.date)}</span>
-                <span
-                  className="starred-mark list-items"
-                  onClick={() => toggleStarred(task._id, task.starred)}
-                >
-                  <img
-                    src={task.starred ? StarredMark : StarredIcon}
-                    alt="starred-icon"
-                    className="star-icon"
-                  />
-                </span>
+
+                <span className="list-item-date">{formatDate(task.date)}</span>
+                <div className="list-item-actions">
+                  <span
+                    className="list-item-action-mark-task-complete"
+                    onClick={() => toggleTaskComplete(task._id, task.completed)}
+                  >
+                    <SiGoogletasks size={25} />
+                  </span>
+                  <span
+                    className="list-item-action-delete-task"
+                    onClick={() => deleteTask(task._id, task.deleted)}
+                  >
+                    <AiFillDelete size={25} />
+                  </span>
+                </div>
               </li>
             ))}
           </ul>

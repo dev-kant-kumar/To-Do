@@ -1,16 +1,15 @@
-import React, { useEffect, useState } from "react";
-import All from "../assets/material-symbols-light--all-inbox.png";
-import Starred from "../assets/ic--round-star.png";
-import Today from "../assets/material-symbols-light--today.png";
-import Week from "../assets/tabler--calendar-week.png";
-import Delete from "../assets/Delete.png";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
 import global from "../Components/Global";
+
+import { LuListTodo } from "react-icons/lu";
+import { TiStarFullOutline } from "react-icons/ti";
+import { IoTodaySharp } from "react-icons/io5";
+import { AiFillDelete } from "react-icons/ai";
 
 function Filters(props) {
   const userInfo = useSelector((state) => state.UserSlice);
@@ -108,7 +107,7 @@ function Filters(props) {
           onClick={() => toggleFilter("all")}
         >
           <span>
-            <img src={All} alt="all-icon" className="icon" />
+            <LuListTodo className="icon" />
           </span>
           <span className="fl-text">All</span>
           <span className="count-badge">{count.allCount}</span>
@@ -119,7 +118,7 @@ function Filters(props) {
           onClick={() => toggleFilter("starred")}
         >
           <span>
-            <img src={Starred} alt="starred-icon" className="icon" />
+            <TiStarFullOutline className="icon" />
           </span>
           <span className="fl-text">Starred</span>
           <span className="count-badge">{count.starredCount}</span>
@@ -130,7 +129,7 @@ function Filters(props) {
           onClick={() => toggleFilter("today")}
         >
           <span>
-            <img src={Today} alt="today-icon" className="icon" />
+            <IoTodaySharp className="icon" />
           </span>
           <span className="fl-text">Today</span>
           <span className="count-badge">{count.todayCount}</span>
@@ -152,7 +151,7 @@ function Filters(props) {
           onClick={() => toggleFilter("deleted")}
         >
           <span>
-            <img src={Delete} alt="delete-icon" className="icon" />
+            <AiFillDelete className="icon" />
           </span>
           <span className="fl-text">Deleted</span>
           <span className="count-badge">{count.deletedCount}</span>
