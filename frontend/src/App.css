@@ -231,6 +231,20 @@
   outline: 2px solid red;
   outline-offset: 2px;
 }
+#delete-task-btn {
+  padding: 10px 20px;
+  border: 0.1px solid #6f2da8;
+  border-radius: 20px;
+  font-size: 1.1em;
+  font-weight: 500;
+  background-color: red;
+  color: white;
+  cursor: pointer;
+}
+#delete-task-btn:hover {
+  outline: 2px solid red;
+  outline-offset: 2px;
+}
 
 /* Images for showing on no-tasks-available in tasks list in task section */
 
