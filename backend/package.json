@@ -22,10 +22,10 @@
   "homepage": "https://github.com/dev-kant-kumar/To-Do#readme",
   "dependencies": {
     "bcrypt": "^5.1.1",
-    "body-parser": "^1.20.2",
+    "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "express": "^4.21.2",
     "express-rate-limit": "^7.3.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.3",
