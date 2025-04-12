@@ -37,7 +37,7 @@ async function signUp(req, res) {
 async function signIn(req, res) {
   const { username, password } = req.body;
 
-  const existingUser = await user.findOne({ username: username });
+  const existingUser = await user.findOne({ username: { $eq: username } });
 
   if (!existingUser) {
     res.send({
@@ -70,7 +70,7 @@ async function forgotPassword(req, res) {}
 async function getUserData(req, res) {
   const username = req.username;
   if (username) {
-    const userData = await user.findOne({ username: username });
+    const userData = await user.findOne({ username: { $eq: username } });
     if (userData) {
       res.json({
         status: true,
