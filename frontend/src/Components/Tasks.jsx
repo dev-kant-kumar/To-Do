@@ -252,7 +252,7 @@ function Tasks() {
 
   const TaskItem = useCallback(
     ({ task }) => (
-      <li key={task._id}>
+      <li key={task._id} className="">
         <span
           className="starred-mark list-items"
           onClick={() => toggleStarred(task._id, task.starred)}
