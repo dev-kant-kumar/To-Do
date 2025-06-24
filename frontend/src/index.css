@@ -1,13 +1,15 @@
+@import "tailwindcss";
+
 @import "./assets/css/profilepage.css";
 @import "./assets/css/errorpage.css";
 @import "./assets/css/header.css";
 @import "./assets/css/responsiveness.css";
 
-* {
+/* * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
+} */
 :root {
   --universal-border: none;
   --section-container-bg-color: #282c35;
