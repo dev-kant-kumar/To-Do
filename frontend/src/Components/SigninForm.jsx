@@ -139,7 +139,9 @@ function SigninForm() {
             placeholder="Password"
             onChange={handleFormInput}
           />
-          <div className="pf-img">{showPassword ? <Eye /> : <EyeOff />}</div>
+          <div className="pf-img" onClick={passwordHandler}>
+            {showPassword ? <Eye /> : <EyeOff />}
+          </div>
         </div>
         <p
           className={

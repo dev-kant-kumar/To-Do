@@ -259,7 +259,9 @@ function SignUpForm() {
             placeholder="Password"
             onChange={handleFormInput}
           />
-          <div className="pf-img">{showPassword ? <Eye /> : <EyeOff />}</div>
+          <div className="pf-img" onClick={passwordHandler}>
+            {showPassword ? <Eye /> : <EyeOff />}
+          </div>
         </div>
         <p
           className={
@@ -281,7 +283,7 @@ function SignUpForm() {
             onChange={handleFormInput}
           />
           <div className="pf-img">
-            <div className="pf-img">
+            <div className="pf-img" onClick={confirmPasswordHandler}>
               {showConfirmPassword ? <Eye /> : <EyeOff />}
             </div>
           </div>

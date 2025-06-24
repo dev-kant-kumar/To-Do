@@ -1,10 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- Basic Meta Tags -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>To Do</title>
-    <link rel="icon" type="image/x-icon" href="list.png" />
+    <title>To Do App - Organize Your Day Effortlessly</title>
+    <meta
+      name="description"
+      content="A simple and efficient To-Do app to manage your daily tasks and boost productivity. Add, update, and track your tasks easily."
+    />
+    <meta
+      name="keywords"
+      content="To Do app, task manager, productivity, todo list, daily planner, task tracker"
+    />
+    <meta name="author" content="Dev Kant Kumar" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="list.png" />
+
+    <!-- Open Graph for Social Sharing -->
+    <meta
+      property="og:title"
+      content="To Do App - Organize Your Day Effortlessly"
+    />
+    <meta
+      property="og:description"
+      content="Stay on top of your tasks with our intuitive and minimalist to-do list app."
+    />
+    <meta
+      property="og:image"
+      content="https://todo.devkantkumar.com/og-image.png"
+    />
+    <meta property="og:url" content="https://todo.devkantkumar.com" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="To Do App - Organize Your Day Effortlessly"
+    />
+    <meta
+      name="twitter:description"
+      content="Boost productivity with a sleek to-do app designed for ease and speed."
+    />
+    <meta
+      name="twitter:image"
+      content="https://todo.devkantkumar.com/og-image.png"
+    />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://todo.devkantkumar.com/" />
+
+    <!-- Manifest & Theme (for PWA or better mobile support) -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0f172a" />
+
+    <!-- Preload (optional performance boost) -->
+    <link rel="preload" href="/src/main.jsx" as="script" />
   </head>
   <body>
     <div id="root" class="no-select"></div>
