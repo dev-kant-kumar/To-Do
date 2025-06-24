@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import global from "../Components/Global";
 import { Eye, EyeOff } from "lucide-react";
+import Footer from "../Components/Common/Footer";
 
 function SignUpForm() {
   const navigate = useNavigate();
@@ -176,149 +177,154 @@ function SignUpForm() {
   }, []);
 
   return (
-    <div className="form-main-container">
-      <h1 id="logo" className="logo-for-sigIn-signUp-page">
-        to<span>do</span>.
-      </h1>
-      <img
-        src={TodoIllustrationForSignUp}
-        alt="TodoIllustration"
-        id="main-img"
-      />
-
-      <form
-        action=""
-        className="SignUp-signIn-form bg-black/30"
-        onSubmit={formValidation}
-      >
-        <h2 className="text-2xl font-bold text-center mt-5 mb-2.5">Sign Up</h2>
-        <p className="text-gray-400 text-center mb-2.5">
-          Create your account to get started
-        </p>
-
-        <input
-          type="text"
-          name="name"
-          value={inputValue.name}
-          placeholder="Name"
-          onChange={handleFormInput}
-          className="border border-gray-600 hover:border-purple-800 transition-colors delay-100 duration-300 ease-linear"
+    <>
+      <div className="form-main-container">
+        <h1 id="logo" className="logo-for-sigIn-signUp-page">
+          to<span>do</span>.
+        </h1>
+        <img
+          src={TodoIllustrationForSignUp}
+          alt="TodoIllustration"
+          id="main-img"
         />
-        <p
-          className={
-            haveError.name
-              ? "sigUp-form-validation-error-display-field-active"
-              : "sigUp-form-validation-error-display-field"
-          }
-        >
-          {errorMessage.name}
-        </p>
 
-        <input
-          type="text"
-          className="border border-gray-600 hover:border-purple-800 transition-colors delay-100 duration-300 ease-linear"
-          name="username"
-          value={inputValue.username}
-          placeholder="Username"
-          onChange={handleFormInput}
-        />
-        <p
-          className={
-            haveError.username
-              ? "sigUp-form-validation-error-display-field-active"
-              : "sigUp-form-validation-error-display-field"
-          }
+        <form
+          action=""
+          className="SignUp-signIn-form bg-black/30"
+          onSubmit={formValidation}
         >
-          {errorMessage.username}
-        </p>
+          <h2 className="text-2xl font-bold text-center mt-5 mb-2.5">
+            Sign Up
+          </h2>
+          <p className="text-gray-400 text-center mb-2.5">
+            Create your account to get started
+          </p>
 
-        <input
-          type="email"
-          name="email"
-          className="border border-gray-600 hover:border-purple-800 transition-colors delay-100 duration-300 ease-linear"
-          value={inputValue.email}
-          placeholder="Email Id"
-          onChange={handleFormInput}
-        />
-        <p
-          className={
-            haveError.email
-              ? "sigUp-form-validation-error-display-field-active"
-              : "sigUp-form-validation-error-display-field"
-          }
-        >
-          {errorMessage.email}
-        </p>
-
-        <div className="password-field border border-gray-600 hover:border-purple-800 transition-colors delay-100 duration-300 ease-linear">
           <input
-            className="pf-password"
-            type={showPassword ? "text" : "password"}
-            name="password"
-            value={inputValue.password}
-            placeholder="Password"
+            type="text"
+            name="name"
+            value={inputValue.name}
+            placeholder="Name"
+            onChange={handleFormInput}
+            className="border border-gray-600 hover:border-purple-800 transition-colors delay-100 duration-300 ease-linear"
+          />
+          <p
+            className={
+              haveError.name
+                ? "sigUp-form-validation-error-display-field-active"
+                : "sigUp-form-validation-error-display-field"
+            }
+          >
+            {errorMessage.name}
+          </p>
+
+          <input
+            type="text"
+            className="border border-gray-600 hover:border-purple-800 transition-colors delay-100 duration-300 ease-linear"
+            name="username"
+            value={inputValue.username}
+            placeholder="Username"
             onChange={handleFormInput}
           />
-          <div className="pf-img" onClick={passwordHandler}>
-            {showPassword ? <Eye /> : <EyeOff />}
-          </div>
-        </div>
-        <p
-          className={
-            haveError.password
-              ? "sigUp-form-validation-error-display-field-active"
-              : "sigUp-form-validation-error-display-field"
-          }
-        >
-          {errorMessage.password}
-        </p>
+          <p
+            className={
+              haveError.username
+                ? "sigUp-form-validation-error-display-field-active"
+                : "sigUp-form-validation-error-display-field"
+            }
+          >
+            {errorMessage.username}
+          </p>
 
-        <div className="password-field border border-gray-600 hover:border-purple-800 transition-colors delay-100 duration-300 ease-linear">
           <input
-            className="pf-password"
-            type={showConfirmPassword ? "text" : "password"}
-            name="confirmPassword"
-            value={inputValue.confirmPassword}
-            placeholder="Confirm Password"
+            type="email"
+            name="email"
+            className="border border-gray-600 hover:border-purple-800 transition-colors delay-100 duration-300 ease-linear"
+            value={inputValue.email}
+            placeholder="Email Id"
             onChange={handleFormInput}
           />
-          <div className="pf-img">
-            <div className="pf-img" onClick={confirmPasswordHandler}>
-              {showConfirmPassword ? <Eye /> : <EyeOff />}
+          <p
+            className={
+              haveError.email
+                ? "sigUp-form-validation-error-display-field-active"
+                : "sigUp-form-validation-error-display-field"
+            }
+          >
+            {errorMessage.email}
+          </p>
+
+          <div className="password-field border border-gray-600 hover:border-purple-800 transition-colors delay-100 duration-300 ease-linear">
+            <input
+              className="pf-password"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={inputValue.password}
+              placeholder="Password"
+              onChange={handleFormInput}
+            />
+            <div className="pf-img" onClick={passwordHandler}>
+              {showPassword ? <Eye /> : <EyeOff />}
             </div>
           </div>
-        </div>
-        <p
-          className={
-            haveError.confirmPassword
-              ? "sigUp-form-validation-error-display-field-active"
-              : "sigUp-form-validation-error-display-field"
-          }
-        >
-          {errorMessage.confirmPassword}
-        </p>
+          <p
+            className={
+              haveError.password
+                ? "sigUp-form-validation-error-display-field-active"
+                : "sigUp-form-validation-error-display-field"
+            }
+          >
+            {errorMessage.password}
+          </p>
 
-        <div id="terms-conditions">
-          <input type="checkbox" id="for-checkbox" required />
-          <label htmlFor="for-checkbox">
-            <span className="text-gray-400"> Agree With </span>
-            <Link to="/terms-and-conditions">Terms & Conditions</Link>
-          </label>
-        </div>
+          <div className="password-field border border-gray-600 hover:border-purple-800 transition-colors delay-100 duration-300 ease-linear">
+            <input
+              className="pf-password"
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              value={inputValue.confirmPassword}
+              placeholder="Confirm Password"
+              onChange={handleFormInput}
+            />
+            <div className="pf-img">
+              <div className="pf-img" onClick={confirmPasswordHandler}>
+                {showConfirmPassword ? <Eye /> : <EyeOff />}
+              </div>
+            </div>
+          </div>
+          <p
+            className={
+              haveError.confirmPassword
+                ? "sigUp-form-validation-error-display-field-active"
+                : "sigUp-form-validation-error-display-field"
+            }
+          >
+            {errorMessage.confirmPassword}
+          </p>
 
-        <input
-          type="submit"
-          value="Sign Up"
-          disabled={signUpBtnDisable}
-          className="text-white bg-gradient-to-b from-purple-600 to-fuchsia-950 outline-0 border-0 cursor-pointer hover:from-purple-700"
-        />
+          <div id="terms-conditions">
+            <input type="checkbox" id="for-checkbox" required />
+            <label htmlFor="for-checkbox">
+              <span className="text-gray-400"> Agree With </span>
+              <Link to="/terms-and-conditions">Terms & Conditions</Link>
+            </label>
+          </div>
 
-        <div id="login-section">
-          <p className="text-gray-400">Already have an account? </p>
-          <Link to="/login">Login Here</Link>
-        </div>
-      </form>
-    </div>
+          <input
+            type="submit"
+            value="Sign Up"
+            disabled={signUpBtnDisable}
+            className="text-white bg-gradient-to-b from-purple-600 to-fuchsia-950 outline-0 border-0 cursor-pointer hover:from-purple-700"
+          />
+
+          <div id="login-section">
+            <p className="text-gray-400">Already have an account? </p>
+            <Link to="/login">Login Here</Link>
+          </div>
+        </form>
+      </div>
+      <Footer />
+    </>
   );
 }
 
