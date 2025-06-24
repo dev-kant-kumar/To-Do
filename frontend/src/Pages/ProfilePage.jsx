@@ -20,18 +20,6 @@ function ProfilePage() {
           </section>
         </section>
       </div>
-      <div id="profile-body">
-        <section id="task-matrices">
-          <div id="task-created">
-            <h2>Task Created</h2>
-            <h3>10</h3>
-          </div>
-          <div id="task-completed">
-            <h2>Task Completed</h2>
-            <h3>8</h3>
-          </div>
-        </section>
-      </div>
     </div>
   );
 }

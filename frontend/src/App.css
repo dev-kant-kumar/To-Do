@@ -376,27 +376,16 @@
   width: 50%;
 }
 
-form :is(h2) {
-  width: 100%;
-  padding: 15px;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  border-bottom: 1px solid white;
-  background: #16161d;
-  margin-bottom: 20px;
-  font-size: 1.4em;
-  text-align: center;
-}
 .SignUp-signIn-form {
   height: fit-content;
   width: 30%;
-  border: 2px solid white;
+  border: 2px solid rgb(56, 52, 52);
   border-radius: 20px;
   display: flex;
   flex-direction: column;
 }
 .SignUp-signIn-form:hover {
-  box-shadow: 0px 0px 20px 0px #6f2da8;
+  /* box-shadow: 0px 0px 20px 0px #6f2da8; */
 }
 .password-field {
   width: 80%;
@@ -406,7 +395,8 @@ form :is(h2) {
 }
 .password-field > .pf-password {
   width: 85%;
-  border: none;
+  /* border: 1px solid rgb(66, 65, 65); */
+  border-right: none;
   outline: none;
   border-top-left-radius: 10px;
   border-bottom-left-radius: 10px;
@@ -415,36 +405,34 @@ form :is(h2) {
   font-weight: 400;
 }
 .password-field > .pf-img {
-  height: 52px;
   width: 15%;
-  background-color: lightgray;
+  color: gray;
   display: flex;
   justify-content: center;
   align-items: center;
+  /* border: 1px solid rgb(66, 65, 65); */
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
   cursor: pointer;
 }
-.password-field > .pf-img > img {
-  height: 1.3em;
-  filter: invert(100%);
-}
 
 .SignUp-signIn-form > input {
   width: 80%;
-  border: none;
+  /* border: 1px solid rgb(66, 65, 65); */
   outline: none;
   border-radius: 10px;
   margin: 10px auto;
   padding: 15px;
   font-size: 1.1em;
   font-weight: 400;
+  transition: 0.2s linear;
 }
 
-.SignUp-signIn-form > input:hover,
-.password-field:hover {
-  outline: 2px solid #6f2da8;
-  outline-offset: 1.5px;
+.SignUp-signIn-form > input:hover {
+  border-color: #6f2da8;
+}
+.SignUp-signIn-form > input[type="submit"] {
+  border: none;
 }
 
 .sig-up-btn-active {
@@ -461,6 +449,7 @@ form :is(h2) {
 }
 
 #terms-conditions {
+  color: rgb(156, 151, 151);
   width: 80%;
   margin: 10px auto;
   display: flex;
