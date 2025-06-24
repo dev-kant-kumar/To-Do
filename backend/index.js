@@ -1,42 +1,57 @@
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
-const app = express();
-const port = 5000;
-
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const dotenv = require("dotenv");
 const connectDB = require("./src/config/db");
-const TodoRoutes = require("./src/routes/todoRoutes");
+
+// Load environment variables
+dotenv.config();
+
+// Routes
 const UserRoutes = require("./src/routes/userRoutes");
+const TodoRoutes = require("./src/routes/todoRoutes");
 const TodoFiltersRoutes = require("./src/routes/todoFiltersRoutes");
 
-// set up rate limiter: maximum of five requests per minute
-var RateLimit = require("express-rate-limit");
-var limiter = RateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // max 100 requests per windowMs
-});
+// App initialization
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-// apply rate limiter to all requests
-app.use(limiter);
+// Connect to MongoDB
+connectDB();
 
-const corsOptions = {
-  origin: "*", // Allow frontend URL
-  optionsSuccessStatus: 200,
-};
+// Middleware
+app.use(express.json());
+app.use(
+  cors({
+    origin: ["https://todo.devkantkumar.com"],
+    optionsSuccessStatus: 200,
+    credentials: true,
+  })
+);
+app.use(helmet());
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-app.use(cors(corsOptions));
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 50,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: "Too many requests from this IP, please try again later.",
+  })
+);
 
+// Health Check
 app.get("/", (req, res) => {
-  res.send("Hello there you are on todo Application server");
+  res.status(200).send("✅ To-Do App Backend is running.");
 });
 
+// Routes
 app.use("/todo", TodoRoutes);
 app.use("/filters", TodoFiltersRoutes);
 app.use("/user", UserRoutes);
 
-app.listen(port, () => {
-  console.log("Server is running on port ", port);
-  connectDB();
+// Server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
