@@ -10,9 +10,11 @@ const {
   deleteTask,
   undoDelete,
   deleteDeletedTask,
+  updateTask,
 } = require("../controllers/todoController");
 
 TodoRoutes.post("/addTask", auth, addTask);
+TodoRoutes.post("/updateTask", auth, updateTask);
 
 TodoRoutes.post("/markComplete", auth, markCompleted);
 TodoRoutes.post("/unMarkComplete", auth, unMarkCompleted);

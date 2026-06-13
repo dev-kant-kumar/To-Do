@@ -27,6 +27,18 @@ const TodoSchema = new Schema(
       type: Date,
       required: true,
     },
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      default: "low",
+      required: true,
+    },
+    dueDate: {
+      type: Date,
+    },
+    description: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

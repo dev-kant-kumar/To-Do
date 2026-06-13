@@ -17,6 +17,9 @@ function CreateTask({ onClose }) {
 
   // Local state
   const [inputValue, setInputValue] = useState("");
+  const [priority, setPriority] = useState("low");
+  const [dueDate, setDueDate] = useState("");
+  const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -136,6 +139,9 @@ function CreateTask({ onClose }) {
         const response = await axios.post(`${apiUrl}todo/addTask`, {
           task: taskText.trim(),
           userId: userInfo.userId,
+          priority: priority,
+          dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+          description: description.trim(),
         });
 
         if (response.data?.status) {
@@ -161,7 +167,7 @@ function CreateTask({ onClose }) {
         setIsLoading(false);
       }
     },
-    [apiUrl, userInfo?.userId, fetchTodos]
+    [apiUrl, userInfo?.userId, fetchTodos, priority, dueDate, description]
   );
 
   // Handle form submission
@@ -178,6 +184,9 @@ function CreateTask({ onClose }) {
       const success = await sendCreatedTask(inputValue);
       if (success) {
         setInputValue("");
+        setPriority("low");
+        setDueDate("");
+        setDescription("");
         setError("");
         handleClose();
       }
@@ -187,7 +196,7 @@ function CreateTask({ onClose }) {
 
   // Handle cancel button
   const cancelBtn = useCallback(() => {
-    if (inputValue.trim()) {
+    if (inputValue.trim() || description.trim() || dueDate || priority !== "low") {
       // Show confirmation if user has typed something
       if (
         window.confirm(
@@ -199,11 +208,14 @@ function CreateTask({ onClose }) {
     } else {
       handleClose();
     }
-  }, [inputValue]);
+  }, [inputValue, description, dueDate, priority]);
 
   // Handle close with proper cleanup
   const handleClose = useCallback(() => {
     setInputValue("");
+    setPriority("low");
+    setDueDate("");
+    setDescription("");
     setError("");
     setIsLoading(false);
 
@@ -263,7 +275,7 @@ function CreateTask({ onClose }) {
 
         <form onSubmit={createTaskBtn} className="px-6 pb-6">
           {/* Input Section */}
-          <div className="mb-6">
+          <div className="mb-4">
             <div className="relative">
               <textarea
                 ref={inputRef}
@@ -305,6 +317,69 @@ function CreateTask({ onClose }) {
                 {error}
               </div>
             )}
+          </div>
+
+          {/* Description Section */}
+          <div className="mb-4 space-y-1.5 text-left">
+            <label htmlFor="description" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              Description / Notes
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              placeholder="Add details, notes, or links..."
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={isLoading}
+              rows="2"
+              className="w-full px-4 py-2.5 bg-zinc-900/50 text-zinc-200 rounded-xl border border-zinc-800 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 text-sm"
+            />
+          </div>
+
+          {/* Priority & Due Date Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-left">
+            {/* Priority Selection */}
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Priority
+              </span>
+              <div className="flex rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900/50 p-1">
+                {["low", "medium", "high"].map((p) => {
+                  const isActive = priority === p;
+                  const getBtnColor = () => {
+                    if (!isActive) return "text-zinc-500 hover:text-zinc-300";
+                    if (p === "low") return "bg-zinc-800 text-zinc-300 border-zinc-700";
+                    if (p === "medium") return "bg-amber-950/40 text-amber-400 border-amber-900/60";
+                    return "bg-red-950/40 text-red-400 border-red-900/60";
+                  };
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setPriority(p)}
+                      disabled={isLoading}
+                      className={`flex-1 py-1 text-xs font-bold rounded capitalize border border-transparent transition-all focus:outline-none ${getBtnColor()}`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Due Date & Time Picker */}
+            <div className="space-y-1.5">
+              <label htmlFor="dueDate" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Due Date & Time
+              </label>
+              <input
+                id="dueDate"
+                type="datetime-local"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                disabled={isLoading}
+                className="w-full px-3 py-1 bg-zinc-900/50 text-zinc-300 rounded-lg border border-zinc-800 focus:border-[#9040dd] focus:outline-none text-xs h-[30px] custom-datetime-picker"
+              />
+            </div>
           </div>
 
           {/* Action Buttons */}

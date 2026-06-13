@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Routes, Route, HashRouter, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, BrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { ToastContainer, Bounce } from "react-toastify";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
@@ -9,8 +9,11 @@ import "react-toastify/dist/ReactToastify.css";
 import global from "../Components/Global";
 
 // Redux
-import { setUserInfo } from "../Store/Reducers/UserSlice";
+import { setUserInfo, clearUserInfo } from "../Store/Reducers/UserSlice";
 import { setPreLoader } from "../Store/Reducers/Loader";
+
+// Route Guards
+import { ProtectedRoute, GuestRoute } from "../Components/ProtectedRoutes";
 
 // Styles
 import "../App.css";
@@ -21,6 +24,9 @@ import SignIn from "../Components/SigninForm";
 import Home from "../Pages/Home";
 import ProfilePage from "../Pages/ProfilePage";
 import ErrorPage from "../Pages/ErrorPage";
+import LandingPage from "./LandingPage/LandingPage";
+import ForgotPasswordForm from "../Components/ForgotPasswordForm";
+import ResetPasswordForm from "../Components/ResetPasswordForm";
 
 // Legal Pages
 import PrivacyPolicy from "./LegalPages/PrivacyPolicy/PrivacyPolicy";
@@ -58,9 +64,16 @@ function AuthenticationPage() {
         if (res.data.status) {
           const { _id, name, username, email, date } = res.data.data;
           dispatch(setUserInfo({ _id, name, username, email, date }));
+        } else {
+          localStorage.removeItem("token");
+          dispatch(clearUserInfo());
         }
       })
-      .catch(console.error)
+      .catch((err) => {
+        console.error("Authentication fetch user data failed:", err);
+        localStorage.removeItem("token");
+        dispatch(clearUserInfo());
+      })
       .finally(() => dispatch(setPreLoader(false)));
   }, [apiUrl, dispatch]);
 
@@ -76,18 +89,27 @@ function AuthenticationPage() {
   // Routes
   return (
     <>
-      <HashRouter>
+      <BrowserRouter>
         <Routes>
-          {/* Auth */}
-          <Route path="/" element={<SignUp />} />
-          <Route path="/sign-up" element={<SignUp />} />
-          <Route path="/login" element={<SignIn />} />
+          {/* Public Landing Page */}
+          <Route path="/" element={<LandingPage />} />
 
-          {/* App Pages */}
-          <Route path="/home" element={<Home />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          {/* Auth (Guest Only) */}
+          <Route element={<GuestRoute />}>
+            <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/login" element={<SignIn />} />
+            <Route path="/forgot-password" element={<ForgotPasswordForm />} />
+            <Route path="/reset-password" element={<ResetPasswordForm />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordForm />} />
+          </Route>
 
-          {/* Legal Pages - Nested */}
+          {/* App Pages (Protected) */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/home" element={<Home />} />
+            <Route path="/profile" element={<ProfilePage />} />
+          </Route>
+
+          {/* Legal Pages - Nested (Public) */}
           <Route path="/legal" element={<LegalLayout />}>
             <Route
               index
@@ -109,7 +131,7 @@ function AuthenticationPage() {
           <Route path="/error" element={<ErrorPage />} />
           <Route path="*" element={<ErrorPage />} />
         </Routes>
-      </HashRouter>
+      </BrowserRouter>
 
       {/* Toast Notifications */}
       <ToastContainer

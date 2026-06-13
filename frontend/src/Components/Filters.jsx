@@ -5,20 +5,13 @@ import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
 import global from "../Components/Global";
 
-import { LuListTodo } from "react-icons/lu";
-import { TiStarFullOutline } from "react-icons/ti";
-import { IoTodaySharp } from "react-icons/io5";
-import { AiFillDelete } from "react-icons/ai";
+import { ListTodo, Star, Calendar, Trash2, X } from "lucide-react";
 
 const FILTERS = [
-  { key: "all", label: "All", icon: <LuListTodo className="icon" /> },
-  {
-    key: "starred",
-    label: "Starred",
-    icon: <TiStarFullOutline className="icon" />,
-  },
-  { key: "today", label: "Today", icon: <IoTodaySharp className="icon" /> },
-  { key: "deleted", label: "Deleted", icon: <AiFillDelete className="icon" /> },
+  { key: "all", label: "All", icon: <ListTodo size={18} /> },
+  { key: "starred", label: "Starred", icon: <Star size={18} /> },
+  { key: "today", label: "Today", icon: <Calendar size={18} /> },
+  { key: "deleted", label: "Deleted", icon: <Trash2 size={18} /> },
 ];
 
 function Filters({ setShow }) {
@@ -71,26 +64,51 @@ function Filters({ setShow }) {
   }, [activeFilter, apiUrl, userId, dispatch]);
 
   return (
-    <div>
-      <div className="filter-top">
-        <h2 id="filters-heading">Filters</h2>
-        <div className="close">
-          <i onClick={() => setShow(false)} className="ri-close-fill"></i>
-        </div>
+    <div className="flex flex-col gap-5 w-full text-left">
+      <div className="flex items-center justify-between px-2">
+        <h2 className="text-xs font-extrabold uppercase tracking-widest text-zinc-500">
+          Filters
+        </h2>
+        <button
+          onClick={() => setShow(false)}
+          className="md:hidden p-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200 transition-colors focus:outline-none"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
 
-      <ul id="filters-list">
-        {FILTERS.map(({ key, label, icon }) => (
-          <li
-            key={key}
-            className={activeFilter === key ? "li-active" : ""}
-            onClick={() => setActiveFilter(key)}
-          >
-            <span>{icon}</span>
-            <span className="fl-text">{label}</span>
-            <span className="count-badge">{counts[`${key}Count`] || ""}</span>
-          </li>
-        ))}
+      <ul className="flex flex-col gap-1 w-full list-none p-0 m-0">
+        {FILTERS.map(({ key, label, icon }) => {
+          const isActive = activeFilter === key;
+          return (
+            <li
+              key={key}
+              onClick={() => setActiveFilter(key)}
+              className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer select-none border ${
+                isActive
+                  ? "bg-purple-600/10 border-purple-500/30 text-purple-300 shadow-lg shadow-purple-950/10"
+                  : "bg-transparent border-transparent text-zinc-400 hover:bg-zinc-900/30 hover:text-zinc-200"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className={`transition-colors ${isActive ? "text-purple-400" : "text-zinc-500"}`}>
+                  {icon}
+                </span>
+                <span className="text-sm font-semibold">{label}</span>
+              </div>
+              
+              {counts[`${key}Count`] !== undefined && counts[`${key}Count`] > 0 && (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition-colors ${
+                  isActive 
+                    ? "bg-purple-500/20 border-purple-500/30 text-purple-300"
+                    : "bg-zinc-900/60 border-zinc-800/80 text-zinc-500"
+                }`}>
+                  {counts[`${key}Count`]}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

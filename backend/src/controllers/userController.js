@@ -93,4 +93,54 @@ async function getUserData(req, res) {
   }
 }
 
-module.exports = { signUp, signIn, forgotPassword, getUserData };
+async function updateProfile(req, res) {
+  const username = req.username;
+  const { name, email } = req.body;
+
+  if (!username) {
+    return res.send({
+      status: false,
+      message: "Unauthorized access",
+    });
+  }
+
+  try {
+    // Check if the email is already in use by another user
+    if (email) {
+      const emailExists = await user.findOne({ email: email, username: { $ne: username } });
+      if (emailExists) {
+        return res.send({
+          status: false,
+          message: "Email is already in use by another account",
+        });
+      }
+    }
+
+    const updatedUser = await user.findOneAndUpdate(
+      { username: username },
+      { name: name, email: email },
+      { new: true }
+    );
+
+    if (updatedUser) {
+      res.send({
+        status: true,
+        message: "Profile updated successfully",
+        userData: updatedUser,
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "User not found",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    res.send({
+      status: false,
+      message: "Failed to update profile details",
+    });
+  }
+}
+
+module.exports = { signUp, signIn, forgotPassword, getUserData, updateProfile };

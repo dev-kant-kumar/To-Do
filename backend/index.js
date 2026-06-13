@@ -17,6 +17,8 @@ const TodoFiltersRoutes = require("./src/routes/todoFiltersRoutes");
 
 // App initialization
 const app = express();
+app.set("trust proxy", 1); // Trust first proxy (Render, Nginx, etc.) for correct client IP tracking
+
 const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB
@@ -41,7 +43,7 @@ app.use(helmet());
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 50,
+    max: 300, // Increased from 50 to 300 to accommodate SPA client requests
     standardHeaders: true,
     legacyHeaders: false,
     message: "Too many requests from this IP, please try again later.",

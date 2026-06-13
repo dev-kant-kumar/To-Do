@@ -11,15 +11,22 @@ const UserSlice = createSlice({
   },
   reducers: {
     setUserInfo(state, action) {
-      const { _id, name, username, email, date } = action.payload;
-      (state.userId = _id),
-        (state.name = name),
-        (state.username = username),
-        (state.email = email),
-        (state.dateOfAccountCreation = date);
+      const { _id, name, username, email, date } = action.payload || {};
+      state.userId = _id || "";
+      state.name = name || "";
+      state.username = username || "";
+      state.email = email || "";
+      state.dateOfAccountCreation = date || "";
+    },
+    clearUserInfo(state) {
+      state.userId = "";
+      state.name = "";
+      state.username = "";
+      state.email = "";
+      state.dateOfAccountCreation = "";
     },
   },
 });
 
 export default UserSlice.reducer;
-export const { setUserInfo } = UserSlice.actions;
+export const { setUserInfo, clearUserInfo } = UserSlice.actions;

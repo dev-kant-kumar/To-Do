@@ -4,7 +4,7 @@ const User = require("../models/userModel");
 async function addTask(req, res) {
   console.log("Reached Add Task");
 
-  const { task } = req.body;
+  const { task, priority, dueDate, description } = req.body;
   const userId = req.id;
   console.log(userId);
 
@@ -17,6 +17,9 @@ async function addTask(req, res) {
       starred: false,
       deleted: false,
       date: new Date(),
+      priority: priority || "low",
+      dueDate: dueDate || null,
+      description: description || "",
     });
 
     await newTask.save();
@@ -217,6 +220,55 @@ async function deleteDeletedTask(req, res) {
   }
 }
 
+async function updateTask(req, res) {
+  console.log("Reached updateTask");
+
+  const { taskID, task, priority, dueDate, description, completed, starred } = req.body;
+  const userId = req.id;
+
+  if (!taskID) {
+    return res.send({
+      status: false,
+      message: "Task ID is required",
+    });
+  }
+
+  try {
+    const updateFields = {};
+    if (task !== undefined) updateFields.task = task;
+    if (priority !== undefined) updateFields.priority = priority;
+    if (dueDate !== undefined) updateFields.dueDate = dueDate;
+    if (description !== undefined) updateFields.description = description;
+    if (completed !== undefined) updateFields.completed = completed;
+    if (starred !== undefined) updateFields.starred = starred;
+
+    const updatedTask = await Todo.findOneAndUpdate(
+      { _id: taskID, userId: userId },
+      { $set: updateFields },
+      { new: true }
+    );
+
+    if (updatedTask) {
+      res.send({
+        status: true,
+        message: "Task updated successfully",
+        task: updatedTask,
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "No such task found!",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    res.send({
+      status: false,
+      message: "An error occurred while updating task",
+    });
+  }
+}
+
 module.exports = {
   addTask,
   markCompleted,
@@ -226,4 +278,5 @@ module.exports = {
   deleteTask,
   undoDelete,
   deleteDeletedTask,
+  updateTask,
 };
