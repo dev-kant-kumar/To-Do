@@ -85,6 +85,15 @@ function Header(props) {
 
         {/* Right actions - Desktop only */}
         <div className="hidden md:flex items-center gap-4 relative" ref={dropDownRef}>
+          {/* Cloud Sync Status */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/15 border border-emerald-900/20 text-[10px] font-bold text-emerald-400 select-none">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+            </span>
+            <span>Cloud Sync</span>
+          </div>
+
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="flex items-center gap-2.5 p-1.5 pr-3 rounded-xl bg-zinc-900/20 hover:bg-zinc-900/40 border border-zinc-900 hover:border-zinc-800 text-zinc-300 hover:text-zinc-200 transition-all duration-200 select-none cursor-pointer focus:outline-none"

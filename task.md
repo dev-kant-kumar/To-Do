@@ -1,0 +1,23 @@
+# Implementation Tasks Checklist
+
+- [x] Create root-level configuration files
+  - [x] Copy `sitemap.xml` to the project root
+  - [x] Create `ai-agent.xml` with detailed system instructions and feature guide at project root
+- [x] Add global CSS animations and themes
+  - [x] Add animations, grid backgrounds, and theme configurations in `index.css`
+- [x] Add Header enhancements
+  - [x] Add the glowing "Cloud Sync" status indicator inside `Header.jsx`
+- [x] Redesign Landing Page
+  - [x] Remove duplicate `✨` emoji from Hero Badge in `LandingPage.jsx`
+  - [x] Replace static preview mockup with a live, interactive React state-driven mock dashboard (complete, star, add task, filter tabs)
+  - [x] Implement Bento Grid layout for Features (Priority Starring, Instant Filters, Status Tracking, Secure & Private)
+  - [x] Add tech stack trust section with monochrome icons that glow on hover
+  - [x] Add stylized interactive FAQ accordion
+  - [x] Apply CSS float transitions and scrolling reveals
+- [x] Refine Dashboard Tasks List
+  - [x] Apply entry animations (`animate-fade-slide-up`) to task list items inside `Tasks.jsx`
+  - [x] Refine completion transition and styling (strike-through slide effect)
+  - [x] Polish priority badges (subtle glows/animations)
+- [x] Build and Verify
+  - [x] Run `npm run build` inside `frontend/` to test SSG generation
+  - [x] Verify there are no console errors or component issues

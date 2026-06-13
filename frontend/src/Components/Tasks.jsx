@@ -529,20 +529,20 @@ function Tasks() {
   const getPriorityBadge = (p) => {
     if (p === "high") {
       return (
-        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-red-950/40 text-red-400 border border-red-900/40">
+        <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]">
           High
         </span>
       );
     }
     if (p === "medium") {
       return (
-        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-950/40 text-amber-400 border border-amber-900/40">
+        <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.05)]">
           Medium
         </span>
       );
     }
     return (
-      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-zinc-900/60 text-zinc-500 border border-zinc-800">
+      <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-widest bg-zinc-900/60 text-zinc-500 border border-zinc-800/80">
         Low
       </span>
     );
@@ -582,10 +582,10 @@ function Tasks() {
       return (
         <li 
           key={task._id} 
-          className={`flex items-center justify-between gap-3 py-3 px-6 transition-all duration-150 group relative border-l-2 ${
+          className={`flex items-center justify-between gap-3 py-3 px-6 transition-all duration-300 group relative border-l-2 animate-fade-slide-up ${
             isSelected 
               ? "bg-purple-950/10 border-l-purple-500" 
-              : "bg-transparent border-l-transparent hover:bg-zinc-900/10 hover:border-l-zinc-700"
+              : "bg-transparent border-l-transparent hover:bg-zinc-900/10 hover:border-l-zinc-705"
           }`}
         >
           {/* Left Checkbox, Star & Priority */}
@@ -619,9 +619,9 @@ function Tasks() {
               aria-label={task.starred ? "Unstar task" : "Star task"}
             >
               {task.starred ? (
-                <Star size={18} className="text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.3)] transition-transform duration-250 active:scale-125" />
+                <Star size={18} className="text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.3)] animate-star-pulse" />
               ) : (
-                <Star size={18} className="text-zinc-500 hover:text-zinc-400 transition-colors duration-250" />
+                <Star size={18} className="text-zinc-500 hover:text-zinc-400 transition-colors duration-250 active:scale-75" />
               )}
             </span>
 
@@ -638,14 +638,14 @@ function Tasks() {
           >
             <div className="flex items-baseline gap-2 min-w-0 flex-grow text-left">
               <span
-                className={`font-semibold text-sm truncate flex-shrink-0 max-w-[150px] sm:max-w-[250px] transition-all duration-200 ${
-                  task.completed ? "line-through text-zinc-500 decoration-zinc-600" : "text-zinc-100"
+                className={`font-semibold text-sm truncate flex-shrink-0 max-w-[150px] sm:max-w-[250px] transition-all duration-300 strike-through-animate ${
+                  task.completed ? "completed text-zinc-500" : "text-zinc-100"
                 }`}
               >
                 {task.task || "Untitled Task"}
               </span>
               {task.description && (
-                <span className={`text-xs text-zinc-500 truncate flex-grow ${task.completed ? "line-through text-zinc-600" : ""}`}>
+                <span className={`text-xs text-zinc-500 truncate flex-grow transition-all duration-300 ${task.completed ? "line-through text-zinc-600" : ""}`}>
                   &mdash; {task.description}
                 </span>
               )}

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<agent-context>
+  <project-name>todo.</project-name>
+  <description>Elegant &amp; Minimalist Task Management System designed for developer workflows, featuring a high-fidelity dark glassmorphic UI, responsive sidebar drawer, dynamic search filtering, and robust priority starring.</description>
+  
+  <technology-stack>
+    <frontend>
+      <core>React (v18.2), Redux Toolkit (State Management), React Router Dom (v6.23)</core>
+      <styling>Tailwind CSS (v4.0) with custom HSL color-scheme theme, Lucide React icons</styling>
+      <build-tool>Vite (v5.2), post-build SSG script (prerender.js) for static hosting compatibility</build-tool>
+    </frontend>
+    <backend>
+      <core>Node.js, Express.js (REST API Server)</core>
+      <database>MongoDB, Mongoose (Schemas &amp; Validation)</database>
+      <security>JWT Token authentication passed via X-Authorization custom header</security>
+    </backend>
+  </technology-stack>
+
+  <codebase-architecture>
+    <directory-structure>
+      <item path="/">Root of workspace, contains backend and frontend subdirectories, sitemap, and agent guide</item>
+      <item path="/backend">Express backend. index.js sets up CORS, MongoDB connections, and registers filter and tasks routes</item>
+      <item path="/backend/src">Backend controller endpoints, authentication models, and task models</item>
+      <item path="/frontend">Vite React application directory</item>
+      <item path="/frontend/public">Static public assets, robots.txt, sitemap.xml, and llms.txt</item>
+      <item path="/frontend/src">React code source directory</item>
+      <item path="/frontend/src/Components">Reusable UI controls: Header, Sidebar/Filters, Projects, Tasks List, Modals</item>
+      <item path="/frontend/src/Pages">Main routes: LandingPage, Login, SignUp, ResetPassword, ProfileSettings, Loading/Error</item>
+      <item path="/frontend/src/Store">Redux store configurations, UserSlice, and TodoFilterSlice</item>
+    </directory-structure>
+
+    <data-models>
+      <user-schema>
+        <field name="name" type="String">Full name of the user</field>
+        <field name="username" type="String" constraint="unique">Username used for sign-in</field>
+        <field name="email" type="String" constraint="unique">User email, validated and verified</field>
+        <field name="password" type="String">Bcrypt hashed password value</field>
+      </user-schema>
+      <todo-schema>
+        <field name="userId" type="ObjectId" relation="User">Owner ID of the task</field>
+        <field name="task" type="String">Task title or summary</field>
+        <field name="description" type="String" optional="true">Task body details</field>
+        <field name="starred" type="Boolean" default="false">Pin task as high importance</field>
+        <field name="completed" type="Boolean" default="false">Mark task execution done</field>
+        <field name="priority" type="String" options="low | medium | high" default="low">Level of urgency</field>
+        <field name="dueDate" type="Date" optional="true">Date boundary for task completion</field>
+        <field name="deleted" type="Boolean" default="false">Trash archive flag</field>
+        <field name="date" type="Date" default="Date.now">Time task was created</field>
+      </todo-schema>
+    </data-models>
+  </codebase-architecture>
+
+  <features-and-usage>
+    <feature name="Authentication">
+      <description>Secure login, signup, forgot password, and reset credentials. Uses localStorage to persist tokens.</description>
+      <instructions>
+        1. Navigate to `/sign-up` to register a new user account.
+        2. Go to `/login` and submit verified credentials.
+        3. Authentication credentials are saved in localStorage under 'token' and 'user'.
+      </instructions>
+    </feature>
+    <feature name="Task Creation &amp; Management">
+      <description>Full CRUD operations on tasks. Add descriptions, priority labels, and specific due dates.</description>
+      <instructions>
+        1. Click "New Task" button on top-right of dashboard.
+        2. Provide title (required), description, priority tier, and due date.
+        3. Tasks are saved instantly to MongoDB and re-sync in the Redux store.
+      </instructions>
+    </feature>
+    <feature name="Starred &amp; Priority Filters">
+      <description>Sort and view active, starred, today's schedule, or deleted items dynamically.</description>
+      <instructions>
+        1. Click star icon on a task row to highlight it.
+        2. Switch filters on Left Sidebar to narrow tasks down to All, Starred, Today, or Deleted list.
+        3. Counts in the sidebar reflect live tab counters matching current active items.
+      </instructions>
+    </feature>
+    <feature name="Interactive Profile Settings">
+      <description>Review credentials, update user details, or change the secure login password.</description>
+      <instructions>
+        1. Click user avatar in bottom sidebar (mobile) or top dropdown (desktop).
+        2. Edit fields. Discard or Save actions appear only when form inputs are modified.
+      </instructions>
+    </feature>
+  </features-and-usage>
+
+  <developer-commands>
+    <command desc="Run backend API server in dev mode">npm run dev (within /backend)</command>
+    <command desc="Run frontend hot-reload dev server">npm run dev (within /frontend)</command>
+    <command desc="Compile frontend static routes for build &amp; SSG">npm run build (within /frontend)</command>
+    <command desc="Deploy build files to hosting provider">npm run deploy (within /frontend)</command>
+  </developer-commands>
+</agent-context>

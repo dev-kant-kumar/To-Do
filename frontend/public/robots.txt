@@ -1,0 +1,17 @@
+# Allow all web crawlers and search engine bots to index public routes
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /sign-up
+Allow: /forgot-password
+Allow: /reset-password
+Allow: /legal/
+
+# Disallow indexing of private dashboard routes (they require authentication tokens)
+Disallow: /home
+Disallow: /profile
+Disallow: /loader
+Disallow: /error
+
+# Sitemap URL link
+Sitemap: https://todo.devkantkumar.com/sitemap.xml

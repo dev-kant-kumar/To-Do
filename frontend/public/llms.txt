@@ -1,0 +1,57 @@
+# todo. — Elegant & Minimalist Task Management System
+
+A high-fidelity, dark-themed, glassmorphic task management application built for high productivity, clean aesthetics, and responsive layout across all desktop and mobile devices.
+
+## Core Application Overview
+*   **Production Host**: `https://todo.devkantkumar.com`
+*   **Design Language**: Glassmorphic, dark theme (`#05050a` bg), slate/zinc neutral buttons, glowing purple/fuchsia mesh overlays, and solid purple primary buttons.
+*   **Stack**: React, Vite, Tailwind CSS v4, Redux Toolkit (Frontend) + Express, MongoDB, Mongoose (Backend).
+
+---
+
+## Route Map & Access Rules
+The application uses client-side routing. Public pages are compiled statically using a post-build SSG engine to support search indexers and direct URL refreshes.
+
+### Public Routes
+*   `/` : Landing Page. Clean marketing panel introducing the tool's features, stats, and live preview mock.
+*   `/login` : User Authentication (Sign In). Sign in via username/email and password.
+*   `/sign-up` : Registration Page. Create a personal workspace using name, username, email, and password.
+*   `/forgot-password` : Password recovery form (requests email reset links).
+*   `/reset-password` / `/reset-password/:token` : Resets credentials using secure auth tokens.
+*   `/error` : High-fidelity Custom 404 (Page Not Found) fallback screen with redirect buttons.
+*   `/loader` : Premium loading preloader showcasing pulsed branding and a rotating purple glow spinner.
+
+### Protected Dashboard Routes (Authenticated Users Only)
+*   `/home` : Core workspace dashboard. Displays the task list view, active filters panel, search bar, and task management modals.
+*   `/profile` : Redesigned settings panel. Allows users to change personal profiles (name, read-only verified email) and update account passwords.
+
+### Legal Routes
+*   `/legal/terms-and-conditions` : Terms of Service.
+*   `/legal/privacy-policy` : Data protection and processing disclosures.
+*   `/legal/cookie-policy` : Cookie and Local Storage parameters.
+*   `/legal/delete-my-data` : Account removal request form.
+*   `/legal/disclaimer` : General legal disclaimers.
+*   `/legal/refund-policy` : Subscription and refund guidelines.
+*   `/legal/accessibility` : Accessibility commitment overview.
+
+---
+
+## Features & UI Interactions
+
+### 1. Task Operations
+*   **Creation**: Add tasks with a Title (required), Description (optional), Due Date (optional), and Priority Level (Low, Medium, or High).
+*   **Starring**: Toggle a task's starred status to mark it as high priority. Starred items dynamically animate with a yellow fill and soft glow.
+*   **Deletion**: Move tasks to the "Deleted" archive list. Complete deletions can be performed inside the Deleted filter list using the **"Delete All"** action button.
+*   **Checkbox selection**: Toggle task completion with custom checkmarks.
+
+### 2. Live Filters & Search
+*   **Responsive Sidebar**:
+    *   On Desktop: Sticky left panel card styled at `md:w-80` to display full names/emails.
+    *   On Mobile: Slides in smoothly from the right offscreen border (`translate-x-0` transition) at a compact `w-64` width. Supported by a black backdrop overlay (`bg-black/65 backdrop-blur-xs`) that closes the drawer when tapped.
+*   **Tab Counts**: The sidebar displays real-time task counts for "All", "Starred", "Today", and "Deleted" lists, updating instantly on task modifications.
+*   **Fuzzy Search**: Filter lists instantly by typing search keywords inside the central header pill search input.
+
+### 3. User Controls & Account Center
+*   **Header Account Dropdown (Desktop)**: Located in the top header. Shows the user's name and initial inside a neutral slate box (`bg-zinc-800/80`) to avoid visual distraction from create buttons. An interactive chevron (`ChevronDown`) icon rotates 180 degrees and turns purple when clicked to reveal profile and logout options.
+*   **Sidebar Account Details (Mobile)**: Located at the bottom of the filters sidebar. Clicking navigates users directly to the settings page.
+*   **Settings Panel**: Uses a clean two-column grid. The email input is read-only, displaying a green check badge ("Verified"). Profiles and passwords can be updated, with action buttons (Save / Discard) appearing only when form values are dirty.
