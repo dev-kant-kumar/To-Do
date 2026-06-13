@@ -1,5 +1,6 @@
 const express = require("express");
 const TodoFiltersRoutes = express.Router();
+const auth = require("../middlewares/auth");
 
 const {
   showAllTasks,
@@ -10,11 +11,11 @@ const {
   showDeletedTask,
 } = require("../controllers/todoFiltersController");
 
-TodoFiltersRoutes.post("/all", showAllTasks);
-TodoFiltersRoutes.post("/completed", showCompletedTasks);
-TodoFiltersRoutes.post("/starred", showStarredTasks);
-TodoFiltersRoutes.post("/today", showTasksCreatedToday);
-TodoFiltersRoutes.post("/week", showTasksCreatedWeekAgo);
-TodoFiltersRoutes.post("/deleted", showDeletedTask);
+TodoFiltersRoutes.post("/all", auth, showAllTasks);
+TodoFiltersRoutes.post("/completed", auth, showCompletedTasks);
+TodoFiltersRoutes.post("/starred", auth, showStarredTasks);
+TodoFiltersRoutes.post("/today", auth, showTasksCreatedToday);
+TodoFiltersRoutes.post("/week", auth, showTasksCreatedWeekAgo);
+TodoFiltersRoutes.post("/deleted", auth, showDeletedTask);
 
 module.exports = TodoFiltersRoutes;

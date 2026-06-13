@@ -3,12 +3,7 @@ const Todo = require("../models/todoModel");
 async function showAllTasks(req, res) {
   console.log("Show all tasks reached");
 
-  const { userId } = req.body;
-
-  if (typeof userId !== "string") {
-    res.status(400).json({ status: "error", message: "Invalid userId" });
-    return;
-  }
+  const userId = req.id;
   const allTasks = await Todo.find({ userId: { $eq: userId }, deleted: false });
 
   if (allTasks.length == 0) {
@@ -26,13 +21,8 @@ async function showAllTasks(req, res) {
 async function showCompletedTasks(req, res) {
   console.log("show completed tasks reached");
 
-  const { userId } = req.body;
-
-  if (typeof userId !== "string") {
-    res.status(400).json({ status: "error", message: "Invalid userId" });
-    return;
-  }
-  const completedTask = await Todo.find({ userId: { $eq: userId }, completed: true });
+  const userId = req.id;
+  const completedTask = await Todo.find({ userId: { $eq: userId }, completed: true, deleted: false });
 
   if (completedTask.length == 0) {
     res.send({
@@ -49,13 +39,8 @@ async function showCompletedTasks(req, res) {
 async function showStarredTasks(req, res) {
   console.log("show starred tasks reached");
 
-  const { userId } = req.body;
-
-  if (typeof userId !== "string") {
-    res.status(400).json({ status: "error", message: "Invalid userId" });
-    return;
-  }
-  const starredTask = await Todo.find({ userId: { $eq: userId }, starred: true });
+  const userId = req.id;
+  const starredTask = await Todo.find({ userId: { $eq: userId }, starred: true, deleted: false });
 
   if (starredTask.length == 0) {
     res.send({
@@ -72,7 +57,7 @@ async function showStarredTasks(req, res) {
 async function showTasksCreatedToday(req, res) {
   console.log("show task created today reached");
 
-  const { userId } = req.body;
+  const userId = req.id;
 
   // Get the start and end of today
   const startOfDay = new Date();
@@ -83,6 +68,7 @@ async function showTasksCreatedToday(req, res) {
   // Find tasks created today
   const TasksCreatedToday = await Todo.find({
     userId: userId,
+    deleted: false,
     date: { $gte: startOfDay, $lt: endOfDay },
   });
 
@@ -90,6 +76,7 @@ async function showTasksCreatedToday(req, res) {
     res.send({
       status: false,
       message: "There are no tasks created today.",
+      length: 0,
     });
   } else {
     res.send(TasksCreatedToday);
@@ -100,7 +87,7 @@ async function showTasksCreatedToday(req, res) {
 async function showTasksCreatedWeekAgo(req, res) {
   console.log("show tasks created a week ago reached");
 
-  const { userId } = req.body;
+  const userId = req.id;
 
   const now = new Date();
   const startOfWeekAgo = new Date(now);
@@ -112,6 +99,7 @@ async function showTasksCreatedWeekAgo(req, res) {
   // Find tasks created exactly a week ago
   const TasksWeekAgo = await Todo.find({
     userId: { $eq: userId },
+    deleted: false,
     date: { $gte: startOfWeekAgo, $lt: endOfWeekAgo },
   });
 
@@ -129,12 +117,7 @@ async function showTasksCreatedWeekAgo(req, res) {
 
 async function showDeletedTask(req, res) {
   console.log("show all deleted tasks");
-  const { userId } = req.body;
-
-  if (typeof userId !== "string") {
-    res.status(400).json({ status: "error", message: "Invalid userId" });
-    return;
-  }
+  const userId = req.id;
   const deletedTask = await Todo.find({ userId: { $eq: userId }, deleted: true });
 
   if (deletedTask.length == 0) {

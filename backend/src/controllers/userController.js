@@ -26,10 +26,17 @@ async function signUp(req, res) {
       date: new Date(),
     });
 
-    if (newUser.save()) {
+    try {
+      await newUser.save();
       res.send({
         status: true,
         message: "Account creation successful",
+      });
+    } catch (err) {
+      console.error(err);
+      res.send({
+        status: false,
+        message: "Account creation failed!",
       });
     }
   }

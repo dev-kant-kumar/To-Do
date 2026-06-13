@@ -4,7 +4,8 @@ const User = require("../models/userModel");
 async function addTask(req, res) {
   console.log("Reached Add Task");
 
-  const { task, userId } = req.body;
+  const { task } = req.body;
+  const userId = req.id;
   console.log(userId);
 
   const existingUser = await User.findOne({ _id: userId });
@@ -34,7 +35,8 @@ async function addTask(req, res) {
 async function markCompleted(req, res) {
   console.log("Reached mark completed task");
 
-  const { taskID, userId } = req.body;
+  const { taskID } = req.body;
+  const userId = req.id;
 
   const markCompleteStatus = await Todo.findOneAndUpdate(
     { _id: taskID, userId: userId },
@@ -57,7 +59,8 @@ async function markCompleted(req, res) {
 async function unMarkCompleted(req, res) {
   console.log("Reached un mark completed task");
 
-  const { taskID, userId } = req.body;
+  const { taskID } = req.body;
+  const userId = req.id;
 
   const unMarkCompletedStatus = await Todo.findOneAndUpdate(
     { _id: taskID, userId: userId },
@@ -80,7 +83,8 @@ async function unMarkCompleted(req, res) {
 async function markStarred(req, res) {
   console.log("Reached mark starred task");
 
-  const { taskID, userId } = req.body;
+  const { taskID } = req.body;
+  const userId = req.id;
 
   const markStarredStatus = await Todo.findOneAndUpdate(
     { _id: taskID, userId: userId },
@@ -103,7 +107,8 @@ async function markStarred(req, res) {
 async function unMarkStarred(req, res) {
   console.log("Reached un mark starred task");
 
-  const { taskID, userId } = req.body;
+  const { taskID } = req.body;
+  const userId = req.id;
 
   const unMarkStarredStatus = await Todo.findOneAndUpdate(
     { _id: taskID, userId: userId },
@@ -126,7 +131,8 @@ async function unMarkStarred(req, res) {
 async function deleteTask(req, res) {
   console.log("Reached deleted task");
 
-  const { taskID, userId } = req.body;
+  const { taskID } = req.body;
+  const userId = req.id;
 
   const deleteStatus = await Todo.findOneAndUpdate(
     { _id: taskID, userId: userId },
@@ -149,7 +155,8 @@ async function deleteTask(req, res) {
 async function undoDelete(req, res) {
   console.log("Reached undo deleted task");
 
-  const { taskID, userId } = req.body;
+  const { taskID } = req.body;
+  const userId = req.id;
 
   const deleteStatus = await Todo.findOneAndUpdate(
     { _id: taskID, userId: userId },
@@ -174,7 +181,7 @@ async function deleteDeletedTask(req, res) {
 
   console.log("Reached deleteDeletedTask");
 
-  const { userId } = req.body;
+  const userId = req.id;
 
   try {
     const noOfTaskToDelete = await Todo.find({ userId: userId, deleted: true });
