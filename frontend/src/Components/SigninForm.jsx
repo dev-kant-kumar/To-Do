@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { setUserInfo } from "../Store/Reducers/UserSlice";
 import { toast } from "react-toastify";
 import { Eye, EyeOff, Lock, User, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 import Footer from "../Components/Common/Footer";
 
 function SigninForm() {
@@ -108,7 +109,12 @@ function SigninForm() {
 
       {/* Form Section */}
       <div className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-10">
-        <div className="w-full max-w-md bg-zinc-950/70 border border-zinc-800/80 p-8 sm:p-10 rounded-2xl backdrop-blur-xl shadow-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 24, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-md bg-zinc-950/70 border border-zinc-800/80 p-8 sm:p-10 rounded-2xl backdrop-blur-xl shadow-2xl"
+        >
           <div className="text-center mb-8">
             <h2 className="text-3xl font-extrabold tracking-tight text-white mb-2">Log In</h2>
             <p className="text-sm text-zinc-400">
@@ -221,7 +227,7 @@ function SigninForm() {
               Sign Up
             </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <Footer minimal />

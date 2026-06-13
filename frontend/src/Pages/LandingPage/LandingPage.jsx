@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
 import {
   Star,
   ListFilter,
@@ -17,6 +19,23 @@ import {
   Lock,
   LogIn
 } from "lucide-react";
+
+// Reusable scroll-triggered fade-in component
+function FadeInWhenVisible({ children, delay = 0, className = "" }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 28 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
+      transition={{ duration: 0.55, delay, ease: [0.16, 1, 0.3, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 function LandingPage() {
   const navigate = useNavigate();
@@ -145,23 +164,43 @@ function LandingPage() {
       <main className="relative z-10 max-w-7xl mx-auto px-6 pt-16 md:pt-28 pb-24">
         <div className="text-center max-w-3xl mx-auto">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-xs font-semibold text-purple-400 tracking-wide mb-8 animate-fade-slide-up shadow-[0_0_15px_rgba(168,85,247,0.05)] select-none">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-xs font-semibold text-purple-400 tracking-wide mb-8 shadow-[0_0_15px_rgba(168,85,247,0.05)] select-none"
+          >
             <Sparkles size={12} className="animate-spin duration-[6000ms] text-purple-400" />
             <span>Focus on what matters, stress less</span>
-          </div>
+          </motion.div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+          <motion.h1
+            initial={{ opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight"
+          >
             Master Your Day, <br className="hidden sm:inline" />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-500 animate-pulse-slow">
               One Task at a Time.
             </span>
-          </h1>
+          </motion.h1>
 
-          <p className="text-lg text-zinc-400 mb-10 leading-relaxed">
+          <motion.p
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="text-lg text-zinc-400 mb-10 leading-relaxed"
+          >
             Experience a beautifully designed, lightning-fast productivity tracker. Organize your thoughts, highlight daily priorities, track completed milestones, and stay ahead of your schedule with ease.
-          </p>
+          </motion.p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.32, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20"
+          >
             {isLoggedIn ? (
               <Link
                 to="/home"
@@ -188,11 +227,17 @@ function LandingPage() {
                 </Link>
               </>
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* Dashboard Mock Preview */}
-        <section id="preview" className="relative max-w-4xl mx-auto rounded-2xl border border-zinc-800/80 bg-[#0d0d16]/40 shadow-[0_0_50px_rgba(168,85,247,0.1)] overflow-hidden backdrop-blur-md p-4 sm:p-6 mb-24 transition-transform hover:scale-[1.005] duration-300">
+        <motion.section
+          id="preview"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="relative max-w-4xl mx-auto rounded-2xl border border-zinc-800/80 bg-[#0d0d16]/40 shadow-[0_0_50px_rgba(168,85,247,0.1)] overflow-hidden backdrop-blur-md p-4 sm:p-6 mb-24 hover:shadow-[0_0_70px_rgba(168,85,247,0.15)] transition-shadow duration-500"
+        >
           {/* Top macbook-style dots */}
           <div className="flex items-center justify-between border-b border-zinc-900/80 pb-4 mb-6">
             <div className="flex items-center gap-2">
@@ -328,10 +373,11 @@ function LandingPage() {
               </form>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {/* Bento Grid Features Section */}
         <section id="features" className="pt-8 pb-24 border-t border-zinc-900/30">
+          <FadeInWhenVisible>
           <div className="text-center max-w-2xl mx-auto mb-16 select-none">
             <h2 className="text-3xl font-extrabold text-white mb-4 tracking-tight leading-normal">
               Built to Optimize Your Focus
@@ -340,10 +386,12 @@ function LandingPage() {
               A minimalist environment designed to eliminate cognitive clutter, keep deadlines simple, and track progress effortlessly.
             </p>
           </div>
+          </FadeInWhenVisible>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-2">
             {/* Card 1: Priority Starring (Wide - Col-span 2) */}
-            <div className="md:col-span-2 group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px]">
+            <FadeInWhenVisible delay={0} className="md:col-span-2">
+            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px]">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
@@ -369,9 +417,11 @@ function LandingPage() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20">High</span>
               </div>
             </div>
+            </FadeInWhenVisible>
 
             {/* Card 2: Smarter Workflows (Tall - Row-span 2) */}
-            <div className="md:row-span-2 group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[380px]">
+            <FadeInWhenVisible delay={0.1} className="md:row-span-2">
+            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[380px] h-full">
               <div className="absolute inset-0 bg-gradient-to-b from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
@@ -416,8 +466,10 @@ function LandingPage() {
                 </div>
               </div>
             </div>
+            </FadeInWhenVisible>
 
             {/* Card 3: Real-Time Progress (Square - Col-span 1) */}
+            <FadeInWhenVisible delay={0.2}>
             <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px]">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
@@ -454,9 +506,11 @@ function LandingPage() {
                 </div>
               </div>
             </div>
+            </FadeInWhenVisible>
 
             {/* Card 4: Your Space, Your Data (Wide - Col-span 2) */}
-            <div className="md:col-span-2 group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px]">
+            <FadeInWhenVisible delay={0.15} className="md:col-span-2">
+            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px]">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
@@ -481,10 +535,12 @@ function LandingPage() {
                 </div>
               </div>
             </div>
+            </FadeInWhenVisible>
           </div>
         </section>
 
         {/* Stats Section */}
+        <FadeInWhenVisible>
         <section id="stats" className="py-20 border-t border-zinc-900/40 bg-zinc-950/20 rounded-3xl p-8 sm:p-12 mb-12">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
             <div>
@@ -507,8 +563,10 @@ function LandingPage() {
             </div>
           </div>
         </section>
+        </FadeInWhenVisible>
 
         {/* FAQ Section */}
+        <FadeInWhenVisible>
         <section id="faq" className="py-20 border-t border-zinc-900/30">
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-16 select-none">
@@ -570,6 +628,7 @@ function LandingPage() {
             </div>
           </div>
         </section>
+        </FadeInWhenVisible>
       </main>
 
       {/* Footer */}

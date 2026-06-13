@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { IoSearchOutline } from "react-icons/io5";
 import { RxCross2 } from "react-icons/rx";
 import { SlidersHorizontal, Menu, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { setSearchQuery } from "../Store/Reducers/TodoFilterSlice";
 import AccountCenterDropDown from "./AccountCenterDropDown";
 
@@ -107,7 +108,20 @@ function Header(props) {
             <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-200 flex-shrink-0 ${isOpen ? "rotate-180 text-purple-400" : ""}`} />
           </button>
 
-          {isOpen && <AccountCenterDropDown />}
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                key="account-dropdown"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute right-0 top-full mt-2 z-50 origin-top-right"
+              >
+                <AccountCenterDropDown />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Right Actions Wrapper (Hamburger) */}

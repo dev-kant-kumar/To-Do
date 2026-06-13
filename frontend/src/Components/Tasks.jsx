@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import CreateTask from "./CreateTask";
 import TaskDetailsModal from "./TaskDetailsModal";
 import ImgForAddTasks from "../assets/add-tasks.png";
@@ -576,21 +577,25 @@ function Tasks() {
     );
   };
 
-  const TaskItem = useCallback(
-    ({ task }) => {
+  const renderTaskItem = useCallback(
+    (task) => {
       const isSelected = selectedTaskIds.has(task._id);
       return (
-        <li 
-          key={task._id} 
-          className={`flex items-center justify-between gap-3 py-3 px-6 transition-all duration-300 group relative border-l-2 animate-fade-slide-up ${
+        <motion.li
+          key={task._id}
+          layout
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, x: -20, transition: { duration: 0.18 } }}
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          className={`flex items-start sm:items-center gap-2 sm:gap-3 py-3 px-4 sm:px-6 transition-colors duration-200 group relative border-l-2 ${
             isSelected 
               ? "bg-purple-950/10 border-l-purple-500" 
-              : "bg-transparent border-l-transparent hover:bg-zinc-900/10 hover:border-l-zinc-705"
+              : "bg-transparent border-l-transparent hover:bg-zinc-900/10 hover:border-l-zinc-700"
           }`}
         >
-          {/* Left Checkbox, Star & Priority */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Custom Checkbox */}
+          {/* Checkbox & Star */}
+          <div className="flex items-center gap-2 flex-shrink-0 pt-0.5 sm:pt-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -606,7 +611,6 @@ function Tasks() {
               )}
             </button>
 
-            {/* Star button */}
             <span
               className="cursor-pointer p-0.5 flex-shrink-0"
               onClick={(e) => {
@@ -625,40 +629,61 @@ function Tasks() {
               )}
             </span>
 
-            {/* Priority */}
-            <div className="flex-shrink-0">
+            <div className="hidden sm:block flex-shrink-0">
               {getPriorityBadge(task.priority)}
             </div>
           </div>
 
-          {/* Title & Description snippet (Gmail-like) */}
+          {/* Main content */}
           <div
-            className="flex-grow flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0 cursor-pointer select-none"
+            className="flex-grow flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 min-w-0 cursor-pointer select-none"
             onClick={() => setSelectedTask(task)}
           >
-            <div className="flex items-baseline gap-2 min-w-0 flex-grow text-left">
+            {/* Mobile row 1: priority + due date */}
+            <div className="flex items-center gap-2 flex-wrap sm:hidden">
+              {getPriorityBadge(task.priority)}
+              {getDueDateBadge(task)}
+            </div>
+
+            {/* Mobile row 2 / desktop title */}
+            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 min-w-0 flex-grow text-left">
               <span
-                className={`font-semibold text-sm truncate flex-shrink-0 max-w-[150px] sm:max-w-[250px] transition-all duration-300 strike-through-animate ${
+                className={`font-semibold text-sm transition-all duration-300 strike-through-animate sm:truncate sm:max-w-[250px] ${
                   task.completed ? "completed text-zinc-500" : "text-zinc-100"
                 }`}
               >
                 {task.task || "Untitled Task"}
               </span>
+
               {task.description && (
-                <span className={`text-xs text-zinc-500 truncate flex-grow transition-all duration-300 ${task.completed ? "line-through text-zinc-600" : ""}`}>
+                <span className={`hidden sm:inline text-xs text-zinc-500 truncate flex-grow transition-all duration-300 ${task.completed ? "line-through text-zinc-600" : ""}`}>
                   &mdash; {task.description}
                 </span>
               )}
             </div>
-            
-            {/* Due date Badge */}
-            <div className="flex items-center gap-1.5 flex-shrink-0 text-left">
+
+            {/* Mobile row 3: description */}
+            {task.description && (
+              <p className={`sm:hidden text-xs leading-relaxed transition-all duration-300 ${task.completed ? "line-through text-zinc-600" : "text-zinc-500"}`}>
+                {task.description}
+              </p>
+            )}
+
+            {/* Desktop: due date */}
+            <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0 text-left">
               {getDueDateBadge(task)}
+            </div>
+
+            {/* Mobile row 4: created date */}
+            <div className="flex justify-end sm:hidden">
+              <span className="text-xs text-zinc-500 font-medium">
+                {formatDate(task.date)}
+              </span>
             </div>
           </div>
 
-          {/* Right Date / Actions Container */}
-          <div className="w-20 sm:w-24 flex-shrink-0 flex items-center justify-end text-right h-8">
+          {/* Desktop: created date / hover actions */}
+          <div className="hidden sm:flex w-24 flex-shrink-0 items-center justify-end text-right h-8">
             <span className="text-xs text-zinc-500 font-medium block group-hover:hidden transition-all duration-150">
               {formatDate(task.date)}
             </span>
@@ -698,7 +723,7 @@ function Tasks() {
               </span>
             </div>
           </div>
-        </li>
+        </motion.li>
       );
     },
     [toggleStarred, toggleTaskComplete, deleteTask, formatDate, setSelectedTask, selectedTaskIds, toggleSelectTask]
@@ -790,15 +815,18 @@ function Tasks() {
       <div className="flex-grow flex flex-col overflow-hidden text-left -mx-6">
         {Toolbar}
         <div className="flex-grow overflow-y-auto pr-1 scrollbar-none">
-          <ul className="divide-y divide-zinc-900/60">
-            {displayedTodoList.map((task) => (
-              <TaskItem key={task._id} task={task} />
-            ))}
-          </ul>
+          <motion.ul
+            layout
+            className="divide-y divide-zinc-900/60"
+          >
+            <AnimatePresence mode="popLayout">
+              {displayedTodoList.map((task) => renderTaskItem(task))}
+            </AnimatePresence>
+          </motion.ul>
         </div>
       </div>
     ),
-    [displayedTodoList, TaskItem, Toolbar]
+    [displayedTodoList, renderTaskItem, Toolbar]
   );
 
   // Loading state
@@ -815,7 +843,12 @@ function Tasks() {
   const hasSearchQuery = !!todoData.searchQuery;
 
   return (
-    <div className="flex-grow flex flex-col h-full animate-fade-in">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.35 }}
+      className="flex-grow flex flex-col h-full"
+    >
       {TitleHeader}
       {originalListIsEmpty ? (
         EmptyTasksView
@@ -882,7 +915,7 @@ function Tasks() {
         />
       )}
       {showCreateTask && <CreateTask onClose={taskHandler} />}
-    </div>
+    </motion.div>
   );
 }
 

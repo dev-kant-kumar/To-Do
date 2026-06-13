@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { RxCross2 } from "react-icons/rx";
@@ -112,15 +113,26 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
 
   const minDateTime = getCurrentLocalDateTimeString();
   return (
-    <div
+    <AnimatePresence>
+    <motion.div
       ref={modalRef}
       onClick={handleBackdropClick}
       role="dialog"
       aria-labelledby="modal-heading"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#030307]/80 backdrop-blur-[2px] p-4 animate-fade-in"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#030307]/80 backdrop-blur-[2px] p-4"
     >
-      <div className="bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-300 animate-scale-in">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: -12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: -8 }}
+        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+        className="bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-zinc-900">
           <div className="flex items-center gap-2">
@@ -285,23 +297,9 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
 
       <style>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes scale-in {
-          from { opacity: 0; transform: scale(0.95) translateY(-5px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.2s ease-out;
-        }
-        .animate-scale-in {
-          animation: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
         .custom-datetime-picker::-webkit-calendar-picker-indicator {
           filter: invert(0.85);
           cursor: pointer;
@@ -312,7 +310,8 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
           opacity: 1;
         }
       `}</style>
-    </div>
+    </motion.div>
+    </AnimatePresence>
   );
 }
 

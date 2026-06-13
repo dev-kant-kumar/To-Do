@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
 import Header from "../Components/Header";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { 
@@ -291,7 +292,12 @@ function ProfilePage() {
       <div id="profile-page-main-container" className="relative z-10 pt-4 px-4 max-w-7xl mx-auto pb-8 w-full flex flex-col gap-5 text-left">
         
         {/* Back Link */}
-        <div className="flex items-center justify-between">
+        <motion.div
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          className="flex items-center justify-between"
+        >
           <Link 
             to="/home" 
             className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-all font-semibold focus:outline-none hover:-translate-x-1 duration-200"
@@ -299,10 +305,15 @@ function ProfilePage() {
             <ArrowLeft size={18} />
             Back to Tasks
           </Link>
-        </div>
+        </motion.div>
 
         {/* 2-Panel Layout Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch w-full"
+        >
           
           {/* Left Panel: Profile Summary Card */}
           <div className="md:col-span-1 bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-6 shadow-2xl flex flex-col items-center justify-between md:min-h-[460px] min-h-0">
@@ -641,7 +652,7 @@ function ProfilePage() {
 
           </div>
 
-        </div>
+        </motion.div>
 
       </div>
     </div>

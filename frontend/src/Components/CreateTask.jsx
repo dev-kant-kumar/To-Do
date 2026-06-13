@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
@@ -254,15 +255,26 @@ function CreateTask({ onClose }) {
 
   const minDateTime = getCurrentLocalDateTimeString();
   return (
-    <div
+    <AnimatePresence>
+    <motion.div
       ref={refElement}
       onClick={handleBackdropClick}
       role="dialog"
       aria-labelledby="modal-heading"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#030307]/80 backdrop-blur-[2px] p-4 animate-fade-in"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#030307]/80 backdrop-blur-[2px] p-4"
     >
-      <div className="bg-[#0b0b0f] border border-zinc-800/80 rounded-2xl shadow-[0_24px_70px_rgba(0,0,0,0.7)] w-full max-w-md transform transition-all duration-300 animate-scale-in overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: -12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: -8 }}
+        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+        className="bg-[#0b0b0f] border border-zinc-800/80 rounded-2xl shadow-[0_24px_70px_rgba(0,0,0,0.7)] w-full max-w-md overflow-hidden"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-900/60">
           <h3 id="modal-heading" className="text-base font-extrabold bg-gradient-to-r from-zinc-100 to-zinc-300 bg-clip-text text-transparent">
@@ -429,49 +441,21 @@ function CreateTask({ onClose }) {
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
 
       <style>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes scale-in {
-          from {
-            opacity: 0;
-            transform: scale(0.96) translateY(-8px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.2s ease-out;
-        }
-
-        .animate-scale-in {
-          animation: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
         .custom-datetime-picker::-webkit-calendar-picker-indicator {
           filter: invert(0.85);
           cursor: pointer;
           opacity: 0.75;
           transition: opacity 0.2s;
         }
-
         .custom-datetime-picker::-webkit-calendar-picker-indicator:hover {
           opacity: 1;
         }
       `}</style>
-    </div>
+    </motion.div>
+    </AnimatePresence>
   );
 }
 

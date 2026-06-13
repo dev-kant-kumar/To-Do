@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
 import Header from "./Components/Header";
 import Filters from "./Components/Filters";
 import Projects from "./Components/Projects";
@@ -11,9 +12,21 @@ import { clearUserInfo } from "./Store/Reducers/UserSlice";
 
 function App() {
   const [showFilters, setShowFilters] = useState(false);
+  // Initialise synchronously so there's no flash on first render
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches
+  );
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const userInfo = useSelector((state) => state.UserSlice);
+
+  // Keep in sync when window resizes across the breakpoint
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   const closeHandler = () => {
     setShowFilters(false);
@@ -26,6 +39,16 @@ function App() {
     toast.info("You have been logged out");
   };
 
+  // On desktop the sidebar animates in on mount then stays; on mobile it slides in from the right
+  const sidebarAnimate = isDesktop
+    ? { x: 0, opacity: 1, pointerEvents: "auto" }
+    : showFilters
+    ? { x: 0, opacity: 1, pointerEvents: "auto" }
+    : { x: "calc(100% + 20px)", opacity: 0, pointerEvents: "none" };
+
+  const sidebarInitial = isDesktop
+    ? { x: -24, opacity: 0 }
+    : false;
 
   return (
     <div className="relative min-h-screen bg-[#05050a] text-zinc-100 flex flex-col overflow-x-hidden font-sans">
@@ -40,20 +63,29 @@ function App() {
       {/* Main Container */}
       <main className="relative z-10 flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-6 items-start">
         {/* Mobile Backdrop Overlay */}
-        <div
-          className={`fixed inset-0 bg-black/65 backdrop-blur-xs z-40 transition-opacity duration-300 md:hidden ${
-            showFilters ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
-          onClick={closeHandler}
-        />
+        <AnimatePresence>
+          {showFilters && !isDesktop && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/65 backdrop-blur-xs z-40"
+              onClick={closeHandler}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Left Filters Sidebar */}
-        <section
-          className={`bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-5 shadow-2xl flex flex-col justify-between overflow-hidden fixed md:static top-24 bottom-6 right-4 w-64 md:w-80 z-50 md:z-0 md:h-[620px] transition-all duration-350 ease-out md:translate-x-0 md:opacity-100 md:pointer-events-auto ${
-            showFilters 
-              ? "translate-x-0 opacity-100 pointer-events-auto" 
-              : "translate-x-[calc(100%+20px)] opacity-0 pointer-events-none"
-          }`}
+        <motion.section
+          initial={sidebarInitial}
+          animate={sidebarAnimate}
+          transition={
+            isDesktop
+              ? { duration: 0.45, ease: [0.16, 1, 0.3, 1] }
+              : { type: "spring", stiffness: 320, damping: 32 }
+          }
+          className="bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-5 shadow-2xl flex flex-col justify-between overflow-hidden fixed md:static top-24 bottom-6 right-4 w-64 md:w-80 z-50 md:z-0 md:h-[620px]"
         >
           {/* Top Content (Filters & Projects) */}
           <div className="flex flex-col gap-5 overflow-y-auto scrollbar-none flex-grow">
@@ -95,12 +127,17 @@ function App() {
               </button>
             )}
           </div>
-        </section>
+        </motion.section>
 
         {/* Right Tasks Area */}
-        <section className="flex-grow w-full bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-6 shadow-2xl md:h-[620px] flex flex-col">
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: isDesktop ? 0.12 : 0, ease: [0.16, 1, 0.3, 1] }}
+          className="flex-grow w-full bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-6 shadow-2xl md:h-[620px] flex flex-col"
+        >
           <Tasks />
-        </section>
+        </motion.section>
       </main>
     </div>
   );
