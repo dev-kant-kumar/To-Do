@@ -87,7 +87,7 @@ function Filters({ setShow }) {
         </h2>
         <button
           onClick={() => setShow(false)}
-          className="md:hidden p-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200 transition-colors focus:outline-none"
+          className="lg:hidden p-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200 transition-colors focus:outline-none"
         >
           <X className="w-4 h-4" />
         </button>

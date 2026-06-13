@@ -147,6 +147,7 @@ function Tasks() {
 
   // Event handlers
   const taskHandler = useCallback(() => {
+    setSelectedTask(null);
     setShowCreateTask((prev) => !prev);
   }, []);
 
@@ -405,7 +406,7 @@ function Tasks() {
             className={`py-2 px-4 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer disabled:opacity-50 flex-shrink-0 flex items-center gap-1.5 ${
               isDeletedFilter && lengthOfTodo > 0
                 ? "bg-red-950/40 hover:bg-red-900/40 text-red-400 border border-red-900/30"
-                : "bg-purple-600 hover:bg-purple-500 text-white border border-purple-500/30 shadow-lg shadow-purple-950/50 hover:shadow-purple-900/50 hover:scale-[1.02] active:scale-[0.98]"
+                : "bg-purple-600 hover:bg-purple-500 text-white border border-purple-500/30 shadow-lg shadow-purple-950/50 hover:shadow-purple-900/50 hover:scale-[1.02] active:scale-[0.98] hidden lg:inline-flex"
             }`}
           >
             {isDeletedFilter && lengthOfTodo > 0 ? (
@@ -464,7 +465,6 @@ function Tasks() {
         >
           {isDeletedFilter ? "Delete All Forever" : "Create a Task"}
         </button>
-        {showCreateTask && <CreateTask onClose={taskHandler} />}
       </div>
     ),
     [
@@ -473,7 +473,6 @@ function Tasks() {
       deleteAllTaskInDeletedTasks,
       taskHandler,
       isLoading,
-      showCreateTask,
       currentFilterType,
       originalListIsEmpty,
     ]
@@ -588,7 +587,7 @@ function Tasks() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, x: -20, transition: { duration: 0.18 } }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className={`flex items-start sm:items-center gap-2 sm:gap-3 py-3 px-4 sm:px-6 transition-colors duration-200 group relative border-l-2 ${
+          className={`flex items-start sm:items-center gap-2 sm:gap-3 py-3 px-4 lg:px-6 transition-colors duration-200 group relative border-l-2 ${
             isSelected 
               ? "bg-purple-950/10 border-l-purple-500" 
               : "bg-transparent border-l-transparent hover:bg-zinc-900/10 hover:border-l-zinc-700"
@@ -637,7 +636,10 @@ function Tasks() {
           {/* Main content */}
           <div
             className="flex-grow flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 min-w-0 cursor-pointer select-none"
-            onClick={() => setSelectedTask(task)}
+            onClick={() => {
+              setSelectedTask(task);
+              setShowCreateTask(false);
+            }}
           >
             {/* Mobile row 1: priority + due date */}
             <div className="flex items-center gap-2 flex-wrap sm:hidden">
@@ -648,7 +650,7 @@ function Tasks() {
             {/* Mobile row 2 / desktop title */}
             <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 min-w-0 flex-grow text-left">
               <span
-                className={`font-semibold text-sm transition-all duration-300 strike-through-animate sm:truncate sm:max-w-[250px] ${
+                className={`font-semibold text-sm transition-all duration-300 strike-through-animate w-fit sm:truncate sm:max-w-[250px] ${
                   task.completed ? "completed text-zinc-500" : "text-zinc-100"
                 }`}
               >
@@ -731,7 +733,7 @@ function Tasks() {
 
   const Toolbar = useMemo(() => {
     return (
-      <div className="flex items-center justify-between px-6 pb-3 border-b border-zinc-800/60 gap-4 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 lg:px-6 pb-3 border-b border-zinc-800/60 gap-4 flex-shrink-0">
         <div className="flex items-center gap-2">
           {/* Select Checkbox */}
           <button
@@ -812,7 +814,7 @@ function Tasks() {
 
   const TasksListView = useMemo(
     () => (
-      <div className="flex-grow flex flex-col overflow-hidden text-left -mx-6">
+      <div className="flex-grow flex flex-col overflow-hidden text-left -mx-4 lg:-mx-6">
         {Toolbar}
         <div className="flex-grow overflow-y-auto pr-1 scrollbar-none">
           <motion.ul
@@ -857,7 +859,7 @@ function Tasks() {
       ) : (
         <>
           {/* Tabs Bar */}
-          <div className="flex items-center border-b border-zinc-800/60 pb-3 mb-4 flex-shrink-0 px-6 -mx-6">
+          <div className="flex items-center border-b border-zinc-800/60 pb-3 mb-4 flex-shrink-0 px-4 lg:px-6 -mx-4 lg:-mx-6">
             <button
               onClick={() => {
                 setActiveTab("todo");
@@ -909,12 +911,23 @@ function Tasks() {
       )}
       {selectedTask && (
         <TaskDetailsModal
+          key={selectedTask._id}
           task={selectedTask}
           onClose={() => setSelectedTask(null)}
           onUpdate={() => fetchTodo(userInfo.userId)}
         />
       )}
       {showCreateTask && <CreateTask onClose={taskHandler} />}
+      {!isDeletedFilter && (
+        <button
+          onClick={taskHandler}
+          disabled={isLoading}
+          title="Create a new task"
+          className="fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-purple-600 hover:bg-purple-500 text-white rounded-full flex items-center justify-center shadow-2xl shadow-purple-950/60 hover:shadow-purple-900/60 active:scale-95 transition-all duration-200 border border-purple-500/30 focus:outline-none z-40 cursor-pointer"
+        >
+          <Plus size={24} className="stroke-[3]" />
+        </button>
+      )}
     </motion.div>
   );
 }

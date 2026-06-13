@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { RxCross2 } from "react-icons/rx";
-import { Calendar, AlertCircle, Edit3, AlignLeft } from "lucide-react";
+import { Calendar, AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2 } from "lucide-react";
 
 const getCurrentLocalDateTimeString = () => {
   const d = new Date();
@@ -29,6 +29,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
     }
   });
   const [description, setDescription] = useState(task.description || "");
+  const [isStarred, setIsStarred] = useState(task.starred || false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -87,6 +88,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
           priority,
           dueDate: dueDate ? new Date(dueDate).toISOString() : null,
           description: description.trim(),
+          starred: isStarred,
         },
         {
           headers: {
@@ -111,6 +113,41 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
     }
   };
 
+  const handleDelete = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await axios.post(
+        `${apiUrl}todo/deleteTask`,
+        {
+          taskID: task._id,
+        },
+        {
+          headers: {
+            "X-Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data?.status) {
+        toast.success("Task deleted successfully");
+        if (onUpdate) {
+          await onUpdate();
+        }
+        onClose();
+      } else {
+        toast.error(response.data?.message || "Failed to delete task");
+      }
+    } catch (err) {
+      console.error("Error deleting task:", err);
+      toast.error(err.response?.data?.message || "An error occurred while deleting the task");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const minDateTime = getCurrentLocalDateTimeString();
   return (
     <AnimatePresence>
@@ -124,40 +161,82 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.18 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#030307]/80 backdrop-blur-[2px] p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center lg:items-stretch lg:justify-end lg:backdrop-blur-none p-0 bg-[#05050a] lg:bg-transparent pointer-events-auto lg:pointer-events-none"
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: -12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: -8 }}
-        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        initial={{ x: "100%", opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: "100%", opacity: 0 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="bg-[#05050a] lg:bg-[#0b0b0f] w-full h-full lg:max-w-md lg:border-y-0 lg:border-r-0 lg:border-l lg:border-zinc-800/80 lg:rounded-none lg:rounded-l-2xl lg:shadow-[-10px_0_40px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden pointer-events-auto"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-zinc-900">
-          <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+        <div className="flex items-center justify-between p-6 border-b border-zinc-900 flex-shrink-0 gap-4">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Back Button (Mobile/Tablet only) */}
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              type="button"
+              className="lg:hidden p-2 mr-1 rounded-xl bg-zinc-900/30 hover:bg-zinc-900/50 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200 transition-all duration-200 active:scale-95 focus:outline-none flex-shrink-0"
+              title="Go back"
+            >
+              <ArrowLeft size={16} className="stroke-[2.5]" />
+            </button>
+            <span className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 flex-shrink-0">
               <Edit3 size={18} />
             </span>
-            <div>
-              <h3 id="modal-heading" className="text-lg font-bold text-zinc-100">
+            <div className="min-w-0">
+              <h3 id="modal-heading" className="text-sm sm:text-base font-bold text-zinc-100 truncate">
                 Task Details
               </h3>
-              <p className="text-xs text-zinc-500">Edit options and schedule details.</p>
+              <p className="text-[10px] sm:text-xs text-zinc-500 truncate">Edit options and details.</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            aria-label="Close dialog"
-            type="button"
-            className="p-2 rounded-lg hover:bg-zinc-900 transition-colors duration-200 group text-zinc-400 hover:text-zinc-200 focus:outline-none"
-          >
-            <RxCross2 className="w-5 h-5 opacity-70 group-hover:opacity-100" />
-          </button>
+          
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Star toggle */}
+            <button
+              type="button"
+              onClick={() => setIsStarred(!isStarred)}
+              disabled={isLoading}
+              className={`p-2 rounded-xl border transition-all duration-200 focus:outline-none cursor-pointer ${
+                isStarred 
+                  ? "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20" 
+                  : "bg-zinc-900/40 border-zinc-800/60 hover:bg-zinc-850 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200"
+              }`}
+              title={isStarred ? "Unstar task" : "Star task"}
+            >
+              <Star size={16} fill={isStarred ? "currentColor" : "none"} />
+            </button>
+
+            {/* Delete button */}
+            {!task.deleted && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isLoading}
+                className="p-2 rounded-xl bg-red-950/20 hover:bg-red-950/40 border border-red-900/30 hover:border-red-900/50 text-red-400 hover:text-red-300 transition-all duration-200 focus:outline-none cursor-pointer"
+                title="Delete task"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+
+            {/* Close button (Desktop only) */}
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              aria-label="Close dialog"
+              type="button"
+              className="hidden lg:flex p-2 rounded-xl bg-zinc-900/40 border border-zinc-800/60 hover:bg-zinc-850 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200 transition-all duration-200 group focus:outline-none cursor-pointer"
+            >
+              <RxCross2 className="w-4 h-4 opacity-70 group-hover:opacity-100" />
+            </button>
+          </div>
         </div>
 
-        <form onSubmit={handleUpdate} className="p-6 space-y-5">
+        <form onSubmit={handleUpdate} className="p-6 flex flex-col gap-5 flex-grow overflow-y-auto">
           {/* Task Title */}
           <div className="space-y-1.5 text-left">
             <label htmlFor="taskText" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
@@ -188,14 +267,14 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
           </div>
 
           {/* Description */}
-          <div className="space-y-1.5 text-left">
+          <div className="space-y-1.5 text-left flex flex-col flex-grow min-h-[140px]">
             <div className="flex items-center gap-1.5 text-zinc-400">
               <AlignLeft size={14} />
               <label htmlFor="description" className="text-xs font-semibold uppercase tracking-wider">
                 Description & Notes
               </label>
             </div>
-            <div className="relative">
+            <div className="relative flex-grow flex flex-col">
               <textarea
                 id="description"
                 value={description}
@@ -203,8 +282,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={isLoading}
                 maxLength={MAX_DESCRIPTION_LENGTH}
-                rows="4"
-                className="w-full px-4 py-3 bg-zinc-900/50 text-zinc-200 rounded-xl border border-zinc-800 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 text-sm"
+                className="w-full flex-grow px-4 py-3 bg-zinc-900/50 text-zinc-200 rounded-xl border border-zinc-800 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 text-sm"
               />
               {/* Description Character Counter */}
               <div className="absolute bottom-2 right-3 text-[10px] text-zinc-550 select-none font-semibold">
@@ -291,7 +369,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="px-6 py-3 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="hidden lg:inline-flex px-6 py-3 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>

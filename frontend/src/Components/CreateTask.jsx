@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { toast } from "react-toastify";
 import { RxCross2 } from "react-icons/rx";
+import { ArrowLeft } from "lucide-react";
 
 // Constants
 const MAX_TASK_LENGTH = 80;
@@ -34,11 +35,14 @@ function CreateTask({ onClose }) {
   const inputRef = useRef();
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
-  // Focus input on mount
+  // Focus input after animation completes to avoid browser scroll layout shift
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    const timer = setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 320);
+    return () => clearTimeout(timer);
   }, []);
 
   // Handle escape key to close modal
@@ -266,32 +270,45 @@ function CreateTask({ onClose }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.18 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#030307]/80 backdrop-blur-[2px] p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center lg:items-stretch lg:justify-end lg:backdrop-blur-none p-0 bg-[#05050a] lg:bg-transparent pointer-events-auto lg:pointer-events-none"
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: -12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: -8 }}
-        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-[#0b0b0f] border border-zinc-800/80 rounded-2xl shadow-[0_24px_70px_rgba(0,0,0,0.7)] w-full max-w-md overflow-hidden"
+        initial={{ x: "100%", opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: "100%", opacity: 0 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="bg-[#05050a] lg:bg-[#0b0b0f] w-full h-full lg:max-w-md lg:border-y-0 lg:border-r-0 lg:border-l lg:border-zinc-800/80 lg:rounded-none lg:rounded-l-2xl lg:shadow-[-10px_0_40px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden pointer-events-auto"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-900/60">
-          <h3 id="modal-heading" className="text-base font-extrabold bg-gradient-to-r from-zinc-100 to-zinc-300 bg-clip-text text-transparent">
-            Create New Task
-          </h3>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-900/60 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            {/* Back Button (Mobile/Tablet only) */}
+            <button
+              onClick={handleClose}
+              disabled={isLoading}
+              type="button"
+              className="lg:hidden p-2 mr-1 rounded-xl bg-zinc-900/30 hover:bg-zinc-900/50 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200 transition-all duration-200 active:scale-95 focus:outline-none"
+              title="Go back"
+            >
+              <ArrowLeft size={16} className="stroke-[2.5]" />
+            </button>
+            <h3 id="modal-heading" className="text-base font-extrabold bg-gradient-to-r from-zinc-100 to-zinc-300 bg-clip-text text-transparent">
+              Create New Task
+            </h3>
+          </div>
+          {/* Close button (Desktop only) */}
           <button
             onClick={handleClose}
             disabled={isLoading}
             aria-label="Close dialog"
             type="button"
-            className="p-1.5 rounded-lg bg-zinc-900/40 border border-zinc-800/60 hover:bg-zinc-850 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
+            className="hidden lg:flex p-1.5 rounded-lg bg-zinc-900/40 border border-zinc-800/60 hover:bg-zinc-850 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
           >
             <RxCross2 className="w-4 h-4 group-hover:scale-105 transition-transform duration-200" />
           </button>
         </div>
 
-        <form onSubmit={createTaskBtn} className="p-6 space-y-5">
+        <form onSubmit={createTaskBtn} className="p-6 flex flex-col gap-5 flex-grow overflow-y-auto">
           {/* Input Section */}
           <div className="space-y-1.5 text-left">
             <label htmlFor="task-input" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
@@ -324,7 +341,7 @@ function CreateTask({ onClose }) {
                 >
                   {inputValue.length}
                 </span>
-                <span className="text-zinc-600">/{MAX_TASK_LENGTH}</span>
+                <span className="text-zinc-650">/{MAX_TASK_LENGTH}</span>
               </div>
             </div>
 
@@ -341,11 +358,11 @@ function CreateTask({ onClose }) {
           </div>
 
           {/* Description Section */}
-          <div className="space-y-1.5 text-left">
+          <div className="space-y-1.5 text-left flex flex-col flex-grow min-h-[140px]">
             <label htmlFor="description" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
               Description / Notes
             </label>
-            <div className="relative">
+            <div className="relative flex-grow flex flex-col">
               <textarea
                 id="description"
                 value={description}
@@ -353,8 +370,7 @@ function CreateTask({ onClose }) {
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={isLoading}
                 maxLength={MAX_DESCRIPTION_LENGTH}
-                rows="4"
-                className="w-full px-4 py-3 bg-zinc-900/30 text-zinc-200 rounded-xl border border-zinc-800/60 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 text-sm placeholder-zinc-500"
+                className="w-full flex-grow px-4 py-3 bg-zinc-900/30 text-zinc-200 rounded-xl border border-zinc-800/60 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 text-sm placeholder-zinc-500"
               />
               {/* Description Character Counter */}
               <div className="absolute bottom-2 right-3 text-[10px] text-zinc-550 select-none font-semibold">
@@ -435,25 +451,14 @@ function CreateTask({ onClose }) {
               type="button"
               onClick={cancelBtn}
               disabled={isLoading}
-              className="px-6 py-3 bg-zinc-900/50 border border-zinc-800/80 hover:bg-zinc-800/50 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200 font-semibold text-sm rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none"
+              className="hidden lg:inline-flex px-6 py-3 bg-zinc-900/50 border border-zinc-800/80 hover:bg-zinc-800/50 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200 font-semibold text-sm rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none"
             >
               Cancel
             </button>
           </div>
         </form>
       </motion.div>
-
-      <style>{`
-        .custom-datetime-picker::-webkit-calendar-picker-indicator {
-          filter: invert(0.85);
-          cursor: pointer;
-          opacity: 0.75;
-          transition: opacity 0.2s;
-        }
-        .custom-datetime-picker::-webkit-calendar-picker-indicator:hover {
-          opacity: 1;
-        }
-      `}</style>
+      
     </motion.div>
     </AnimatePresence>
   );

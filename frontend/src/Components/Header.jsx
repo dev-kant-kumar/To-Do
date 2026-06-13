@@ -85,7 +85,7 @@ function Header(props) {
         </div>
 
         {/* Right actions - Desktop only */}
-        <div className="hidden md:flex items-center gap-4 relative" ref={dropDownRef}>
+        <div className="hidden lg:flex items-center gap-4 relative" ref={dropDownRef}>
           {/* Cloud Sync Status */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/15 border border-emerald-900/20 text-[10px] font-bold text-emerald-400 select-none">
             <span className="relative flex h-1.5 w-1.5">
@@ -125,7 +125,7 @@ function Header(props) {
         </div>
 
         {/* Right Actions Wrapper (Hamburger) */}
-        <div className="flex items-center gap-3 flex-shrink-0 md:hidden">
+        <div className="flex items-center gap-3 flex-shrink-0 lg:hidden">
           {/* Mobile Menu Toggle button */}
           <div className="flex items-center">
             <button

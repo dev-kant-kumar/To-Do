@@ -390,8 +390,8 @@ function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-2">
             {/* Card 1: Priority Starring (Wide - Col-span 2) */}
-            <FadeInWhenVisible delay={0} className="md:col-span-2">
-            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px]">
+            <FadeInWhenVisible delay={0} className="md:col-span-2 h-full">
+            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px] h-full">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
@@ -419,8 +419,8 @@ function LandingPage() {
             </div>
             </FadeInWhenVisible>
 
-            {/* Card 2: Smarter Workflows (Tall - Row-span 2) */}
-            <FadeInWhenVisible delay={0.1} className="md:row-span-2">
+            {/* Card 2: Smarter Workflows (Tall - 1 Column) */}
+            <FadeInWhenVisible delay={0.1} className="h-full">
             <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[380px] h-full">
               <div className="absolute inset-0 bg-gradient-to-b from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
@@ -469,8 +469,8 @@ function LandingPage() {
             </FadeInWhenVisible>
 
             {/* Card 3: Real-Time Progress (Square - Col-span 1) */}
-            <FadeInWhenVisible delay={0.2}>
-            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px]">
+            <FadeInWhenVisible delay={0.2} className="h-full">
+            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px] h-full">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
@@ -509,8 +509,8 @@ function LandingPage() {
             </FadeInWhenVisible>
 
             {/* Card 4: Your Space, Your Data (Wide - Col-span 2) */}
-            <FadeInWhenVisible delay={0.15} className="md:col-span-2">
-            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px]">
+            <FadeInWhenVisible delay={0.15} className="md:col-span-2 h-full">
+            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px] h-full">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
