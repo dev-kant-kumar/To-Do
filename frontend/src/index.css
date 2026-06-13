@@ -1,27 +1,4 @@
 @import "tailwindcss";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@import "./assets/css/profilepage.css";
-@import "./assets/css/errorpage.css";
-@import "./assets/css/header.css";
-@import "./assets/css/responsiveness.css";
-
-/* * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-} */
-:root {
-  --universal-border: none;
-  --section-container-bg-color: #282c35;
-  --heading-h2: #bf8cf4;
-  --heading-h2-font-size: 1.2em;
-  --list-bg-color: #536076;
-  --list-item-color: #b1b9c8;
-  --swiper-theme-color: #9040dd;
-}
 
 ::selection {
   color: white;
@@ -29,29 +6,16 @@
 }
 
 body {
-  background-color: #16161d;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #05050a;
+  color: #f4f4f5;
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-/* disable text selection */
-.no-select {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/* styling for form validation */
-
-.sigUp-form-validation-error-display-field {
+/* Custom Scrollbar hide helper utility */
+.scrollbar-none::-webkit-scrollbar {
   display: none;
 }
-.sigUp-form-validation-error-display-field-active {
-  display: block !important;
-  width: 80%;
-  margin: auto;
-  margin-bottom: 8px;
-  color: #ff5a6c;
-  font-style: italic;
+.scrollbar-none {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }

@@ -72,7 +72,6 @@ function SigninForm() {
         const { token, userData } = res.data;
         const { _id, name, username, email, date } = userData;
 
-        toast.success(message || "Successfully logged in!");
         dispatch(setUserInfo({ _id, name, username, email, date }));
         localStorage.setItem("token", token);
         navigate("/home");

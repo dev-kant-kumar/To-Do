@@ -6,8 +6,15 @@ import { toast } from "react-toastify";
 import { RxCross2 } from "react-icons/rx";
 
 // Constants
-const MAX_TASK_LENGTH = 500;
+const MAX_TASK_LENGTH = 80;
+const MAX_DESCRIPTION_LENGTH = 500;
 const MIN_TASK_LENGTH = 1;
+
+const getCurrentLocalDateTimeString = () => {
+  const d = new Date();
+  const pad = (num) => String(num).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 function CreateTask({ onClose }) {
   const dispatch = useDispatch();
@@ -17,7 +24,7 @@ function CreateTask({ onClose }) {
   // Local state
   const [inputValue, setInputValue] = useState("");
   const [priority, setPriority] = useState("low");
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState(getCurrentLocalDateTimeString);
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -144,7 +151,6 @@ function CreateTask({ onClose }) {
         });
 
         if (response.data?.status) {
-          toast.success(response.data.message || "Task created successfully");
           await fetchTodos(userInfo.userId);
           return true;
         } else {
@@ -184,7 +190,7 @@ function CreateTask({ onClose }) {
       if (success) {
         setInputValue("");
         setPriority("low");
-        setDueDate("");
+        setDueDate(getCurrentLocalDateTimeString());
         setDescription("");
         setError("");
         handleClose();
@@ -213,7 +219,7 @@ function CreateTask({ onClose }) {
   const handleClose = useCallback(() => {
     setInputValue("");
     setPriority("low");
-    setDueDate("");
+    setDueDate(getCurrentLocalDateTimeString());
     setDescription("");
     setError("");
     setIsLoading(false);
@@ -246,6 +252,7 @@ function CreateTask({ onClose }) {
     [handleClose]
   );
 
+  const minDateTime = getCurrentLocalDateTimeString();
   return (
     <div
       ref={refElement}
@@ -253,12 +260,12 @@ function CreateTask({ onClose }) {
       role="dialog"
       aria-labelledby="modal-heading"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-80 backdrop-blur-sm p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#030307]/80 backdrop-blur-[2px] p-4 animate-fade-in"
     >
-      <div className=" bg-slate-950 rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-300 animate-scale-in border border-zinc-700">
+      <div className="bg-[#0b0b0f] border border-zinc-800/80 rounded-2xl shadow-[0_24px_70px_rgba(0,0,0,0.7)] w-full max-w-md transform transition-all duration-300 animate-scale-in overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 pb-4">
-          <h3 className="text-xl font-bold text-purple-400 tracking-wide">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-900/60">
+          <h3 id="modal-heading" className="text-base font-extrabold bg-gradient-to-r from-zinc-100 to-zinc-300 bg-clip-text text-transparent">
             Create New Task
           </h3>
           <button
@@ -266,33 +273,36 @@ function CreateTask({ onClose }) {
             disabled={isLoading}
             aria-label="Close dialog"
             type="button"
-            className="p-2 rounded-full hover:bg-[#536076] transition-colors duration-200 group disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#9040dd]"
+            className="p-1.5 rounded-lg bg-zinc-900/40 border border-zinc-800/60 hover:bg-zinc-850 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
           >
-            <RxCross2 className="w-6 h-6 opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" />
+            <RxCross2 className="w-4 h-4 group-hover:scale-105 transition-transform duration-200" />
           </button>
         </div>
 
-        <form onSubmit={createTaskBtn} className="px-6 pb-6">
+        <form onSubmit={createTaskBtn} className="p-6 space-y-5">
           {/* Input Section */}
-          <div className="mb-4">
-            <div className="relative">
-              <textarea
+          <div className="space-y-1.5 text-left">
+            <label htmlFor="task-input" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
+              Task Title
+            </label>
+            <div className="relative flex items-center">
+              <input
+                id="task-input"
                 ref={inputRef}
+                type="text"
                 value={inputValue}
                 placeholder="What needs to be done?"
                 onChange={handleInput}
-                onKeyPress={handleKeyPress}
                 disabled={isLoading}
                 maxLength={MAX_TASK_LENGTH}
                 aria-describedby={error ? "error-message" : undefined}
                 aria-invalid={error ? "true" : "false"}
                 autoComplete="off"
-                rows="3"
-                className="w-full px-4 py-3 bg-transparent text-zinc-200 rounded-xl border-2 border-gray-700 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full pl-4 pr-16 py-2.5 bg-zinc-900/30 text-zinc-100 rounded-xl border border-zinc-800/60 focus:border-[#9040dd] focus:outline-none transition-all duration-200 disabled:opacity-50 text-sm font-medium"
               />
 
               {/* Character Counter */}
-              <div className="absolute bottom-2 right-3 text-xs text-gray-400">
+              <div className="absolute right-3 text-[10px] text-zinc-500 select-none font-semibold">
                 <span
                   className={
                     inputValue.length > MAX_TASK_LENGTH * 0.9
@@ -302,7 +312,7 @@ function CreateTask({ onClose }) {
                 >
                   {inputValue.length}
                 </span>
-                <span className="text-gray-500">/{MAX_TASK_LENGTH}</span>
+                <span className="text-zinc-600">/{MAX_TASK_LENGTH}</span>
               </div>
             </div>
 
@@ -311,7 +321,7 @@ function CreateTask({ onClose }) {
               <div
                 id="error-message"
                 role="alert"
-                className="mt-2 text-sm text-red-400 bg-red-900 bg-opacity-20 px-3 py-2 rounded-lg border border-red-800"
+                className="mt-2 text-xs text-red-400 bg-red-950/20 px-3.5 py-2.5 rounded-lg border border-red-900/30 animate-fade-in"
               >
                 {error}
               </div>
@@ -319,36 +329,46 @@ function CreateTask({ onClose }) {
           </div>
 
           {/* Description Section */}
-          <div className="mb-4 space-y-1.5 text-left">
-            <label htmlFor="description" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <div className="space-y-1.5 text-left">
+            <label htmlFor="description" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
               Description / Notes
             </label>
-            <textarea
-              id="description"
-              value={description}
-              placeholder="Add details, notes, or links..."
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={isLoading}
-              rows="2"
-              className="w-full px-4 py-2.5 bg-zinc-900/50 text-zinc-200 rounded-xl border border-zinc-800 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 text-sm"
-            />
+            <div className="relative">
+              <textarea
+                id="description"
+                value={description}
+                placeholder="Add details, notes, or links..."
+                onChange={(e) => setDescription(e.target.value)}
+                disabled={isLoading}
+                maxLength={MAX_DESCRIPTION_LENGTH}
+                rows="4"
+                className="w-full px-4 py-3 bg-zinc-900/30 text-zinc-200 rounded-xl border border-zinc-800/60 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 text-sm placeholder-zinc-500"
+              />
+              {/* Description Character Counter */}
+              <div className="absolute bottom-2 right-3 text-[10px] text-zinc-550 select-none font-semibold">
+                <span className={description.length > MAX_DESCRIPTION_LENGTH * 0.9 ? "text-red-400" : ""}>
+                  {description.length}
+                </span>
+                <span className="text-zinc-650">/{MAX_DESCRIPTION_LENGTH}</span>
+              </div>
+            </div>
           </div>
 
           {/* Priority & Due Date Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
             {/* Priority Selection */}
             <div className="space-y-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
                 Priority
               </span>
-              <div className="flex rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900/50 p-1">
+              <div className="flex rounded-xl overflow-hidden border border-zinc-800/60 bg-zinc-900/30 p-1 h-9">
                 {["low", "medium", "high"].map((p) => {
                   const isActive = priority === p;
                   const getBtnColor = () => {
-                    if (!isActive) return "text-zinc-500 hover:text-zinc-300";
-                    if (p === "low") return "bg-zinc-800 text-zinc-300 border-zinc-700";
-                    if (p === "medium") return "bg-amber-950/40 text-amber-400 border-amber-900/60";
-                    return "bg-red-950/40 text-red-400 border-red-900/60";
+                    if (!isActive) return "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/40";
+                    if (p === "low") return "bg-zinc-800/80 text-zinc-200 border-zinc-700/50 shadow-sm";
+                    if (p === "medium") return "bg-amber-500/10 border-amber-500/20 text-amber-400 shadow-sm";
+                    return "bg-red-500/10 border-red-500/20 text-red-400 shadow-sm";
                   };
                   return (
                     <button
@@ -356,7 +376,7 @@ function CreateTask({ onClose }) {
                       type="button"
                       onClick={() => setPriority(p)}
                       disabled={isLoading}
-                      className={`flex-1 py-1 text-xs font-bold rounded capitalize border border-transparent transition-all focus:outline-none ${getBtnColor()}`}
+                      className={`flex-1 text-[10px] font-extrabold uppercase tracking-wider rounded-lg border border-transparent transition-all duration-300 focus:outline-none cursor-pointer ${getBtnColor()}`}
                     >
                       {p}
                     </button>
@@ -367,31 +387,32 @@ function CreateTask({ onClose }) {
 
             {/* Due Date & Time Picker */}
             <div className="space-y-1.5">
-              <label htmlFor="dueDate" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              <label htmlFor="dueDate" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
                 Due Date & Time
               </label>
               <input
                 id="dueDate"
                 type="datetime-local"
                 value={dueDate}
+                min={minDateTime}
                 onChange={(e) => setDueDate(e.target.value)}
                 disabled={isLoading}
-                className="w-full px-3 py-1 bg-zinc-900/50 text-zinc-300 rounded-lg border border-zinc-800 focus:border-[#9040dd] focus:outline-none text-xs h-[30px] custom-datetime-picker"
+                className="w-full px-3 py-1.5 bg-zinc-900/30 text-zinc-300 rounded-xl border border-zinc-800/60 focus:border-purple-500/40 focus:ring-4 focus:ring-purple-500/5 focus:outline-none text-[11px] font-semibold h-9 custom-datetime-picker transition-all duration-300 cursor-pointer"
               />
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-2">
             <button
               type="submit"
               disabled={isLoading || !!error || !inputValue.trim()}
-              className="flex-1 py-3 px-6 bg-gradient-to-r from-purple-800 to-fuchsia-400 text-white font-semibold rounded-xl hover:from-[#8035cc] hover:to-[#ad7ae3] transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none focus:ring-2 focus:ring-[#9040dd] focus:ring-offset-2 focus:ring-offset-[#282c35]"
+              className="flex-grow py-3 px-6 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-purple-950/40 border border-purple-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Creating...
+                  <span>Creating...</span>
                 </div>
               ) : (
                 "Create Task"
@@ -402,7 +423,7 @@ function CreateTask({ onClose }) {
               type="button"
               onClick={cancelBtn}
               disabled={isLoading}
-              className="px-6 py-3 bg-[#536076] text-gray-100 font-semibold rounded-xl hover:bg-[#4a556b] transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none focus:ring-2 focus:ring-[#536076] focus:ring-offset-2 focus:ring-offset-[#282c35]"
+              className="px-6 py-3 bg-zinc-900/50 border border-zinc-800/80 hover:bg-zinc-800/50 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200 font-semibold text-sm rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none"
             >
               Cancel
             </button>
@@ -410,7 +431,7 @@ function CreateTask({ onClose }) {
         </form>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
           from {
             opacity: 0;
@@ -423,7 +444,7 @@ function CreateTask({ onClose }) {
         @keyframes scale-in {
           from {
             opacity: 0;
-            transform: scale(0.9) translateY(-10px);
+            transform: scale(0.96) translateY(-8px);
           }
           to {
             opacity: 1;
@@ -436,7 +457,18 @@ function CreateTask({ onClose }) {
         }
 
         .animate-scale-in {
-          animation: scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          animation: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .custom-datetime-picker::-webkit-calendar-picker-indicator {
+          filter: invert(0.85);
+          cursor: pointer;
+          opacity: 0.75;
+          transition: opacity 0.2s;
+        }
+
+        .custom-datetime-picker::-webkit-calendar-picker-indicator:hover {
+          opacity: 1;
         }
       `}</style>
     </div>

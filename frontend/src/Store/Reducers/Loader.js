@@ -4,7 +4,7 @@ const Loader = createSlice({
   name: "loader",
   initialState: {
     loader: false,
-    preloader: false,
+    preloader: !!localStorage.getItem("token"),
   },
   reducers: {
     setLoader(state, action) {

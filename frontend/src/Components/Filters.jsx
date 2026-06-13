@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
@@ -14,11 +15,15 @@ const FILTERS = [
 
 function Filters({ setShow }) {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const userId = useSelector((state) => state.UserSlice.userId);
 
   const [activeFilter, setActiveFilter] = useState("all");
   const [counts, setCounts] = useState({});
+
+  const todoList = useSelector((state) => state.TodoFilterSlice.todo);
 
   // Update Redux filter state on change
   useEffect(() => {
@@ -33,6 +38,22 @@ function Filters({ setShow }) {
     );
   }, [activeFilter, dispatch]);
 
+  // Fetch counts when userId changes or todoList in redux changes
+  useEffect(() => {
+    const fetchCounts = async () => {
+      if (!userId) return;
+      try {
+        const res = await axios.post(`${apiUrl}filters/counts`, { userId });
+        if (res.data) {
+          setCounts(res.data);
+        }
+      } catch (err) {
+        console.error("Error fetching counts:", err);
+      }
+    };
+    fetchCounts();
+  }, [userId, apiUrl, todoList]);
+
   // Fetch data when active filter changes
   useEffect(() => {
     const fetchFilteredTodos = async () => {
@@ -44,14 +65,11 @@ function Filters({ setShow }) {
         });
 
         if (res.data.status === false) {
-          dispatch(setTodoLength(res.data.length));
+          dispatch(setTodo([]));
+          dispatch(setTodoLength(0));
         } else {
           dispatch(setTodo(res.data));
           dispatch(setTodoLength(res.data.length));
-          setCounts((prev) => ({
-            ...prev,
-            [`${activeFilter}Count`]: res.data.length,
-          }));
         }
       } catch (err) {
         console.error(err);
@@ -81,7 +99,15 @@ function Filters({ setShow }) {
           return (
             <li
               key={key}
-              onClick={() => setActiveFilter(key)}
+              onClick={() => {
+                setActiveFilter(key);
+                if (location.pathname !== "/home") {
+                  navigate("/home");
+                }
+                if (setShow) {
+                  setShow(false);
+                }
+              }}
               className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer select-none border ${
                 isActive
                   ? "bg-purple-600/10 border-purple-500/30 text-purple-300 shadow-lg shadow-purple-950/10"

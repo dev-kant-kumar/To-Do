@@ -26,6 +26,7 @@ function App() {
     toast.info("You have been logged out");
   };
 
+
   return (
     <div className="relative min-h-screen bg-[#05050a] text-zinc-100 flex flex-col overflow-x-hidden font-sans">
       {/* Background Mesh Gradients */}
@@ -38,10 +39,20 @@ function App() {
 
       {/* Main Container */}
       <main className="relative z-10 flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-6 items-start">
+        {/* Mobile Backdrop Overlay */}
+        <div
+          className={`fixed inset-0 bg-black/65 backdrop-blur-xs z-40 transition-opacity duration-300 md:hidden ${
+            showFilters ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+          onClick={closeHandler}
+        />
+
         {/* Left Filters Sidebar */}
         <section
-          className={`w-full md:w-64 flex-shrink-0 bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-5 shadow-2xl transition-all duration-300 md:flex md:h-[620px] flex flex-col justify-between ${
-            showFilters ? "block fixed inset-x-4 top-24 bottom-6 z-50 bg-zinc-950 border-zinc-700/80" : "hidden"
+          className={`bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-5 shadow-2xl flex flex-col justify-between overflow-hidden fixed md:static top-24 bottom-6 right-4 w-64 md:w-80 z-50 md:z-0 md:h-[620px] transition-all duration-350 ease-out md:translate-x-0 md:opacity-100 md:pointer-events-auto ${
+            showFilters 
+              ? "translate-x-0 opacity-100 pointer-events-auto" 
+              : "translate-x-[calc(100%+20px)] opacity-0 pointer-events-none"
           }`}
         >
           {/* Top Content (Filters & Projects) */}
@@ -50,15 +61,19 @@ function App() {
             <Projects />
           </div>
 
-          {/* Bottom user info and logout */}
-          <div className="border-t border-zinc-900/60 pt-4 mt-4 flex flex-col gap-3">
+          {/* Bottom user info and actions */}
+          <div className="border-t border-zinc-900/60 pt-4 mt-4 flex flex-col gap-3 flex-shrink-0">
             <div className="flex items-center justify-between gap-3 bg-zinc-900/20 border border-zinc-900/40 rounded-xl p-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 flex items-center justify-center text-white font-bold text-base shadow-md shadow-purple-950/30 flex-shrink-0">
+              <div 
+                onClick={() => navigate("/profile")}
+                className="flex items-center gap-3 min-w-0 cursor-pointer group/user select-none"
+                title="View Profile Settings"
+              >
+                <div className="w-10 h-10 rounded-xl bg-zinc-800/80 border border-zinc-700/50 flex items-center justify-center text-zinc-300 font-bold text-base shadow-sm flex-shrink-0 group-hover/user:scale-[1.03] transition-all duration-200">
                   {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : (userInfo.username ? userInfo.username.charAt(0).toUpperCase() : "U")}
                 </div>
                 <div className="flex flex-col min-w-0 text-left">
-                  <span className="text-sm font-bold text-zinc-200 truncate">{userInfo.name || userInfo.username || "User"}</span>
+                  <span className="text-sm font-bold text-zinc-200 truncate group-hover/user:text-purple-400 transition-colors">{userInfo.name || userInfo.username || "User"}</span>
                   <span className="text-[10px] text-zinc-500 truncate">{userInfo.email || "No email"}</span>
                 </div>
               </div>
@@ -74,7 +89,7 @@ function App() {
             {showFilters && (
               <button
                 onClick={closeHandler}
-                className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl border border-zinc-800 transition-colors md:hidden text-sm"
+                className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl border border-zinc-800 transition-colors md:hidden text-sm cursor-pointer"
               >
                 Apply Filters
               </button>

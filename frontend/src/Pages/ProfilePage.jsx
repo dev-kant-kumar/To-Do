@@ -1,16 +1,34 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Header from "../Components/Header";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Lock, Eye, EyeOff, Key, User, Mail } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { 
+  ArrowLeft, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  Key, 
+  User, 
+  Mail, 
+  Calendar,
+  LogOut,
+  Check
+} from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { setUserInfo } from "../Store/Reducers/UserSlice";
+import { setUserInfo, clearUserInfo } from "../Store/Reducers/UserSlice";
 
 function ProfilePage() {
   const userInfo = useSelector((state) => state.UserSlice);
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "personal";
+
+  const setActiveTab = (tabName) => {
+    setSearchParams({ tab: tabName });
+  };
 
   // Edit Profile Details States
   const [profileDetails, setProfileDetails] = useState({
@@ -24,6 +42,24 @@ function ProfilePage() {
   });
 
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  // Change Password States
+  const [passwords, setPasswords] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const [errors, setErrors] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setProfileDetails({
@@ -57,25 +93,17 @@ function ProfilePage() {
           errorMsg = "Name must be between 3 and 20 characters";
         }
       }
-      if (name === "email") {
-        const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/;
-        if (!emailRegex.test(value.toLowerCase())) {
-          errorMsg = "Invalid email format";
-        }
-      }
     }
     setProfileErrors((prev) => ({ ...prev, [name]: errorMsg }));
     return !errorMsg;
   };
 
   const validateProfileAll = () => {
-    const isNameValid = validateProfileField("name", profileDetails.name);
-    const isEmailValid = validateProfileField("email", profileDetails.email);
-    return isNameValid && isEmailValid;
+    return validateProfileField("name", profileDetails.name);
   };
 
   const handleUpdateProfile = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!validateProfileAll()) return;
 
     setIsUpdatingProfile(true);
@@ -109,23 +137,17 @@ function ProfilePage() {
     }
   };
 
-  // Change Password States
-  const [passwords, setPasswords] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
-  const [errors, setErrors] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const handleDiscardProfile = () => {
+    setProfileDetails({
+      name: userInfo?.name || "",
+      email: userInfo?.email || "",
+    });
+    setProfileErrors({
+      name: "",
+      email: "",
+    });
+    toast.info("Changes discarded");
+  };
 
   const handleInput = (e) => {
     const { name, value } = e.target;
@@ -184,13 +206,12 @@ function ProfilePage() {
   };
 
   const handleChangePassword = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!validateAll()) return;
 
     setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
-      // API call to update/change password on backend
       const res = await axios.post(
         `${apiUrl}user/changepassword`,
         {
@@ -212,7 +233,6 @@ function ProfilePage() {
       }
     } catch (err) {
       console.error("Change password error:", err);
-      // Fallback response for simulator
       toast.success("Your password has been updated successfully.");
       setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } finally {
@@ -220,272 +240,409 @@ function ProfilePage() {
     }
   };
 
+  const handleDiscardPassword = () => {
+    setPasswords({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setErrors({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    toast.info("Changes discarded");
+  };
+
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to log out?")) {
+      localStorage.clear();
+      dispatch(clearUserInfo());
+      navigate("/login");
+      toast.info("You have been logged out");
+    }
+  };
+
+  const isProfileDirty = useMemo(() => {
+    return (
+      profileDetails.name !== (userInfo?.name || "")
+    );
+  }, [profileDetails.name, userInfo]);
+
+  const isPasswordDirty = useMemo(() => {
+    return (
+      passwords.currentPassword !== "" ||
+      passwords.newPassword !== "" ||
+      passwords.confirmPassword !== ""
+    );
+  }, [passwords]);
+
   return (
-    <div className="min-h-screen bg-transparent text-white">
+    <div className="relative min-h-screen bg-[#05050a] text-zinc-100 flex flex-col overflow-x-hidden font-sans">
+      {/* Background Mesh Gradients */}
+      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden z-0">
+        <div className="absolute -top-[10%] -left-[10%] w-[55%] h-[55%] rounded-full bg-purple-900/10 blur-[130px]" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[60%] h-[60%] rounded-full bg-fuchsia-950/10 blur-[160px]" />
+      </div>
+
       <Header setShow={() => {}} />
-      <div id="profile-page-main-container" className="pt-28 px-4 max-w-4xl mx-auto pb-16 space-y-8">
-        <Link 
-          to="/home" 
-          className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors font-medium focus:outline-none focus:underline"
-        >
-          <ArrowLeft size={20} />
-          Back to Tasks
-        </Link>
+
+      {/* Main Container */}
+      <div id="profile-page-main-container" className="relative z-10 pt-4 px-4 max-w-7xl mx-auto pb-8 w-full flex flex-col gap-5 text-left">
         
-        {/* User Info Profile Card */}
-        <div id="profile-header" className="bg-slate-950 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
-          <section 
-            id="profile-header-banner" 
-            className="h-32 bg-gradient-to-r from-purple-800 to-fuchsia-900"
+        {/* Back Link */}
+        <div className="flex items-center justify-between">
+          <Link 
+            to="/home" 
+            className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-all font-semibold focus:outline-none hover:-translate-x-1 duration-200"
           >
-            {/* Profile banner */}
-          </section>
+            <ArrowLeft size={18} />
+            Back to Tasks
+          </Link>
+        </div>
+
+        {/* 2-Panel Layout Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch w-full">
           
-          <section 
-            id="profile-header-info" 
-            className="p-8 flex flex-col sm:flex-row items-center sm:items-end gap-6 -mt-14"
-          >
-            <section 
-              id="phi-pic" 
-              className="w-28 h-28 bg-zinc-900 border-4 border-slate-950 rounded-full flex items-center justify-center text-4xl font-bold text-purple-400 shadow-xl select-none"
-            >
-              {userInfo?.name ? userInfo.name[0].toUpperCase() : "?"}
-            </section>
-            
-            <section id="phi-user-info" className="text-center sm:text-left flex-1">
-              <h1 className="text-3xl font-extrabold tracking-wide text-zinc-100">
+          {/* Left Panel: Profile Summary Card */}
+          <div className="md:col-span-1 bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-6 shadow-2xl flex flex-col items-center justify-between md:min-h-[460px] min-h-0">
+            <div className="w-full flex flex-col items-center">
+              {/* Circular Avatar */}
+              <div className="relative mb-4 mt-4">
+                <div className="w-24 h-24 bg-zinc-950 border-2 border-purple-500/20 rounded-full flex items-center justify-center text-4xl font-extrabold text-white shadow-lg relative z-10 bg-gradient-to-tr from-zinc-900 to-zinc-850 ring-4 ring-purple-500/5">
+                  {userInfo?.name ? userInfo.name[0].toUpperCase() : "?"}
+                </div>
+              </div>
+
+              {/* Name & Username Subtitle */}
+              <h1 className="text-xl font-extrabold text-zinc-155 tracking-tight mt-2 text-center">
                 {userInfo?.name || "User"}
               </h1>
-              <h3 className="text-purple-400 font-medium text-lg">
+              <p className="text-xs text-zinc-500 mt-1 text-center font-medium">
                 @{userInfo?.username || "username"}
-              </h3>
-              <p className="text-sm text-zinc-500 mt-2">
-                Email: <span className="text-zinc-400">{userInfo?.email || "N/A"}</span>
               </p>
-              <p className="text-xs text-zinc-600 mt-1">
-                Account Created: {userInfo?.dateOfAccountCreation ? new Date(userInfo.dateOfAccountCreation).toLocaleDateString("en-IN", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric"
-                }) : "N/A"}
-              </p>
-            </section>
-          </section>
-        </div>
 
-        {/* Edit Profile Details Card */}
-        <div className="bg-slate-950 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
-          <div className="flex items-center gap-3 border-b border-zinc-800/80 pb-4 mb-6">
-            <span className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-              <User size={18} />
-            </span>
-            <div>
-              <h2 className="text-xl font-bold text-zinc-100">Edit Profile Details</h2>
-              <p className="text-xs text-zinc-500">Update your public display name and contact email address.</p>
+              {/* Vertical Menu Tabs */}
+              <div className="w-full mt-5 md:mt-8 flex flex-col gap-1.5">
+                <button
+                  onClick={() => setActiveTab("personal")}
+                  className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-3 cursor-pointer ${
+                    activeTab === "personal"
+                      ? "bg-purple-600/15 border border-purple-500/30 text-purple-350 shadow-lg shadow-purple-950/15"
+                      : "bg-transparent border border-transparent text-zinc-405 hover:bg-zinc-900/30 hover:text-zinc-200"
+                  }`}
+                >
+                  <User size={15} />
+                  <span>Personal Information</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab("password")}
+                  className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-3 cursor-pointer ${
+                    activeTab === "password"
+                      ? "bg-purple-600/15 border border-purple-500/30 text-purple-350 shadow-lg shadow-purple-950/15"
+                      : "bg-transparent border border-transparent text-zinc-405 hover:bg-zinc-900/30 hover:text-zinc-200"
+                  }`}
+                >
+                  <Lock size={15} />
+                  <span>Login & Password</span>
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-3 cursor-pointer bg-transparent border border-transparent text-zinc-405 hover:bg-red-950/15 hover:text-red-400"
+                >
+                  <LogOut size={15} />
+                  <span>Log Out</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          <form onSubmit={handleUpdateProfile} className="space-y-5 max-w-xl">
-            {/* Full Name */}
-            <div className="space-y-1.5">
-              <label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Full Name
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
-                  <User size={16} />
-                </span>
-                <input
-                  id="name"
-                  type="text"
-                  name="name"
-                  value={profileDetails.name}
-                  onChange={handleProfileInput}
-                  onBlur={handleProfileBlur}
-                  disabled={isUpdatingProfile}
-                  placeholder="Enter your full name"
-                  className="w-full bg-zinc-900 border border-zinc-800/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl pl-10 pr-4 py-2.5 text-zinc-100 text-sm outline-none transition-all disabled:opacity-50"
-                />
+          {/* Right Panel: Form Card matching active tab */}
+          <div className="md:col-span-2 bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col justify-between md:min-h-[460px] min-h-0">
+            
+            {activeTab === "personal" ? (
+              /* TAB 1: Personal Information */
+              <div className="flex flex-col h-full justify-between">
+                <div className="space-y-6">
+                  {/* Header Title */}
+                  <div className="border-b border-zinc-900/60 pb-4">
+                    <h2 className="text-lg font-bold text-zinc-100">Personal Information</h2>
+                    <p className="text-[10px] text-zinc-500 mt-1">Configure your personal profile display details.</p>
+                  </div>
+
+                  {/* Forms Grid */}
+                  <form className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
+                    {/* Full Name */}
+                    <div className="space-y-1.5 text-left">
+                      <label htmlFor="name" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Full Name
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
+                          <User size={14} />
+                        </span>
+                        <input
+                          id="name"
+                          type="text"
+                          name="name"
+                          value={profileDetails.name}
+                          onChange={handleProfileInput}
+                          onBlur={handleProfileBlur}
+                          disabled={isUpdatingProfile}
+                          placeholder="Enter your full name"
+                          className="w-full bg-zinc-900/40 border border-zinc-800/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl pl-9 pr-3 py-2.5 text-zinc-150 text-xs outline-none transition-all duration-150 disabled:opacity-50"
+                        />
+                      </div>
+                      {profileErrors.name && (
+                        <p className="text-[10px] text-red-400 font-medium transition-all duration-150">{profileErrors.name}</p>
+                      )}
+                    </div>
+
+                    {/* Username */}
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Username
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-600">
+                          <User size={14} />
+                        </span>
+                        <input
+                          type="text"
+                          value={userInfo?.username || ""}
+                          disabled
+                          className="w-full bg-zinc-900/10 border border-zinc-900/85 rounded-xl pl-9 pr-3 py-2.5 text-zinc-500 text-xs outline-none cursor-not-allowed select-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Email Address */}
+                    <div className="space-y-1.5 text-left">
+                      <label htmlFor="email" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-600">
+                          <Mail size={14} />
+                        </span>
+                        <input
+                          id="email"
+                          type="email"
+                          value={userInfo?.email || ""}
+                          disabled
+                          className="w-full bg-zinc-900/10 border border-zinc-900/85 rounded-xl pl-9 pr-20 py-2.5 text-zinc-500 text-xs outline-none cursor-not-allowed select-none"
+                        />
+                        <span className="absolute inset-y-0 right-0 pr-3 flex items-center gap-1 text-emerald-500 text-[10px] font-semibold select-none">
+                          <Check size={12} className="stroke-[3]" />
+                          Verified
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Joined Date */}
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Account Created
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-650">
+                          <Calendar size={14} />
+                        </span>
+                        <input
+                          type="text"
+                          value={userInfo?.dateOfAccountCreation ? new Date(userInfo.dateOfAccountCreation).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric"
+                          }) : "N/A"}
+                          disabled
+                          className="w-full bg-zinc-900/10 border border-zinc-900/85 rounded-xl pl-9 pr-3 py-2.5 text-zinc-500 text-xs outline-none cursor-not-allowed select-none"
+                        />
+                      </div>
+                    </div>
+                  </form>
+                </div>
+
+                {/* Footer Actions */}
+                {isProfileDirty && (
+                  <div className="flex items-center justify-end gap-3 mt-8 pt-4 border-t border-zinc-900/60 w-full animate-fade-in">
+                    <button
+                      onClick={handleDiscardProfile}
+                      disabled={isUpdatingProfile}
+                      className="py-2.5 px-5 rounded-xl border border-zinc-850 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/30 transition-all font-semibold text-xs cursor-pointer focus:outline-none"
+                    >
+                      Discard Changes
+                    </button>
+                    <button
+                      onClick={handleUpdateProfile}
+                      disabled={isUpdatingProfile}
+                      className="py-2.5 px-5 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] duration-150 disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer focus:outline-none"
+                    >
+                      {isUpdatingProfile ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        "Save Changes"
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
-              {profileErrors.name && (
-                <p className="text-xs text-red-400 font-medium animate-pulse">{profileErrors.name}</p>
-              )}
-            </div>
+            ) : (
+              /* TAB 2: Login & Password */
+              <div className="flex flex-col h-full justify-between">
+                <div className="space-y-6">
+                  {/* Header Title */}
+                  <div className="border-b border-zinc-900/60 pb-4">
+                    <h2 className="text-lg font-bold text-zinc-100">Login & Password</h2>
+                    <p className="text-[10px] text-zinc-500 mt-1">Manage your account login credentials securely.</p>
+                  </div>
 
-            {/* Email Address */}
-            <div className="space-y-1.5">
-              <label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Email Address
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
-                  <Mail size={16} />
-                </span>
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  value={profileDetails.email}
-                  onChange={handleProfileInput}
-                  onBlur={handleProfileBlur}
-                  disabled={isUpdatingProfile}
-                  placeholder="you@example.com"
-                  className="w-full bg-zinc-900 border border-zinc-800/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl pl-10 pr-4 py-2.5 text-zinc-100 text-sm outline-none transition-all disabled:opacity-50"
-                />
+                  {/* Forms Inputs */}
+                  <form className="space-y-4 pt-2">
+                    {/* Current Password */}
+                    <div className="space-y-1.5 text-left">
+                      <label htmlFor="currentPassword" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Current Password
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
+                          <Lock size={14} />
+                        </span>
+                        <input
+                          id="currentPassword"
+                          type={showCurrentPassword ? "text" : "password"}
+                          name="currentPassword"
+                          value={passwords.currentPassword}
+                          onChange={handleInput}
+                          onBlur={handleBlur}
+                          disabled={isLoading}
+                          placeholder="Enter current password"
+                          className="w-full bg-zinc-900/40 border border-zinc-800/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl pl-9 pr-10 py-2.5 text-zinc-150 text-xs outline-none transition-all duration-150 disabled:opacity-50"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          disabled={isLoading}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                        >
+                          {showCurrentPassword ? <Eye size={14} /> : <EyeOff size={14} />}
+                        </button>
+                      </div>
+                      {errors.currentPassword && (
+                        <p className="text-[10px] text-red-400 font-medium transition-all duration-150">{errors.currentPassword}</p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* New Password */}
+                      <div className="space-y-1.5 text-left">
+                        <label htmlFor="newPassword" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                          New Password
+                        </label>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
+                            <Lock size={14} />
+                          </span>
+                          <input
+                            id="newPassword"
+                            type={showNewPassword ? "text" : "password"}
+                            name="newPassword"
+                            value={passwords.newPassword}
+                            onChange={handleInput}
+                            onBlur={handleBlur}
+                            disabled={isLoading}
+                            placeholder="Min. 8 characters"
+                            className="w-full bg-zinc-900/40 border border-zinc-800/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl pl-9 pr-10 py-2.5 text-zinc-150 text-xs outline-none transition-all duration-150 disabled:opacity-50"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            disabled={isLoading}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                          >
+                            {showNewPassword ? <Eye size={14} /> : <EyeOff size={14} />}
+                          </button>
+                        </div>
+                        {errors.newPassword && (
+                          <p className="text-[10px] text-red-400 font-medium transition-all duration-150">{errors.newPassword}</p>
+                        )}
+                      </div>
+
+                      {/* Confirm New Password */}
+                      <div className="space-y-1.5 text-left">
+                        <label htmlFor="confirmPassword" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                          Confirm New Password
+                        </label>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
+                            <Lock size={14} />
+                          </span>
+                          <input
+                            id="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            name="confirmPassword"
+                            value={passwords.confirmPassword}
+                            onChange={handleInput}
+                            onBlur={handleBlur}
+                            disabled={isLoading}
+                            placeholder="Repeat new password"
+                            className="w-full bg-zinc-900/40 border border-zinc-800/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl pl-9 pr-10 py-2.5 text-zinc-150 text-xs outline-none transition-all duration-150 disabled:opacity-50"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            disabled={isLoading}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                          >
+                            {showConfirmPassword ? <Eye size={14} /> : <EyeOff size={14} />}
+                          </button>
+                        </div>
+                        {errors.confirmPassword && (
+                          <p className="text-[10px] text-red-450 font-medium transition-all duration-150">{errors.confirmPassword}</p>
+                        )}
+                      </div>
+                    </div>
+                  </form>
+                </div>
+
+                {/* Footer Actions */}
+                {isPasswordDirty && (
+                  <div className="flex items-center justify-end gap-3 mt-8 pt-4 border-t border-zinc-900/60 w-full animate-fade-in">
+                    <button
+                      onClick={handleDiscardPassword}
+                      disabled={isLoading}
+                      className="py-2.5 px-5 rounded-xl border border-zinc-850 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/30 transition-all font-semibold text-xs cursor-pointer focus:outline-none"
+                    >
+                      Discard Changes
+                    </button>
+                    <button
+                      onClick={handleChangePassword}
+                      disabled={isLoading}
+                      className="py-2.5 px-5 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.99] duration-150 disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer focus:outline-none"
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Updating...
+                        </>
+                      ) : (
+                        "Update Password"
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
-              {profileErrors.email && (
-                <p className="text-xs text-red-400 font-medium animate-pulse">{profileErrors.email}</p>
-              )}
-            </div>
+            )}
 
-            <button
-              type="submit"
-              disabled={isUpdatingProfile}
-              className="py-3 px-6 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 transition-all hover:scale-[1.01] duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {isUpdatingProfile ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Saving Details...
-                </>
-              ) : (
-                "Save Changes"
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* Change Password Card Form */}
-        <div className="bg-slate-950 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
-          <div className="flex items-center gap-3 border-b border-zinc-800/80 pb-4 mb-6">
-            <span className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-              <Key size={18} />
-            </span>
-            <div>
-              <h2 className="text-xl font-bold text-zinc-100">Change Password</h2>
-              <p className="text-xs text-zinc-500">Update your account login credentials securely.</p>
-            </div>
           </div>
 
-          <form onSubmit={handleChangePassword} className="space-y-5 max-w-xl">
-            {/* Current Password */}
-            <div className="space-y-1.5">
-              <label htmlFor="currentPassword" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Current Password
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
-                  <Lock size={16} />
-                </span>
-                <input
-                  id="currentPassword"
-                  type={showCurrentPassword ? "text" : "password"}
-                  name="currentPassword"
-                  value={passwords.currentPassword}
-                  onChange={handleInput}
-                  onBlur={handleBlur}
-                  disabled={isLoading}
-                  placeholder="Enter current password"
-                  className="w-full bg-zinc-900 border border-zinc-800/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl pl-10 pr-12 py-2.5 text-zinc-100 text-sm outline-none transition-all disabled:opacity-50"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  disabled={isLoading}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
-                  {showCurrentPassword ? <Eye size={16} /> : <EyeOff size={16} />}
-                </button>
-              </div>
-              {errors.currentPassword && (
-                <p className="text-xs text-red-400 font-medium animate-pulse">{errors.currentPassword}</p>
-              )}
-            </div>
-
-            {/* New Password */}
-            <div className="space-y-1.5">
-              <label htmlFor="newPassword" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                New Password
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
-                  <Lock size={16} />
-                </span>
-                <input
-                  id="newPassword"
-                  type={showNewPassword ? "text" : "password"}
-                  name="newPassword"
-                  value={passwords.newPassword}
-                  onChange={handleInput}
-                  onBlur={handleBlur}
-                  disabled={isLoading}
-                  placeholder="Min. 8 characters"
-                  className="w-full bg-zinc-900 border border-zinc-800/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl pl-10 pr-12 py-2.5 text-zinc-100 text-sm outline-none transition-all disabled:opacity-50"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  disabled={isLoading}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
-                  {showNewPassword ? <Eye size={16} /> : <EyeOff size={16} />}
-                </button>
-              </div>
-              {errors.newPassword && (
-                <p className="text-xs text-red-400 font-medium animate-pulse">{errors.newPassword}</p>
-              )}
-            </div>
-
-            {/* Confirm New Password */}
-            <div className="space-y-1.5">
-              <label htmlFor="confirmPassword" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Confirm New Password
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
-                  <Lock size={16} />
-                </span>
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  value={passwords.confirmPassword}
-                  onChange={handleInput}
-                  onBlur={handleBlur}
-                  disabled={isLoading}
-                  placeholder="Repeat new password"
-                  className="w-full bg-zinc-900 border border-zinc-800/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl pl-10 pr-12 py-2.5 text-zinc-100 text-sm outline-none transition-all disabled:opacity-50"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  disabled={isLoading}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
-                  {showConfirmPassword ? <Eye size={16} /> : <EyeOff size={16} />}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-xs text-red-400 font-medium animate-pulse">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="py-3 px-6 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 transition-all hover:scale-[1.01] duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Updating...
-                </>
-              ) : (
-                "Update Password"
-              )}
-            </button>
-          </form>
         </div>
+
       </div>
     </div>
   );

@@ -20,7 +20,7 @@ function AccountCenterDropDown() {
   };
 
   return (
-    <div className="absolute right-0 mt-3.5 w-44 bg-zinc-950/95 border border-zinc-800/90 rounded-xl shadow-2xl p-1.5 backdrop-blur-xl animate-fadeIn">
+    <div className="absolute right-0 top-full mt-2 w-44 bg-zinc-950/95 border border-zinc-800/90 rounded-xl shadow-2xl p-1.5 backdrop-blur-xl z-50 animate-fadeIn">
       <div className="flex flex-col gap-1">
         <button
           onClick={profileHandler}

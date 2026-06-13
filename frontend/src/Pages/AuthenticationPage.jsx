@@ -12,9 +12,6 @@ import { setPreLoader } from "../Store/Reducers/Loader";
 // Route Guards
 import { ProtectedRoute, GuestRoute } from "../Components/ProtectedRoutes";
 
-// Styles
-import "../App.css";
-
 // Pages
 import SignUp from "../Components/SignUpForm";
 import SignIn from "../Components/SigninForm";
@@ -24,6 +21,7 @@ import ErrorPage from "../Pages/ErrorPage";
 import LandingPage from "./LandingPage/LandingPage";
 import ForgotPasswordForm from "../Components/ForgotPasswordForm";
 import ResetPasswordForm from "../Components/ResetPasswordForm";
+import LoadingPage from "../Pages/LoadingPage";
 
 // Legal Pages
 import PrivacyPolicy from "./LegalPages/PrivacyPolicy/PrivacyPolicy";
@@ -76,11 +74,7 @@ function AuthenticationPage() {
 
   // Preloader
   if (preloader) {
-    return (
-      <div className="preloader">
-        <div className="loader">Loading...</div>
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   // Routes
@@ -124,7 +118,8 @@ function AuthenticationPage() {
             <Route path="accessibility" element={<Accessibility />} />
           </Route>
 
-          {/* Fallbacks */}
+          {/* Fallbacks & Debug */}
+          <Route path="/loader" element={<LoadingPage />} />
           <Route path="/error" element={<ErrorPage />} />
           <Route path="*" element={<ErrorPage />} />
         </Routes>

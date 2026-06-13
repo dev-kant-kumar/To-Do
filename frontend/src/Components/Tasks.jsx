@@ -15,7 +15,10 @@ import {
   Star, 
   RefreshCw, 
   CheckCircle,
-  Clock 
+  Clock,
+  Circle,
+  CheckCircle2,
+  Plus
 } from "lucide-react";
 
 // Constants
@@ -48,10 +51,12 @@ function Tasks() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTaskIds, setSelectedTaskIds] = useState(new Set());
+  const [activeTab, setActiveTab] = useState("todo"); // "todo" | "completed"
 
   // Reset selection on filter change
   useEffect(() => {
     setSelectedTaskIds(new Set());
+    setActiveTab("todo");
   }, [activeFilter]);
 
   // Memoized values
@@ -68,7 +73,24 @@ function Tasks() {
     return list;
   }, [todoData.todo, todoData.searchQuery]);
 
+  const todoTasksCount = useMemo(() => {
+    return todoList.filter((t) => !t.completed).length;
+  }, [todoList]);
+
+  const completedTasksCount = useMemo(() => {
+    return todoList.filter((t) => t.completed).length;
+  }, [todoList]);
+
+  const displayedTodoList = useMemo(() => {
+    if (activeTab === "todo") {
+      return todoList.filter((t) => !t.completed);
+    } else {
+      return todoList.filter((t) => t.completed);
+    }
+  }, [todoList, activeTab]);
+
   const lengthOfTodo = useMemo(() => todoData.length || 0, [todoData.length]);
+  const originalListIsEmpty = useMemo(() => (todoData.todo?.length || 0) === 0, [todoData.todo]);
 
   const currentFilterType = useMemo(() => {
     if (activeFilter.isAllActive) return FILTER_TYPES.ALL;
@@ -106,7 +128,8 @@ function Tasks() {
         );
 
         if (response.data?.status === false) {
-          dispatch(setTodoLength(response.data?.length || 0));
+          dispatch(setTodo([]));
+          dispatch(setTodoLength(0));
         } else {
           dispatch(setTodo(response.data || []));
           dispatch(setTodoLength(response.data?.length || 0));
@@ -179,7 +202,6 @@ function Tasks() {
         });
 
         if (response.data?.status === true) {
-          toast.success(response.data.message || "Task deleted successfully");
           await fetchTodo(userInfo.userId);
         } else {
           toast.error(response.data?.message || "Failed to delete task");
@@ -201,9 +223,6 @@ function Tasks() {
       });
 
       if (response.data?.status === true) {
-        toast.success(
-          response.data.message || "All tasks deleted successfully"
-        );
         await fetchTodo(userInfo.userId);
       } else {
         toast.error(response.data?.message || "Failed to delete all tasks");
@@ -229,7 +248,6 @@ function Tasks() {
           })
         )
       );
-      toast.success("Selected tasks deleted successfully");
       setSelectedTaskIds(new Set());
       await fetchTodo(userInfo.userId);
     } catch (error) {
@@ -254,7 +272,6 @@ function Tasks() {
           })
         )
       );
-      toast.success(`Selected tasks marked as ${complete ? "complete" : "incomplete"}`);
       setSelectedTaskIds(new Set());
       await fetchTodo(userInfo.userId);
     } catch (error) {
@@ -279,7 +296,6 @@ function Tasks() {
           })
         )
       );
-      toast.success(`Selected tasks ${star ? "starred" : "unstarred"}`);
       setSelectedTaskIds(new Set());
       await fetchTodo(userInfo.userId);
     } catch (error) {
@@ -376,12 +392,45 @@ function Tasks() {
             {descriptionText}
           </p>
         </div>
-        <span className="text-[11px] font-semibold text-zinc-500 bg-zinc-900/60 border border-zinc-800/80 px-2 py-0.5 rounded-full">
-          {todoList.length} item{todoList.length === 1 ? "" : "s"}
-        </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={
+              isDeletedFilter && lengthOfTodo > 0
+                ? deleteAllTaskInDeletedTasks
+                : taskHandler
+            }
+            disabled={isLoading}
+            title={isDeletedFilter && lengthOfTodo > 0 ? "Delete all tasks in Trash Bin" : "Create a new task"}
+            className={`py-2 px-4 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer disabled:opacity-50 flex-shrink-0 flex items-center gap-1.5 ${
+              isDeletedFilter && lengthOfTodo > 0
+                ? "bg-red-950/40 hover:bg-red-900/40 text-red-400 border border-red-900/30"
+                : "bg-purple-600 hover:bg-purple-500 text-white border border-purple-500/30 shadow-lg shadow-purple-950/50 hover:shadow-purple-900/50 hover:scale-[1.02] active:scale-[0.98]"
+            }`}
+          >
+            {isDeletedFilter && lengthOfTodo > 0 ? (
+              <>
+                <Trash2 size={13} />
+                <span>Delete All</span>
+              </>
+            ) : (
+              <>
+                <Plus size={13} className="stroke-[3]" />
+                <span>New Task</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     );
-  }, [currentFilterType, todoList]);
+  }, [
+    currentFilterType,
+    todoList,
+    isDeletedFilter,
+    lengthOfTodo,
+    deleteAllTaskInDeletedTasks,
+    taskHandler,
+    isLoading,
+  ]);
 
   const EmptyTasksView = useMemo(
     () => (
@@ -405,8 +454,8 @@ function Tasks() {
           onClick={
             isDeletedFilter ? deleteAllTaskInDeletedTasks : taskHandler
           }
-          disabled={isLoading}
-          className={`py-3 px-6 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] shadow-lg ${
+          disabled={isLoading || (isDeletedFilter && originalListIsEmpty)}
+          className={`py-3 px-6 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 disabled:active:scale-100 shadow-lg ${
             isDeletedFilter
               ? "bg-red-950/40 hover:bg-red-900/40 text-red-400 border border-red-900/30 shadow-red-950/20"
               : "bg-purple-600 hover:bg-purple-500 text-white border border-purple-500/30 shadow-lg shadow-purple-950/50 hover:shadow-purple-900/50"
@@ -425,6 +474,7 @@ function Tasks() {
       isLoading,
       showCreateTask,
       currentFilterType,
+      originalListIsEmpty,
     ]
   );
 
@@ -443,6 +493,37 @@ function Tasks() {
       </div>
     ),
     [todoData.searchQuery, dispatch]
+  );
+
+  const EmptyTabTasksView = useMemo(
+    () => {
+      if (activeTab === "todo") {
+        return (
+          <div className="flex-grow flex flex-col items-center justify-center py-16 px-4 text-center h-full animate-fade-in">
+            <CheckCircle2 size={40} className="text-zinc-600 mb-4" />
+            <h3 className="text-zinc-300 font-semibold text-base mb-1">
+              All Caught Up!
+            </h3>
+            <p className="text-zinc-500 text-xs max-w-xs">
+              No active tasks to display. Create a new task or enjoy your day!
+            </p>
+          </div>
+        );
+      } else {
+        return (
+          <div className="flex-grow flex flex-col items-center justify-center py-16 px-4 text-center h-full animate-fade-in">
+            <Clock size={40} className="text-zinc-600 mb-4" />
+            <h3 className="text-zinc-300 font-semibold text-base mb-1">
+              No Completed Tasks
+            </h3>
+            <p className="text-zinc-500 text-xs max-w-xs">
+              Completed tasks will be archived here. Tick off some items to get started!
+            </p>
+          </div>
+        );
+      }
+    },
+    [activeTab]
   );
 
   const getPriorityBadge = (p) => {
@@ -501,7 +582,7 @@ function Tasks() {
       return (
         <li 
           key={task._id} 
-          className={`flex items-center justify-between gap-3 py-3 px-4 transition-all duration-150 group relative border-l-2 ${
+          className={`flex items-center justify-between gap-3 py-3 px-6 transition-all duration-150 group relative border-l-2 ${
             isSelected 
               ? "bg-purple-950/10 border-l-purple-500" 
               : "bg-transparent border-l-transparent hover:bg-zinc-900/10 hover:border-l-zinc-700"
@@ -515,6 +596,7 @@ function Tasks() {
                 e.stopPropagation();
                 toggleSelectTask(task._id);
               }}
+              title={isSelected ? "Deselect task" : "Select task"}
               className="p-1 rounded hover:bg-zinc-800 text-zinc-500 hover:text-zinc-350 transition-colors focus:outline-none"
             >
               {isSelected ? (
@@ -531,6 +613,7 @@ function Tasks() {
                 e.stopPropagation();
                 toggleStarred(task._id, task.starred);
               }}
+              title={task.starred ? "Unstar task" : "Star task"}
               role="button"
               tabIndex={0}
               aria-label={task.starred ? "Unstar task" : "Star task"}
@@ -543,7 +626,7 @@ function Tasks() {
             </span>
 
             {/* Priority */}
-            <div className="hidden xs:block">
+            <div className="flex-shrink-0">
               {getPriorityBadge(task.priority)}
             </div>
           </div>
@@ -574,32 +657,46 @@ function Tasks() {
             </div>
           </div>
 
-          {/* Right Date / Actions */}
-          <span className="text-xs text-zinc-500 font-medium flex-shrink-0 block group-hover:hidden transition-all duration-150">
-            {formatDate(task.date)}
-          </span>
+          {/* Right Date / Actions Container */}
+          <div className="w-20 sm:w-24 flex-shrink-0 flex items-center justify-end text-right h-8">
+            <span className="text-xs text-zinc-500 font-medium block group-hover:hidden transition-all duration-150">
+              {formatDate(task.date)}
+            </span>
 
-          <div className="hidden group-hover:flex flex-shrink-0 items-center gap-2 transition-all duration-150">
-            <span
-              className="cursor-pointer text-zinc-500 hover:text-purple-400 transition-colors duration-150 p-1.5 rounded hover:bg-zinc-800/40"
-              onClick={() => toggleTaskComplete(task._id, task.completed)}
-              role="button"
-              tabIndex={0}
-              aria-label={
-                task.completed ? "Mark as incomplete" : "Mark as complete"
-              }
-            >
-              <CheckCircle size={16} className={task.completed ? "text-purple-400" : ""} />
-            </span>
-            <span
-              className="cursor-pointer text-zinc-500 hover:text-red-400 transition-colors duration-150 p-1.5 rounded hover:bg-zinc-800/40"
-              onClick={() => deleteTask(task._id, task.deleted)}
-              role="button"
-              tabIndex={0}
-              aria-label="Delete task"
-            >
-              <Trash2 size={16} />
-            </span>
+            <div className="hidden group-hover:flex items-center gap-1 transition-all duration-150">
+              <span
+                className="cursor-pointer text-zinc-500 hover:text-purple-400 transition-colors duration-150 p-1 rounded hover:bg-zinc-800/40 animate-fade-in"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTaskComplete(task._id, task.completed);
+                }}
+                title={task.completed ? "Mark as incomplete" : "Mark as complete"}
+                role="button"
+                tabIndex={0}
+                aria-label={
+                  task.completed ? "Mark as incomplete" : "Mark as complete"
+                }
+              >
+                {task.completed ? (
+                  <CheckCircle2 size={15} className="text-purple-400 fill-purple-500/20" />
+                ) : (
+                  <Circle size={15} className="text-zinc-500 hover:text-purple-400" />
+                )}
+              </span>
+              <span
+                className="cursor-pointer text-zinc-500 hover:text-red-400 transition-colors duration-150 p-1 rounded hover:bg-zinc-800/40"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteTask(task._id, task.deleted);
+                }}
+                title="Delete task"
+                role="button"
+                tabIndex={0}
+                aria-label="Delete task"
+              >
+                <Trash2 size={15} />
+              </span>
+            </div>
           </div>
         </li>
       );
@@ -609,7 +706,7 @@ function Tasks() {
 
   const Toolbar = useMemo(() => {
     return (
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-800/60 bg-zinc-900/10 rounded-t-xl gap-4 flex-shrink-0">
+      <div className="flex items-center justify-between px-6 pb-3 border-b border-zinc-800/60 gap-4 flex-shrink-0">
         <div className="flex items-center gap-2">
           {/* Select Checkbox */}
           <button
@@ -690,46 +787,18 @@ function Tasks() {
 
   const TasksListView = useMemo(
     () => (
-      <div className="flex-grow flex flex-col border border-zinc-800/80 rounded-xl overflow-hidden bg-zinc-950/20 backdrop-blur-md text-left">
+      <div className="flex-grow flex flex-col overflow-hidden text-left -mx-6">
         {Toolbar}
         <div className="flex-grow overflow-y-auto pr-1 scrollbar-none">
           <ul className="divide-y divide-zinc-900/60">
-            {todoList.map((task) => (
+            {displayedTodoList.map((task) => (
               <TaskItem key={task._id} task={task} />
             ))}
           </ul>
         </div>
-        <div className="p-4 flex justify-end items-center border-t border-zinc-800/60 bg-zinc-900/10 flex-shrink-0">
-          <button
-            onClick={
-              isDeletedFilter && lengthOfTodo > 0
-                ? deleteAllTaskInDeletedTasks
-                : taskHandler
-            }
-            disabled={isLoading}
-            className={`py-2.5 px-6 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer disabled:opacity-50 ${
-              isDeletedFilter && lengthOfTodo > 0
-                ? "bg-red-950/40 hover:bg-red-900/40 text-red-400 border border-red-900/30"
-                : "bg-purple-600 hover:bg-purple-500 text-white border border-purple-500/30 shadow-lg shadow-purple-950/50 hover:shadow-purple-900/50 hover:scale-[1.02] active:scale-[0.98]"
-            }`}
-          >
-            {isDeletedFilter && lengthOfTodo > 0 ? "Delete All" : "New Task"}
-          </button>
-        </div>
-        {showCreateTask && <CreateTask onClose={taskHandler} />}
       </div>
     ),
-    [
-      todoList,
-      TaskItem,
-      isDeletedFilter,
-      lengthOfTodo,
-      deleteAllTaskInDeletedTasks,
-      taskHandler,
-      isLoading,
-      showCreateTask,
-      Toolbar,
-    ]
+    [displayedTodoList, TaskItem, Toolbar]
   );
 
   // Loading state
@@ -744,17 +813,66 @@ function Tasks() {
 
   // Render based on search query and list length
   const hasSearchQuery = !!todoData.searchQuery;
-  const originalListIsEmpty = (todoData.todo?.length || 0) === 0;
 
   return (
-    <div className="flex-grow flex flex-col h-full">
+    <div className="flex-grow flex flex-col h-full animate-fade-in">
       {TitleHeader}
       {originalListIsEmpty ? (
         EmptyTasksView
       ) : todoList.length === 0 && hasSearchQuery ? (
         EmptySearchResultsView
       ) : (
-        TasksListView
+        <>
+          {/* Tabs Bar */}
+          <div className="flex items-center border-b border-zinc-800/60 pb-3 mb-4 flex-shrink-0 px-6 -mx-6">
+            <button
+              onClick={() => {
+                setActiveTab("todo");
+                setSelectedTaskIds(new Set());
+              }}
+              className={`flex-1 flex items-center justify-center text-sm font-semibold transition-all duration-150 cursor-pointer focus:outline-none pb-2 -mb-[13px] border-b-2 ${
+                activeTab === "todo"
+                  ? "text-purple-400 border-purple-500"
+                  : "text-zinc-400 border-transparent hover:text-zinc-200"
+              }`}
+            >
+              To-Do
+              <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-colors ${
+                activeTab === "todo"
+                  ? "bg-purple-500/10 border-purple-500/30 text-purple-300"
+                  : "bg-zinc-900/60 border-zinc-800/80 text-zinc-500"
+              }`}>
+                {todoTasksCount}
+              </span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("completed");
+                setSelectedTaskIds(new Set());
+              }}
+              className={`flex-1 flex items-center justify-center text-sm font-semibold transition-all duration-150 cursor-pointer focus:outline-none pb-2 -mb-[13px] border-b-2 ${
+                activeTab === "completed"
+                  ? "text-purple-400 border-purple-500"
+                  : "text-zinc-400 border-transparent hover:text-zinc-200"
+              }`}
+            >
+              Completed
+              <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-colors ${
+                activeTab === "completed"
+                  ? "bg-purple-500/10 border-purple-500/30 text-purple-300"
+                  : "bg-zinc-900/60 border-zinc-800/80 text-zinc-500"
+              }`}>
+                {completedTasksCount}
+              </span>
+            </button>
+          </div>
+
+          {displayedTodoList.length === 0 ? (
+            EmptyTabTasksView
+          ) : (
+            TasksListView
+          )}
+        </>
       )}
       {selectedTask && (
         <TaskDetailsModal
@@ -763,6 +881,7 @@ function Tasks() {
           onUpdate={() => fetchTodo(userInfo.userId)}
         />
       )}
+      {showCreateTask && <CreateTask onClose={taskHandler} />}
     </div>
   );
 }

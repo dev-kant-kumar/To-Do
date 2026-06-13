@@ -4,6 +4,15 @@ import { toast } from "react-toastify";
 import { RxCross2 } from "react-icons/rx";
 import { Calendar, AlertCircle, Edit3, AlignLeft } from "lucide-react";
 
+const getCurrentLocalDateTimeString = () => {
+  const d = new Date();
+  const pad = (num) => String(num).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+const MAX_TASK_LENGTH = 80;
+const MAX_DESCRIPTION_LENGTH = 500;
+
 function TaskDetailsModal({ task, onClose, onUpdate }) {
   const [taskText, setTaskText] = useState(task.task || "");
   const [priority, setPriority] = useState(task.priority || "low");
@@ -56,6 +65,14 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
       setError("Task title cannot be empty");
       return;
     }
+    if (taskText.trim().length > MAX_TASK_LENGTH) {
+      setError(`Task title cannot exceed ${MAX_TASK_LENGTH} characters`);
+      return;
+    }
+    if (description.trim().length > MAX_DESCRIPTION_LENGTH) {
+      toast.error(`Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters`);
+      return;
+    }
 
     setIsLoading(true);
     const token = localStorage.getItem("token");
@@ -78,7 +95,6 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
       );
 
       if (response.data?.status) {
-        toast.success(response.data.message || "Task updated successfully");
         if (onUpdate) {
           await onUpdate();
         }
@@ -94,6 +110,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
     }
   };
 
+  const minDateTime = getCurrentLocalDateTimeString();
   return (
     <div
       ref={modalRef}
@@ -101,7 +118,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
       role="dialog"
       aria-labelledby="modal-heading"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#05050a]/75 backdrop-blur-sm p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#030307]/80 backdrop-blur-[2px] p-4 animate-fade-in"
     >
       <div className="bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-300 animate-scale-in">
         {/* Header */}
@@ -134,19 +151,25 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
             <label htmlFor="taskText" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
               Task Title
             </label>
-            <input
-              id="taskText"
-              ref={inputRef}
-              type="text"
-              value={taskText}
-              onChange={(e) => {
-                setTaskText(e.target.value);
-                if (error) setError("");
-              }}
-              disabled={isLoading}
-              placeholder="e.g. Finish project submission"
-              className="w-full px-4 py-2.5 bg-zinc-900/50 text-zinc-200 rounded-xl border border-zinc-800 focus:border-[#9040dd] focus:outline-none transition-all duration-200 disabled:opacity-50 text-sm"
-            />
+            <div className="relative flex items-center">
+              <input
+                id="taskText"
+                ref={inputRef}
+                type="text"
+                value={taskText}
+                maxLength={MAX_TASK_LENGTH}
+                onChange={(e) => {
+                  setTaskText(e.target.value);
+                  if (error) setError("");
+                }}
+                disabled={isLoading}
+                placeholder="e.g. Finish project submission"
+                className="w-full pl-4 pr-16 py-2.5 bg-zinc-900/50 text-zinc-200 rounded-xl border border-zinc-800 focus:border-[#9040dd] focus:outline-none transition-all duration-200 disabled:opacity-50 text-sm"
+              />
+              <div className="absolute right-3 text-[10px] text-zinc-500 select-none font-semibold">
+                {taskText.length}/{MAX_TASK_LENGTH}
+              </div>
+            </div>
             {error && (
               <p className="text-xs text-red-400 font-medium animate-pulse">{error}</p>
             )}
@@ -160,15 +183,25 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
                 Description & Notes
               </label>
             </div>
-            <textarea
-              id="description"
-              value={description}
-              placeholder="Add extra details, subtasks list description, or notes..."
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={isLoading}
-              rows="3"
-              className="w-full px-4 py-2.5 bg-zinc-900/50 text-zinc-200 rounded-xl border border-zinc-800 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 text-sm"
-            />
+            <div className="relative">
+              <textarea
+                id="description"
+                value={description}
+                placeholder="Add extra details, subtasks list description, or notes..."
+                onChange={(e) => setDescription(e.target.value)}
+                disabled={isLoading}
+                maxLength={MAX_DESCRIPTION_LENGTH}
+                rows="4"
+                className="w-full px-4 py-3 bg-zinc-900/50 text-zinc-200 rounded-xl border border-zinc-800 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 text-sm"
+              />
+              {/* Description Character Counter */}
+              <div className="absolute bottom-2 right-3 text-[10px] text-zinc-550 select-none font-semibold">
+                <span className={description.length > MAX_DESCRIPTION_LENGTH * 0.9 ? "text-red-400" : ""}>
+                  {description.length}
+                </span>
+                <span className="text-zinc-650">/{MAX_DESCRIPTION_LENGTH}</span>
+              </div>
+            </div>
           </div>
 
           {/* Priority & Due Date Row */}
@@ -217,6 +250,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
                 id="dueDate"
                 type="datetime-local"
                 value={dueDate}
+                min={minDateTime}
                 onChange={(e) => setDueDate(e.target.value)}
                 disabled={isLoading}
                 className="w-full px-3 py-1 bg-zinc-900/50 text-zinc-300 rounded-lg border border-zinc-800 focus:border-[#9040dd] focus:outline-none text-xs h-[30px] custom-datetime-picker"
@@ -253,7 +287,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
         </form>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
           from { opacity: 0; }
           to { opacity: 1; }
@@ -267,6 +301,15 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
         }
         .animate-scale-in {
           animation: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .custom-datetime-picker::-webkit-calendar-picker-indicator {
+          filter: invert(0.85);
+          cursor: pointer;
+          opacity: 0.75;
+          transition: opacity 0.2s;
+        }
+        .custom-datetime-picker::-webkit-calendar-picker-indicator:hover {
+          opacity: 1;
         }
       `}</style>
     </div>

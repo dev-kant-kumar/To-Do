@@ -132,6 +132,46 @@ async function showDeletedTask(req, res) {
   }
 }
 
+async function getTodoCounts(req, res) {
+  console.log("getTodoCounts reached");
+  const userId = req.id;
+  try {
+    const allCount = await Todo.countDocuments({ userId: userId, deleted: false });
+    const starredCount = await Todo.countDocuments({ userId: userId, starred: true, deleted: false });
+    const completedCount = await Todo.countDocuments({ userId: userId, completed: true, deleted: false });
+    const pendingCount = await Todo.countDocuments({ userId: userId, completed: false, deleted: false });
+    
+    // Get the start and end of today
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    const todayCount = await Todo.countDocuments({
+      userId: userId,
+      deleted: false,
+      date: { $gte: startOfDay, $lt: endOfDay },
+    });
+    
+    const deletedCount = await Todo.countDocuments({ userId: userId, deleted: true });
+    
+    res.send({
+      allCount,
+      starredCount,
+      completedCount,
+      pendingCount,
+      todayCount,
+      deletedCount,
+    });
+  } catch (error) {
+    console.error("Error fetching todo counts:", error);
+    res.status(500).send({
+      status: false,
+      message: "Internal server error while fetching counts",
+    });
+  }
+}
+
 module.exports = {
   showAllTasks,
   showCompletedTasks,
@@ -139,4 +179,5 @@ module.exports = {
   showTasksCreatedToday,
   showTasksCreatedWeekAgo,
   showDeletedTask,
+  getTodoCounts,
 };
