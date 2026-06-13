@@ -3,13 +3,12 @@ import axios from "axios";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Eye, EyeOff, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
-import global from "../Components/Global";
 import Footer from "./Common/Footer";
 
 function ResetPasswordForm() {
   const navigate = useNavigate();
   const { token } = useParams(); // Retrieves recovery token if passed via route param
-  const apiUrl = global.REACT_APP_API_BASE_URL;
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   const [inputValue, setInputValue] = useState({
     password: "",

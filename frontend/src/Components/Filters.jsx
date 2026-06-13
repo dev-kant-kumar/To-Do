@@ -3,8 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
-import global from "../Components/Global";
-
 import { ListTodo, Star, Calendar, Trash2, X } from "lucide-react";
 
 const FILTERS = [
@@ -16,7 +14,7 @@ const FILTERS = [
 
 function Filters({ setShow }) {
   const dispatch = useDispatch();
-  const apiUrl = global.REACT_APP_API_BASE_URL;
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const userId = useSelector((state) => state.UserSlice.userId);
 
   const [activeFilter, setActiveFilter] = useState("all");

@@ -5,12 +5,11 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Lock, Eye, EyeOff, Key, User, Mail } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
-import global from "../Components/Global";
 import { setUserInfo } from "../Store/Reducers/UserSlice";
 
 function ProfilePage() {
   const userInfo = useSelector((state) => state.UserSlice);
-  const apiUrl = global.REACT_APP_API_BASE_URL;
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const dispatch = useDispatch();
 
   // Edit Profile Details States

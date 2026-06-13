@@ -5,9 +5,6 @@ import { ToastContainer, Bounce } from "react-toastify";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 
-// Global Config
-import global from "../Components/Global";
-
 // Redux
 import { setUserInfo, clearUserInfo } from "../Store/Reducers/UserSlice";
 import { setPreLoader } from "../Store/Reducers/Loader";
@@ -42,7 +39,7 @@ const LegalLayout = () => <Outlet />;
 
 function AuthenticationPage() {
   const dispatch = useDispatch();
-  const apiUrl = global.REACT_APP_API_BASE_URL;
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { preloader } = useSelector((state) => state.Loader);
 
   // Fetch user info from token

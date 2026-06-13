@@ -4,14 +4,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setUserInfo } from "../Store/Reducers/UserSlice";
 import { toast } from "react-toastify";
-import global from "../Components/Global";
 import { Eye, EyeOff, Lock, User, ArrowRight } from "lucide-react";
 import Footer from "../Components/Common/Footer";
 
 function SigninForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const apiUrl = global.REACT_APP_API_BASE_URL;
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   const [inputValue, setInputValue] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);

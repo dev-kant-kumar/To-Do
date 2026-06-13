@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import global from "../Components/Global";
 import { RxCross2 } from "react-icons/rx";
 import { Calendar, AlertCircle, Edit3, AlignLeft } from "lucide-react";
 
@@ -25,7 +24,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
 
   const modalRef = useRef();
   const inputRef = useRef();
-  const apiUrl = global.REACT_APP_API_BASE_URL;
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   // Handle escape key to close modal
   useEffect(() => {

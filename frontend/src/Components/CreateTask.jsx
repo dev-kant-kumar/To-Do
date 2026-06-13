@@ -3,7 +3,6 @@ import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { toast } from "react-toastify";
-import global from "../Components/Global";
 import { RxCross2 } from "react-icons/rx";
 
 // Constants
@@ -25,7 +24,7 @@ function CreateTask({ onClose }) {
 
   const refElement = useRef();
   const inputRef = useRef();
-  const apiUrl = global.REACT_APP_API_BASE_URL;
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   // Focus input on mount
   useEffect(() => {

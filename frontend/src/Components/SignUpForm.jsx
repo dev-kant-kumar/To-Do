@@ -2,13 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import global from "../Components/Global";
 import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
 import Footer from "../Components/Common/Footer";
 
 function SignUpForm() {
   const navigate = useNavigate();
-  const apiUrl = global.REACT_APP_API_BASE_URL;
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   // Initialize from sessionStorage draft if available
   const getInitialValue = () => {

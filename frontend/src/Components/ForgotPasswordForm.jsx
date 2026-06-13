@@ -3,11 +3,10 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { Mail, ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
-import global from "../Components/Global";
 import Footer from "./Common/Footer";
 
 function ForgotPasswordForm() {
-  const apiUrl = global.REACT_APP_API_BASE_URL;
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
