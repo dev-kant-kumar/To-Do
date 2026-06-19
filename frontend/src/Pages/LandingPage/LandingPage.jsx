@@ -126,7 +126,7 @@ function LandingPage() {
       </div>
 
       {/* Header */}
-      <header className={`sticky z-50 max-w-6xl mx-auto px-4 sm:px-6 w-full transition-all duration-500 ease-in-out ${isScrolled ? "top-2 scale-[0.99]" : "top-4"}`}>
+      <header className={`fixed left-0 right-0 z-50 max-w-6xl mx-auto px-4 sm:px-6 w-full transition-all duration-500 ease-in-out ${isScrolled ? "top-2 scale-[0.99]" : "top-4"}`}>
         <div className={`w-full flex items-center justify-between rounded-2xl border transition-all duration-500 ease-in-out premium-glow-border ${
           isScrolled 
             ? "h-14 px-5 bg-zinc-950/90 backdrop-blur-xl border-purple-500/25 shadow-[0_0_30px_rgba(168,85,247,0.15)]" 
@@ -177,7 +177,7 @@ function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <main className="relative z-10 max-w-7xl mx-auto px-6 pt-16 md:pt-28 pb-24">
+      <main className="relative z-10 max-w-7xl mx-auto px-6 pt-24 md:pt-36 pb-24">
         <div className="text-center max-w-3xl mx-auto relative">
           {/* Neon Radial Glow behind Hero Content */}
           <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[350px] h-[350px] rounded-full bg-purple-600/10 blur-[120px] pointer-events-none select-none z-0" />
