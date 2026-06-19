@@ -9,6 +9,7 @@ import ImgForDelTasks from "../assets/deleteTasks.png";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { setTodo, setTodoLength, setSearchQuery } from "../Store/Reducers/TodoFilterSlice";
+import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
 import { toast } from "react-toastify";
 import { 
   Trash2, 
@@ -19,23 +20,54 @@ import {
   Clock,
   Circle,
   CheckCircle2,
-  Plus
+  Plus,
+  ListTodo,
+  Calendar,
+  Check,
+  ChevronUp,
+  ChevronDown,
+  GripVertical
 } from "lucide-react";
 
 // Constants
 const FILTER_TYPES = {
+  TODO: "todo",
   ALL: "all",
   STARRED: "starred",
+  COMPLETED: "completed",
   TODAY: "today",
   WEEK: "week",
   DELETED: "deleted",
 };
 
 const IMAGE_MAP = {
+  [FILTER_TYPES.TODO]: ImgForAddTasks,
   [FILTER_TYPES.ALL]: ImgForAddTasks,
   [FILTER_TYPES.STARRED]: ImgForStarredTasks,
-  [FILTER_TYPES.TODAY]: ImgForTodaysCreatedTasks,
+  [FILTER_TYPES.COMPLETED]: ImgForTodaysCreatedTasks,
   [FILTER_TYPES.DELETED]: ImgForDelTasks,
+};
+
+const getPriorityBadge = (p) => {
+  if (p === "high") {
+    return (
+      <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]">
+        High
+      </span>
+    );
+  }
+  if (p === "medium") {
+    return (
+      <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.05)]">
+        Medium
+      </span>
+    );
+  }
+  return (
+    <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.05)]">
+      Low
+    </span>
+  );
 };
 
 function Tasks() {
@@ -47,22 +79,62 @@ function Tasks() {
   const todoData = useSelector((state) => state.TodoFilterSlice);
   const activeFilter = useSelector((state) => state.ActiveDeletedFilter);
 
+  const filtersList = useMemo(() => [
+    { key: "todo", label: "Todo", icon: <ListTodo size={14} /> },
+    { key: "all", label: "All Tasks", icon: <ListTodo size={14} /> },
+    { key: "starred", label: "Starred", icon: <Star size={14} /> },
+    { key: "completed", label: "Completed", icon: <CheckCircle size={14} /> },
+    { key: "deleted", label: "Deleted", icon: <Trash2 size={14} /> },
+  ], []);
+
   // Local state
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTaskIds, setSelectedTaskIds] = useState(new Set());
-  const [activeTab, setActiveTab] = useState("todo"); // "todo" | "completed"
+  const [counts, setCounts] = useState({});
+  const [draggedTaskId, setDraggedTaskId] = useState(null);
+  const [dragOverTaskId, setDragOverTaskId] = useState(null);
+
+  // Fetch counts when userId changes or todo list updates
+  useEffect(() => {
+    const fetchCounts = async () => {
+      if (!userInfo.userId) return;
+      try {
+        const res = await axios.post(`${apiUrl}filters/counts`, { userId: userInfo.userId });
+        if (res.data) {
+          setCounts(res.data);
+        }
+      } catch (err) {
+        console.error("Error fetching counts:", err);
+      }
+    };
+    fetchCounts();
+  }, [userInfo.userId, apiUrl, todoData.todo]);
+
+
 
   // Reset selection on filter change
   useEffect(() => {
     setSelectedTaskIds(new Set());
-    setActiveTab("todo");
   }, [activeFilter]);
 
   // Memoized values
+  const currentFilterType = useMemo(() => {
+    if (activeFilter.isTodoActive) return FILTER_TYPES.TODO;
+    if (activeFilter.isAllActive) return FILTER_TYPES.ALL;
+    if (activeFilter.isStarredActive) return FILTER_TYPES.STARRED;
+    if (activeFilter.isCompletedActive) return FILTER_TYPES.COMPLETED;
+    if (activeFilter.isWeekActive) return FILTER_TYPES.WEEK;
+    if (activeFilter.isDeletedActive) return FILTER_TYPES.DELETED;
+    return FILTER_TYPES.TODO; // Default to Todo!
+  }, [activeFilter]);
+
   const todoList = useMemo(() => {
     let list = todoData.todo?.toReversed() || [];
+    if (currentFilterType === FILTER_TYPES.TODO) {
+      list = list.filter((t) => !t.completed);
+    }
     if (todoData.searchQuery) {
       const q = todoData.searchQuery.toLowerCase();
       list = list.filter(
@@ -72,35 +144,33 @@ function Tasks() {
       );
     }
     return list;
-  }, [todoData.todo, todoData.searchQuery]);
+  }, [todoData.todo, todoData.searchQuery, currentFilterType]);
 
-  const todoTasksCount = useMemo(() => {
-    return todoList.filter((t) => !t.completed).length;
-  }, [todoList]);
-
-  const completedTasksCount = useMemo(() => {
-    return todoList.filter((t) => t.completed).length;
-  }, [todoList]);
 
   const displayedTodoList = useMemo(() => {
-    if (activeTab === "todo") {
-      return todoList.filter((t) => !t.completed);
-    } else {
-      return todoList.filter((t) => t.completed);
-    }
-  }, [todoList, activeTab]);
+    return todoList;
+  }, [todoList]);
+
+  const sortedTasks = useMemo(() => {
+    const priorityWeight = { high: 3, medium: 2, low: 1 };
+    return [...displayedTodoList].sort((a, b) => {
+      // Sort by priority weight descending
+      const weightA = priorityWeight[a.priority] || 0;
+      const weightB = priorityWeight[b.priority] || 0;
+      if (weightA !== weightB) {
+        return weightB - weightA;
+      }
+      // Within same priority, sort by completed status (uncompleted first)
+      if (a.completed !== b.completed) {
+        return a.completed ? 1 : -1;
+      }
+      // If still equal, sort by rankIndex
+      return (a.rankIndex || 0) - (b.rankIndex || 0);
+    });
+  }, [displayedTodoList]);
 
   const lengthOfTodo = useMemo(() => todoData.length || 0, [todoData.length]);
   const originalListIsEmpty = useMemo(() => (todoData.todo?.length || 0) === 0, [todoData.todo]);
-
-  const currentFilterType = useMemo(() => {
-    if (activeFilter.isAllActive) return FILTER_TYPES.ALL;
-    if (activeFilter.isStarredActive) return FILTER_TYPES.STARRED;
-    if (activeFilter.isTodayActive) return FILTER_TYPES.TODAY;
-    if (activeFilter.isWeekActive) return FILTER_TYPES.WEEK;
-    if (activeFilter.isDeletedActive) return FILTER_TYPES.DELETED;
-    return FILTER_TYPES.ALL;
-  }, [activeFilter]);
 
   const currentImage = useMemo(
     () => IMAGE_MAP[currentFilterType] || "",
@@ -121,8 +191,9 @@ function Tasks() {
 
       setIsLoading(true);
       try {
+        const filterEndpoint = currentFilterType === FILTER_TYPES.TODO ? "all" : currentFilterType;
         const response = await axios.post(
-          `${apiUrl}filters/${currentFilterType}`,
+          `${apiUrl}filters/${filterEndpoint}`,
           {
             userId: userId,
           }
@@ -144,6 +215,13 @@ function Tasks() {
     },
     [apiUrl, currentFilterType, dispatch]
   );
+
+  // Fetch data when active filter changes
+  useEffect(() => {
+    if (userInfo.userId) {
+      fetchTodo(userInfo.userId);
+    }
+  }, [currentFilterType, userInfo.userId, fetchTodo]);
 
   // Event handlers
   const taskHandler = useCallback(() => {
@@ -364,8 +442,10 @@ function Tasks() {
   const TitleHeader = useMemo(() => {
     const titleText = (() => {
       switch (currentFilterType) {
+        case FILTER_TYPES.TODO: return "Pending Tasks";
         case FILTER_TYPES.ALL: return "All Tasks";
         case FILTER_TYPES.STARRED: return "Starred Tasks";
+        case FILTER_TYPES.COMPLETED: return "Completed Tasks";
         case FILTER_TYPES.TODAY: return "Today's Checklist";
         case FILTER_TYPES.WEEK: return "This Week's Plan";
         case FILTER_TYPES.DELETED: return "Trash Bin";
@@ -375,8 +455,10 @@ function Tasks() {
 
     const descriptionText = (() => {
       switch (currentFilterType) {
+        case FILTER_TYPES.TODO: return "Focus on tasks that need to be done.";
         case FILTER_TYPES.ALL: return "View and manage all your tasks and subtasks.";
         case FILTER_TYPES.STARRED: return "Keep track of items you marked as high-priority.";
+        case FILTER_TYPES.COMPLETED: return "Review tasks you have successfully finished.";
         case FILTER_TYPES.TODAY: return "Focus on tasks that are scheduled for completion today.";
         case FILTER_TYPES.WEEK: return "Upcoming tasks scheduled to be completed this week.";
         case FILTER_TYPES.DELETED: return "Review tasks you have deleted. Clean up trash here.";
@@ -495,58 +577,7 @@ function Tasks() {
     [todoData.searchQuery, dispatch]
   );
 
-  const EmptyTabTasksView = useMemo(
-    () => {
-      if (activeTab === "todo") {
-        return (
-          <div className="flex-grow flex flex-col items-center justify-center py-16 px-4 text-center h-full animate-fade-in">
-            <CheckCircle2 size={40} className="text-zinc-600 mb-4" />
-            <h3 className="text-zinc-300 font-semibold text-base mb-1">
-              All Caught Up!
-            </h3>
-            <p className="text-zinc-500 text-xs max-w-xs">
-              No active tasks to display. Create a new task or enjoy your day!
-            </p>
-          </div>
-        );
-      } else {
-        return (
-          <div className="flex-grow flex flex-col items-center justify-center py-16 px-4 text-center h-full animate-fade-in">
-            <Clock size={40} className="text-zinc-600 mb-4" />
-            <h3 className="text-zinc-300 font-semibold text-base mb-1">
-              No Completed Tasks
-            </h3>
-            <p className="text-zinc-500 text-xs max-w-xs">
-              Completed tasks will be archived here. Tick off some items to get started!
-            </p>
-          </div>
-        );
-      }
-    },
-    [activeTab]
-  );
 
-  const getPriorityBadge = (p) => {
-    if (p === "high") {
-      return (
-        <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]">
-          High
-        </span>
-      );
-    }
-    if (p === "medium") {
-      return (
-        <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.05)]">
-          Medium
-        </span>
-      );
-    }
-    return (
-      <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-widest bg-zinc-900/60 text-zinc-500 border border-zinc-800/80">
-        Low
-      </span>
-    );
-  };
 
   const getDueDateBadge = (task) => {
     if (!task.dueDate) return null;
@@ -576,160 +607,374 @@ function Tasks() {
     );
   };
 
-  const renderTaskItem = useCallback(
-    (task) => {
-      const isSelected = selectedTaskIds.has(task._id);
-      return (
-        <motion.li
-          key={task._id}
-          layout
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, x: -20, transition: { duration: 0.18 } }}
-          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className={`flex items-start sm:items-center gap-2 sm:gap-3 py-3 px-4 lg:px-6 transition-colors duration-200 group relative border-l-2 ${
-            isSelected 
-              ? "bg-purple-950/10 border-l-purple-500" 
-              : "bg-transparent border-l-transparent hover:bg-zinc-900/10 hover:border-l-zinc-700"
-          }`}
-        >
-          {/* Checkbox & Star */}
-          <div className="flex items-center gap-2 flex-shrink-0 pt-0.5 sm:pt-0">
+  const handleMoveUp = useCallback(async (task) => {
+    const currentIndex = sortedTasks.findIndex((t) => t._id === task._id);
+    if (currentIndex <= 0) return; // Cannot move up
+    
+    const prevTask = sortedTasks[currentIndex - 1];
+    
+    try {
+      if (prevTask.priority === task.priority) {
+        // Swap rankIndex cleanly. If they are equal, offset them.
+        const prevRank = prevTask.rankIndex || 0;
+        const currentRank = task.rankIndex || 0;
+        
+        const newCurrentRank = prevRank === currentRank ? prevRank - 1 : prevRank;
+        const newPrevRank = prevRank === currentRank ? currentRank + 1 : currentRank;
+        
+        await Promise.all([
+          axios.post(`${apiUrl}todo/updateTask`, {
+            taskID: task._id,
+            rankIndex: newCurrentRank,
+            userId: userInfo.userId,
+          }),
+          axios.post(`${apiUrl}todo/updateTask`, {
+            taskID: prevTask._id,
+            rankIndex: newPrevRank,
+            userId: userInfo.userId,
+          })
+        ]);
+      } else {
+        // Shift priority up to prevTask's priority, and set rankIndex to be right next to prevTask
+        await axios.post(`${apiUrl}todo/updateTask`, {
+          taskID: task._id,
+          priority: prevTask.priority,
+          rankIndex: (prevTask.rankIndex || 0) + 1,
+          userId: userInfo.userId,
+        });
+      }
+      await fetchTodo(userInfo.userId);
+    } catch (error) {
+      console.error("Error moving task up:", error);
+      toast.error("Failed to move task up");
+    }
+  }, [apiUrl, userInfo.userId, fetchTodo, sortedTasks]);
+
+  const handleMoveDown = useCallback(async (task) => {
+    const currentIndex = sortedTasks.findIndex((t) => t._id === task._id);
+    if (currentIndex === -1 || currentIndex >= sortedTasks.length - 1) return; // Cannot move down
+    
+    const nextTask = sortedTasks[currentIndex + 1];
+    
+    try {
+      if (nextTask.priority === task.priority) {
+        // Swap rankIndex cleanly. If they are equal, offset them.
+        const nextRank = nextTask.rankIndex || 0;
+        const currentRank = task.rankIndex || 0;
+        
+        const newCurrentRank = nextRank === currentRank ? nextRank + 1 : nextRank;
+        const newNextRank = nextRank === currentRank ? currentRank - 1 : currentRank;
+        
+        await Promise.all([
+          axios.post(`${apiUrl}todo/updateTask`, {
+            taskID: task._id,
+            rankIndex: newCurrentRank,
+            userId: userInfo.userId,
+          }),
+          axios.post(`${apiUrl}todo/updateTask`, {
+            taskID: nextTask._id,
+            rankIndex: newNextRank,
+            userId: userInfo.userId,
+          })
+        ]);
+      } else {
+        // Shift priority down to nextTask's priority, and set rankIndex to be right next to nextTask
+        await axios.post(`${apiUrl}todo/updateTask`, {
+          taskID: task._id,
+          priority: nextTask.priority,
+          rankIndex: (nextTask.rankIndex || 0) - 1,
+          userId: userInfo.userId,
+        });
+      }
+      await fetchTodo(userInfo.userId);
+    } catch (error) {
+      console.error("Error moving task down:", error);
+      toast.error("Failed to move task down");
+    }
+  }, [apiUrl, userInfo.userId, fetchTodo, sortedTasks]);
+
+  const handleDragStart = useCallback((e, task) => {
+    // Ignore if dragging started from an interactive element (e.g. checkbox, star, buttons)
+    const target = e.target;
+    if (
+      target.closest("button") || 
+      target.closest("a") || 
+      target.closest("input") || 
+      target.closest("select")
+    ) {
+      e.preventDefault();
+      return;
+    }
+    
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", task._id);
+    setDraggedTaskId(task._id);
+  }, []);
+
+  const handleDragOver = useCallback((e, targetTask) => {
+    e.preventDefault();
+    if (draggedTaskId && draggedTaskId !== targetTask._id) {
+      setDragOverTaskId(targetTask._id);
+    }
+  }, [draggedTaskId]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedTaskId(null);
+    setDragOverTaskId(null);
+  }, []);
+
+  const handleDrop = useCallback(async (e, targetTask) => {
+    e.preventDefault();
+    const draggedId = e.dataTransfer.getData("text/plain") || draggedTaskId;
+    
+    if (!draggedId || draggedId === targetTask._id) {
+      setDraggedTaskId(null);
+      setDragOverTaskId(null);
+      return;
+    }
+
+    const draggedTask = sortedTasks.find((t) => t._id === draggedId);
+    if (!draggedTask) {
+      setDraggedTaskId(null);
+      setDragOverTaskId(null);
+      return;
+    }
+
+    const draggedIndex = sortedTasks.findIndex((t) => t._id === draggedId);
+    const targetIndex = sortedTasks.findIndex((t) => t._id === targetTask._id);
+    
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedTaskId(null);
+      setDragOverTaskId(null);
+      return;
+    }
+
+    const newPriority = targetTask.priority;
+    const isDraggingUp = draggedIndex > targetIndex;
+    
+    let newRank = 0;
+    
+    if (isDraggingUp) {
+      // Placing draggedTask BEFORE targetTask
+      const prevTask = sortedTasks[targetIndex - 1];
+      if (prevTask && prevTask.priority === targetTask.priority) {
+        if ((prevTask.rankIndex || 0) !== (targetTask.rankIndex || 0)) {
+          newRank = ((prevTask.rankIndex || 0) + (targetTask.rankIndex || 0)) / 2;
+        } else {
+          newRank = (targetTask.rankIndex || 0) - 1;
+        }
+      } else {
+        newRank = (targetTask.rankIndex || 0) - 10;
+      }
+    } else {
+      // Placing draggedTask AFTER targetTask
+      const nextTask = sortedTasks[targetIndex + 1];
+      if (nextTask && nextTask.priority === targetTask.priority) {
+        if ((nextTask.rankIndex || 0) !== (targetTask.rankIndex || 0)) {
+          newRank = ((targetTask.rankIndex || 0) + (nextTask.rankIndex || 0)) / 2;
+        } else {
+          newRank = (targetTask.rankIndex || 0) + 1;
+        }
+      } else {
+        newRank = (targetTask.rankIndex || 0) + 10;
+      }
+    }
+
+    // Reset drag state immediately for smooth UI transition
+    setDraggedTaskId(null);
+    setDragOverTaskId(null);
+
+    // Optimistically update local redux store state
+    const updatedTodo = todoData.todo.map((t) => {
+      if (t._id === draggedId) {
+        return { ...t, priority: newPriority, rankIndex: newRank };
+      }
+      return t;
+    });
+    dispatch(setTodo(updatedTodo));
+
+    // Save to backend
+    try {
+      await axios.post(`${apiUrl}todo/updateTask`, {
+        taskID: draggedId,
+        priority: newPriority,
+        rankIndex: newRank,
+        userId: userInfo.userId,
+      });
+      // Fetch latest from server to ensure perfect sync
+      await fetchTodo(userInfo.userId);
+    } catch (error) {
+      console.error("Error updating task rank via drag-and-drop:", error);
+      toast.error("Failed to reorder task");
+      // Rollback on error
+      await fetchTodo(userInfo.userId);
+    }
+  }, [draggedTaskId, sortedTasks, todoData.todo, dispatch, apiUrl, userInfo.userId, fetchTodo]);
+
+  const renderTaskCard = useCallback((task) => {
+    const isSelected = selectedTaskIds.has(task._id);
+    const taskIndex = sortedTasks.findIndex((t) => t._id === task._id);
+    const isFirst = taskIndex === 0;
+    const isLast = taskIndex === sortedTasks.length - 1;
+    const isDragged = task._id === draggedTaskId;
+    const isDragOver = task._id === dragOverTaskId;
+    const draggedIndex = sortedTasks.findIndex((t) => t._id === draggedTaskId);
+    const isDraggingUp = draggedIndex !== -1 && draggedIndex > taskIndex;
+    
+    return (
+      <motion.div
+        key={task._id}
+        layout
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.18 } }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        draggable={true}
+        onDragStart={(e) => handleDragStart(e, task)}
+        onDragOver={(e) => handleDragOver(e, task)}
+        onDragEnd={handleDragEnd}
+        onDrop={(e) => handleDrop(e, task)}
+        onClick={() => {
+          setSelectedTask(task);
+          setShowCreateTask(false);
+        }}
+        className={`group relative flex flex-col gap-3.5 p-4 rounded-2xl border transition-all duration-200 text-left cursor-pointer ${
+          isDragged
+            ? "opacity-40 scale-[0.98] border-dashed border-purple-500/40 bg-zinc-950/20"
+            : isDragOver
+            ? isDraggingUp
+              ? "border-t-2 border-t-purple-500/80 bg-purple-950/5 scale-[1.01] shadow-[0_0_15px_rgba(168,85,247,0.1)] border-b-zinc-900 border-l-zinc-900 border-r-zinc-900"
+              : "border-b-2 border-b-purple-500/80 bg-purple-950/5 scale-[1.01] shadow-[0_0_15px_rgba(168,85,247,0.1)] border-t-zinc-900 border-l-zinc-900 border-r-zinc-900"
+            : isSelected 
+            ? "bg-purple-950/10 border-purple-500/30 shadow-[0_0_12px_rgba(168,85,247,0.04)]" 
+            : "bg-zinc-900/35 border-zinc-900 hover:border-zinc-800/80 hover:bg-zinc-900/50 hover:-translate-y-0.5 shadow-lg shadow-zinc-950/30"
+        }`}
+      >
+        {/* Card Header: Checkbox, Title, Star */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-2.5 min-w-0">
+            {/* Grab Handle */}
+            <div 
+              className="text-zinc-600 hover:text-zinc-400 cursor-grab active:cursor-grabbing p-0.5 -ml-1 mr-0.5 rounded transition-colors hidden sm:block flex-shrink-0 mt-0.5"
+              title="Drag to reorder"
+            >
+              <GripVertical size={14} className="stroke-[2.5]" />
+            </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 toggleSelectTask(task._id);
               }}
               title={isSelected ? "Deselect task" : "Select task"}
-              className="p-1 rounded hover:bg-zinc-800 text-zinc-500 hover:text-zinc-350 transition-colors focus:outline-none"
+              className="p-0.5 rounded hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors focus:outline-none flex-shrink-0 mt-0.5"
             >
               {isSelected ? (
-                <CheckSquare size={16} className="text-purple-500" />
+                <CheckSquare size={15} className="text-purple-500" />
               ) : (
-                <span className="block w-4 h-4 border border-zinc-700 rounded hover:border-zinc-500 transition-colors"></span>
+                <span className="block w-3.5 h-3.5 border border-zinc-700 rounded hover:border-zinc-500 transition-colors"></span>
               )}
             </button>
-
             <span
-              className="cursor-pointer p-0.5 flex-shrink-0"
+              className={`font-semibold text-xs sm:text-sm leading-tight transition-all duration-300 ${
+                task.completed ? "line-through text-zinc-500" : "text-zinc-100"
+              }`}
+            >
+              {task.task || "Untitled Task"}
+            </span>
+          </div>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleStarred(task._id, task.starred);
+            }}
+            className="p-0.5 rounded hover:bg-zinc-800/60 text-zinc-500 hover:text-zinc-300 transition-colors focus:outline-none flex-shrink-0"
+          >
+            {task.starred ? (
+              <Star size={15} className="text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.3)] animate-star-pulse" />
+            ) : (
+              <Star size={15} className="text-zinc-600 hover:text-zinc-400" />
+            )}
+          </button>
+        </div>
+
+        {/* Card Body: Description */}
+        {task.description && (
+          <p className={`text-[11px] leading-relaxed transition-all duration-350 -mt-1.5 ${task.completed ? "line-through text-zinc-500" : "text-zinc-400"}`}>
+            {task.description}
+          </p>
+        )}
+
+        {/* Card Footer: Due Date Badge & Priority Shift controls */}
+        <div className="flex items-center justify-between mt-1 pt-2 border-t border-zinc-900/60 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {getPriorityBadge(task.priority)}
+            {getDueDateBadge(task)}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Move Up/Down Buttons */}
+            <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wider select-none">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMoveUp(task);
+                }}
+                disabled={isFirst}
+                title="Move task up"
+                className="px-2 py-1 rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-20 disabled:pointer-events-none transition-all cursor-pointer flex items-center gap-1"
+              >
+                <ChevronUp size={11} className="stroke-[3]" />
+                <span>Move Up</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMoveDown(task);
+                }}
+                disabled={isLast}
+                title="Move task down"
+                className="px-2 py-1 rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-20 disabled:pointer-events-none transition-all cursor-pointer flex items-center gap-1"
+              >
+                <ChevronDown size={11} className="stroke-[3]" />
+                <span>Move Down</span>
+              </button>
+            </div>
+
+            {/* Check Completion button */}
+            <button
               onClick={(e) => {
                 e.stopPropagation();
-                toggleStarred(task._id, task.starred);
+                toggleTaskComplete(task._id, task.completed);
               }}
-              title={task.starred ? "Unstar task" : "Star task"}
-              role="button"
-              tabIndex={0}
-              aria-label={task.starred ? "Unstar task" : "Star task"}
+              className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                task.completed 
+                  ? "bg-emerald-500/20 border-emerald-500/35 text-emerald-400" 
+                  : "border-zinc-800 text-zinc-500 hover:border-emerald-500/30 hover:text-emerald-400 hover:bg-emerald-950/10"
+              }`}
             >
-              {task.starred ? (
-                <Star size={18} className="text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.3)] animate-star-pulse" />
-              ) : (
-                <Star size={18} className="text-zinc-500 hover:text-zinc-400 transition-colors duration-250 active:scale-75" />
-              )}
-            </span>
-
-            <div className="hidden sm:block flex-shrink-0">
-              {getPriorityBadge(task.priority)}
-            </div>
+              <Check size={12} className="stroke-[3]" />
+            </button>
           </div>
-
-          {/* Main content */}
-          <div
-            className="flex-grow flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 min-w-0 cursor-pointer select-none"
-            onClick={() => {
-              setSelectedTask(task);
-              setShowCreateTask(false);
-            }}
-          >
-            {/* Mobile row 1: priority + due date */}
-            <div className="flex items-center gap-2 flex-wrap sm:hidden">
-              {getPriorityBadge(task.priority)}
-              {getDueDateBadge(task)}
-            </div>
-
-            {/* Mobile row 2 / desktop title */}
-            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 min-w-0 flex-grow text-left">
-              <span
-                className={`font-semibold text-sm transition-all duration-300 strike-through-animate w-fit sm:truncate sm:max-w-[250px] ${
-                  task.completed ? "completed text-zinc-500" : "text-zinc-100"
-                }`}
-              >
-                {task.task || "Untitled Task"}
-              </span>
-
-              {task.description && (
-                <span className={`hidden sm:inline text-xs text-zinc-500 truncate flex-grow transition-all duration-300 ${task.completed ? "line-through text-zinc-600" : ""}`}>
-                  &mdash; {task.description}
-                </span>
-              )}
-            </div>
-
-            {/* Mobile row 3: description */}
-            {task.description && (
-              <p className={`sm:hidden text-xs leading-relaxed transition-all duration-300 ${task.completed ? "line-through text-zinc-600" : "text-zinc-500"}`}>
-                {task.description}
-              </p>
-            )}
-
-            {/* Desktop: due date */}
-            <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0 text-left">
-              {getDueDateBadge(task)}
-            </div>
-
-            {/* Mobile row 4: created date */}
-            <div className="flex justify-end sm:hidden">
-              <span className="text-xs text-zinc-500 font-medium">
-                {formatDate(task.date)}
-              </span>
-            </div>
-          </div>
-
-          {/* Desktop: created date / hover actions */}
-          <div className="hidden sm:flex w-24 flex-shrink-0 items-center justify-end text-right h-8">
-            <span className="text-xs text-zinc-500 font-medium block group-hover:hidden transition-all duration-150">
-              {formatDate(task.date)}
-            </span>
-
-            <div className="hidden group-hover:flex items-center gap-1 transition-all duration-150">
-              <span
-                className="cursor-pointer text-zinc-500 hover:text-purple-400 transition-colors duration-150 p-1 rounded hover:bg-zinc-800/40 animate-fade-in"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleTaskComplete(task._id, task.completed);
-                }}
-                title={task.completed ? "Mark as incomplete" : "Mark as complete"}
-                role="button"
-                tabIndex={0}
-                aria-label={
-                  task.completed ? "Mark as incomplete" : "Mark as complete"
-                }
-              >
-                {task.completed ? (
-                  <CheckCircle2 size={15} className="text-purple-400 fill-purple-500/20" />
-                ) : (
-                  <Circle size={15} className="text-zinc-500 hover:text-purple-400" />
-                )}
-              </span>
-              <span
-                className="cursor-pointer text-zinc-500 hover:text-red-400 transition-colors duration-150 p-1 rounded hover:bg-zinc-800/40"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteTask(task._id, task.deleted);
-                }}
-                title="Delete task"
-                role="button"
-                tabIndex={0}
-                aria-label="Delete task"
-              >
-                <Trash2 size={15} />
-              </span>
-            </div>
-          </div>
-        </motion.li>
-      );
-    },
-    [toggleStarred, toggleTaskComplete, deleteTask, formatDate, setSelectedTask, selectedTaskIds, toggleSelectTask]
-  );
+        </div>
+      </motion.div>
+    );
+  }, [
+    selectedTaskIds,
+    toggleSelectTask,
+    toggleStarred,
+    toggleTaskComplete,
+    handleMoveUp,
+    handleMoveDown,
+    getDueDateBadge,
+    sortedTasks,
+    draggedTaskId,
+    dragOverTaskId,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleDrop
+  ]);
 
   const Toolbar = useMemo(() => {
     return (
@@ -812,24 +1057,33 @@ function Tasks() {
     handleBulkDelete,
   ]);
 
+
   const TasksListView = useMemo(
     () => (
       <div className="flex-grow flex flex-col overflow-hidden text-left -mx-4 lg:-mx-6">
         {Toolbar}
-        <div className="flex-grow overflow-y-auto pr-1 scrollbar-none">
-          <motion.ul
-            layout
-            className="divide-y divide-zinc-900/60"
-          >
+        <div className="flex-grow overflow-y-auto pr-1 scrollbar-none px-4 lg:px-6">
+          <div className="flex flex-col gap-3.5 pb-6 mt-3 max-w-3xl mx-auto w-full">
             <AnimatePresence mode="popLayout">
-              {displayedTodoList.map((task) => renderTaskItem(task))}
+              {sortedTasks.map((task) => renderTaskCard(task))}
             </AnimatePresence>
-          </motion.ul>
+            {sortedTasks.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <p className="text-sm text-zinc-500">No tasks found</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     ),
-    [displayedTodoList, renderTaskItem, Toolbar]
+    [
+      Toolbar,
+      sortedTasks,
+      renderTaskCard
+    ]
   );
+
+
 
   // Loading state
   if (isLoading) {
@@ -852,62 +1106,60 @@ function Tasks() {
       className="flex-grow flex flex-col h-full"
     >
       {TitleHeader}
+
+      {/* Horizontal Filter Dock */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-2 scrollbar-none flex-shrink-0 border-b border-zinc-900/60 -mx-4 lg:-mx-6 px-4 lg:px-6">
+        {filtersList.map(({ key, label, icon }) => {
+          const isActive = currentFilterType === key;
+          const countKey = key === "todo" ? "pending" : key;
+          const count = counts[`${countKey}Count`] || 0;
+          return (
+            <button
+              key={key}
+              onClick={() => {
+                dispatch(
+                  setActiveDeletedFilter({
+                    isTodoActive: key === "todo",
+                    isAllActive: key === "all",
+                    isStarredActive: key === "starred",
+                    isCompletedActive: key === "completed",
+                    isWeekActive: key === "week",
+                    isDeletedActive: key === "deleted",
+                  })
+                );
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer border select-none focus:outline-none flex-shrink-0 ${
+                isActive
+                  ? "bg-purple-600/10 border-purple-500/30 text-purple-300 shadow-md shadow-purple-950/10"
+                  : "bg-zinc-900/40 border-zinc-800/40 text-zinc-400 hover:bg-zinc-900/80 hover:text-zinc-200"
+              }`}
+            >
+              <span className={isActive ? "text-purple-400" : "text-zinc-500"}>
+                {icon}
+              </span>
+              <span>{label}</span>
+              {count > 0 && (
+                <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold border transition-colors ${
+                  isActive 
+                    ? "bg-purple-500/20 border-purple-500/30 text-purple-300"
+                    : "bg-zinc-800/60 border-zinc-800/85 text-zinc-500"
+                }`}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       {originalListIsEmpty ? (
         EmptyTasksView
       ) : todoList.length === 0 && hasSearchQuery ? (
         EmptySearchResultsView
+      ) : todoList.length === 0 ? (
+        EmptyTasksView
       ) : (
-        <>
-          {/* Tabs Bar */}
-          <div className="flex items-center border-b border-zinc-800/60 pb-3 mb-4 flex-shrink-0 px-4 lg:px-6 -mx-4 lg:-mx-6">
-            <button
-              onClick={() => {
-                setActiveTab("todo");
-                setSelectedTaskIds(new Set());
-              }}
-              className={`flex-1 flex items-center justify-center text-sm font-semibold transition-all duration-150 cursor-pointer focus:outline-none pb-2 -mb-[13px] border-b-2 ${
-                activeTab === "todo"
-                  ? "text-purple-400 border-purple-500"
-                  : "text-zinc-400 border-transparent hover:text-zinc-200"
-              }`}
-            >
-              To-Do
-              <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-colors ${
-                activeTab === "todo"
-                  ? "bg-purple-500/10 border-purple-500/30 text-purple-300"
-                  : "bg-zinc-900/60 border-zinc-800/80 text-zinc-500"
-              }`}>
-                {todoTasksCount}
-              </span>
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab("completed");
-                setSelectedTaskIds(new Set());
-              }}
-              className={`flex-1 flex items-center justify-center text-sm font-semibold transition-all duration-150 cursor-pointer focus:outline-none pb-2 -mb-[13px] border-b-2 ${
-                activeTab === "completed"
-                  ? "text-purple-400 border-purple-500"
-                  : "text-zinc-400 border-transparent hover:text-zinc-200"
-              }`}
-            >
-              Completed
-              <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-colors ${
-                activeTab === "completed"
-                  ? "bg-purple-500/10 border-purple-500/30 text-purple-300"
-                  : "bg-zinc-900/60 border-zinc-800/80 text-zinc-500"
-              }`}>
-                {completedTasksCount}
-              </span>
-            </button>
-          </div>
-
-          {displayedTodoList.length === 0 ? (
-            EmptyTabTasksView
-          ) : (
-            TasksListView
-          )}
-        </>
+        TasksListView
       )}
       {selectedTask && (
         <TaskDetailsModal

@@ -17,6 +17,8 @@ import SignUp from "../Components/SignUpForm";
 import SignIn from "../Components/SigninForm";
 import Home from "../Pages/Home";
 import ProfilePage from "../Pages/ProfilePage";
+import PlannerPage from "../Pages/PlannerPage";
+import PricingPage from "../Pages/PricingPage";
 import ErrorPage from "../Pages/ErrorPage";
 import LandingPage from "./LandingPage/LandingPage";
 import ForgotPasswordForm from "../Components/ForgotPasswordForm";
@@ -99,6 +101,8 @@ function AuthenticationPage() {
           <Route element={<ProtectedRoute />}>
             <Route path="/home" element={<><SEO title="Dashboard | todo." description="Manage your tasks, filter by Starred, Today, or Deleted, and track your daily lists on todo.." /><Home /></>} />
             <Route path="/profile" element={<><SEO title="Settings | todo." description="Update your personal information, manage security, and configure your todo. profile." /><ProfilePage /></>} />
+            <Route path="/planner" element={<><SEO title="Planner | todo." description="Plan your week and month tasks visually on a modern calendar view." /><PlannerPage /></>} />
+            <Route path="/pricing" element={<><SEO title="Upgrade to Premium | todo." description="Unlock premium features including priority stacks, weekly/monthly planners, and custom dashboards." /><PricingPage /></>} />
           </Route>
 
           {/* Legal Pages - Nested (Public) */}

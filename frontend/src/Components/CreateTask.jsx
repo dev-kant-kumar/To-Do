@@ -61,12 +61,13 @@ function CreateTask({ onClose }) {
 
   // Get current filter type for fetching
   const getCurrentFilterType = useCallback(() => {
+    if (activeFilter?.isTodoActive) return "todo";
     if (activeFilter?.isAllActive) return "all";
     if (activeFilter?.isStarredActive) return "starred";
-    if (activeFilter?.isTodayActive) return "today";
+    if (activeFilter?.isCompletedActive) return "completed";
     if (activeFilter?.isWeekActive) return "week";
     if (activeFilter?.isDeletedActive) return "deleted";
-    return "all";
+    return "todo";
   }, [activeFilter]);
 
   // Input validation

@@ -1,17 +1,20 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Menu, SlidersHorizontal, Flame } from "lucide-react";
+import { ChevronDown, SlidersHorizontal, Flame, Calendar, Menu, LayoutDashboard, User, Sparkles, LogOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { IoSearchOutline } from "react-icons/io5";
 import { RxCross2 } from "react-icons/rx";
 import { setSearchQuery } from "../Store/Reducers/TodoFilterSlice";
 import { fetchStreakData } from "../Store/Reducers/StreakSlice";
+import { clearUserInfo } from "../Store/Reducers/UserSlice";
+import { toast } from "react-toastify";
 import AccountCenterDropDown from "./AccountCenterDropDown";
 import StreakModal from "./StreakModal";
 
-function Header(props) {
+function Header() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const searchQuery = useSelector((state) => state.TodoFilterSlice.searchQuery);
   const userInfo = useSelector((state) => state.UserSlice);
   const { currentStreak, longestStreak, activityMap } = useSelector(
@@ -20,6 +23,7 @@ function Header(props) {
 
   const [isOpen, setIsOpen] = useState(false);
   const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const dropDownRef = useRef(null);
 
   // Fetch streak data once user is authenticated
@@ -29,16 +33,20 @@ function Header(props) {
     }
   }, [userInfo?.userId, dispatch]);
 
-  const closeHandler = () => {
-    props.setShow(true);
-  };
-
   const handleSearchChange = (e) => {
     dispatch(setSearchQuery(e.target.value));
   };
 
   const handleClearSearch = () => {
     dispatch(setSearchQuery(""));
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    dispatch(clearUserInfo());
+    navigate("/login");
+    toast.info("You have been logged out");
+    setIsSidebarOpen(false);
   };
 
   useEffect(() => {
@@ -111,6 +119,17 @@ function Header(props) {
                 <span>{currentStreak} day{currentStreak !== 1 ? "s" : ""}</span>
               </button>
             )}
+            {/* Planner Link */}
+            {userInfo?.userId && (
+              <Link
+                to="/planner"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 hover:bg-purple-500/20 hover:text-white text-xs font-bold transition-all duration-200"
+                title="Open Command Planner"
+              >
+                <Calendar size={13} className="text-purple-400" />
+                <span>Planner</span>
+              </Link>
+            )}
 
             {/* Account dropdown — Desktop */}
             <div className="hidden lg:flex items-center gap-4 relative" ref={dropDownRef}>
@@ -150,16 +169,16 @@ function Header(props) {
               </AnimatePresence>
             </div>
 
-            {/* Hamburger — Mobile */}
-            <div className="flex items-center gap-3 flex-shrink-0 lg:hidden">
+            {/* Mobile Sidebar Toggle Button */}
+            {userInfo?.userId && (
               <button
-                onClick={closeHandler}
-                aria-label="Open sidebar filters"
-                className="p-2.5 rounded-xl bg-zinc-900/30 hover:bg-zinc-900/50 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200 transition-all duration-200 active:scale-95 focus:outline-none"
+                onClick={() => setIsSidebarOpen(true)}
+                className="flex lg:hidden items-center justify-center p-2 rounded-xl bg-zinc-900/20 hover:bg-zinc-900/40 border border-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-zinc-200 transition-all duration-200 cursor-pointer focus:outline-none"
+                title="Open navigation menu"
               >
-                <Menu size={20} className="stroke-[2.5]" />
+                <Menu size={16} />
               </button>
-            </div>
+            )}
           </div>
         </div>
       </header>
@@ -172,6 +191,137 @@ function Header(props) {
         longestStreak={longestStreak}
         activityMap={activityMap}
       />
+
+      {/* Mobile Navigation Sidebar */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <>
+            {/* Backdrop Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsSidebarOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
+            />
+
+            {/* Sidebar Content Panel */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="fixed inset-y-0 right-0 w-72 sm:w-80 bg-zinc-950/95 border-l border-zinc-900/80 backdrop-blur-xl z-50 shadow-2xl flex flex-col justify-between lg:hidden text-left"
+            >
+              {/* Top Section */}
+              <div className="p-5 flex flex-col gap-6">
+                {/* Header (Title and Close Button) */}
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-white text-md tracking-tight">
+                    todo<span className="text-purple-500">.</span> Navigation
+                  </span>
+                  <button
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="p-1.5 rounded-lg bg-zinc-900/30 hover:bg-zinc-900/60 border border-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+                  >
+                    <RxCross2 size={16} />
+                  </button>
+                </div>
+
+                {/* User Info Profile Card */}
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-zinc-900/20 border border-zinc-900/60">
+                  <div className="w-10 h-10 rounded-xl bg-purple-600/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-base shadow-inner">
+                    {userInfo.name
+                      ? userInfo.name.charAt(0).toUpperCase()
+                      : userInfo.username
+                        ? userInfo.username.charAt(0).toUpperCase()
+                        : "U"}
+                  </div>
+                  <div className="min-w-0 flex-grow">
+                    <h4 className="text-xs font-bold text-zinc-100 truncate">
+                      {userInfo.name || userInfo.username || "User"}
+                    </h4>
+                    <p className="text-[10px] text-zinc-500 truncate">
+                      {userInfo.email || "No email linked"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Navigation Menu Links */}
+                <div className="flex flex-col gap-1.5 mt-2">
+                  <Link
+                    to="/home"
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="flex items-center justify-between px-3.5 py-3 text-zinc-350 hover:text-white rounded-xl hover:bg-zinc-900/40 border border-transparent hover:border-zinc-900/50 transition-all text-xs font-semibold"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <LayoutDashboard size={15} className="text-zinc-500" />
+                      <span>Dashboard</span>
+                    </span>
+                  </Link>
+
+                  <Link
+                    to="/planner"
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="flex items-center justify-between px-3.5 py-3 text-zinc-350 hover:text-white rounded-xl hover:bg-zinc-900/40 border border-transparent hover:border-zinc-900/50 transition-all text-xs font-semibold"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Calendar size={15} className="text-zinc-500" />
+                      <span>Command Planner</span>
+                    </span>
+                  </Link>
+
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="flex items-center justify-between px-3.5 py-3 text-zinc-350 hover:text-white rounded-xl hover:bg-zinc-900/40 border border-transparent hover:border-zinc-900/50 transition-all text-xs font-semibold"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <User size={15} className="text-zinc-500" />
+                      <span>Profile Settings</span>
+                    </span>
+                  </Link>
+                  
+                  <div className="border-t border-zinc-900/80 my-2"></div>
+
+                  <Link
+                    to="/pricing"
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="flex items-center justify-between px-3.5 py-3 text-amber-400 hover:text-amber-300 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/10 hover:border-amber-500/20 transition-all text-xs font-extrabold"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Sparkles size={14} className="fill-amber-400 stroke-amber-400" />
+                      <span>Upgrade Premium</span>
+                    </span>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Bottom Section */}
+              <div className="p-5 border-t border-zinc-900/80 flex flex-col gap-4">
+                {/* Streak status */}
+                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                  <span className="text-[10px] font-bold text-zinc-400">Current Streak</span>
+                  <div className="flex items-center gap-1.5 text-xs font-black text-amber-400">
+                    <Flame size={14} className="text-amber-500 fill-amber-500 animate-pulse" />
+                    <span>{currentStreak} day{currentStreak !== 1 ? "s" : ""}</span>
+                  </div>
+                </div>
+
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-red-950 bg-red-950/20 text-red-400 hover:bg-red-900/20 hover:border-red-900/40 text-xs font-bold transition-all duration-200 cursor-pointer"
+                >
+                  <LogOut size={14} />
+                  <span>Log Out Session</span>
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }

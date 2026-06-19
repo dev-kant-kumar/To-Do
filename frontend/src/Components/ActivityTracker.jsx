@@ -155,7 +155,7 @@ function HeatmapTooltip({ tooltip }) {
 }
 
 // ─── Streak Highlight Card (Duolingo-inspired inline panel) ────────────────
-function StreakHighlightCard({ currentStreak, longestStreak, activityMap }) {
+export function StreakHighlightCard({ currentStreak, longestStreak, activityMap }) {
   const { prevMilestone, nextMilestone, progress } = getMilestoneContext(currentStreak);
 
   const today = useMemo(() => {

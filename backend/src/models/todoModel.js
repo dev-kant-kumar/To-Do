@@ -43,6 +43,18 @@ const TodoSchema = new Schema(
       type: Date,
       default: null,
     },
+    rankIndex: {
+      type: Number,
+      default: 0,
+    },
+    startDate: {
+      type: Date,
+      default: null,
+    },
+    endDate: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

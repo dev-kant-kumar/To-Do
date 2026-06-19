@@ -223,7 +223,7 @@ async function deleteDeletedTask(req, res) {
 async function updateTask(req, res) {
   console.log("Reached updateTask");
 
-  const { taskID, task, priority, dueDate, description, completed, starred } = req.body;
+  const { taskID, task, priority, dueDate, description, completed, starred, rankIndex, startDate, endDate } = req.body;
   const userId = req.id;
 
   if (!taskID) {
@@ -241,6 +241,9 @@ async function updateTask(req, res) {
     if (description !== undefined) updateFields.description = description;
     if (completed !== undefined) updateFields.completed = completed;
     if (starred !== undefined) updateFields.starred = starred;
+    if (rankIndex !== undefined) updateFields.rankIndex = rankIndex;
+    if (startDate !== undefined) updateFields.startDate = startDate;
+    if (endDate !== undefined) updateFields.endDate = endDate;
 
     const updatedTask = await Todo.findOneAndUpdate(
       { _id: taskID, userId: userId },
