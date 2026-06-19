@@ -101,3 +101,63 @@ body {
   opacity: 1;
 }
 
+/* Premium Glassmorphic Hover Underline Animation */
+.nav-link-hover {
+  position: relative;
+}
+.nav-link-hover::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 1.5px;
+  bottom: -2px;
+  left: 0;
+  background: linear-gradient(90deg, #a855f7, #ec4899);
+  transform-origin: bottom right;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-link-hover:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+/* Premium Spotlight Glowing Border */
+.premium-glow-border {
+  position: relative;
+}
+.premium-glow-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px; /* width of border */
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.35) 0%, rgba(236, 72, 153, 0.1) 40%, transparent 60%, rgba(168, 85, 247, 0.15) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+/* Hover glow effect */
+.premium-glow-border-hover:hover::before {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.6) 0%, rgba(236, 72, 153, 0.25) 45%, transparent 65%, rgba(168, 85, 247, 0.3) 100%);
+}
+
+/* Glassmorphism panel base */
+.glass-panel {
+  background: rgba(10, 10, 18, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(63, 63, 70, 0.3);
+}
+
+/* Pulsing backdrop glow */
+.backdrop-glow-purple {
+  filter: blur(100px);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(236, 72, 153, 0.05) 50%, transparent 100%);
+}
+
+

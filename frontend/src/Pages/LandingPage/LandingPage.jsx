@@ -57,9 +57,21 @@ function LandingPage() {
   const [bentoStarred, setBentoStarred] = useState(true);
   const [bentoFilter, setBentoFilter] = useState("active");
 
+  const [isScrolled, setIsScrolled] = useState(false);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
+
+    const handleScrollEvent = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener("scroll", handleScrollEvent);
+    return () => window.removeEventListener("scroll", handleScrollEvent);
   }, []);
 
   const handleScroll = (e, id) => {
@@ -105,7 +117,7 @@ function LandingPage() {
   });
 
   return (
-    <div className="relative min-h-screen bg-[#05050a] text-zinc-100 overflow-hidden font-sans bg-grid-pattern-glow">
+    <div className="relative min-h-screen bg-[#05050a] text-zinc-100 overflow-x-hidden font-sans bg-grid-pattern-glow">
       {/* Background Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
         <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-purple-900/20 blur-[120px] animate-pulse duration-[6000ms]" />
@@ -114,8 +126,12 @@ function LandingPage() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-4 z-50 max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="w-full h-16 px-6 flex items-center justify-between rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl shadow-xl shadow-purple-900/5">
+      <header className={`sticky z-50 max-w-6xl mx-auto px-4 sm:px-6 w-full transition-all duration-500 ease-in-out ${isScrolled ? "top-2 scale-[0.99]" : "top-4"}`}>
+        <div className={`w-full flex items-center justify-between rounded-2xl border transition-all duration-500 ease-in-out premium-glow-border ${
+          isScrolled 
+            ? "h-14 px-5 bg-zinc-950/90 backdrop-blur-xl border-purple-500/25 shadow-[0_0_30px_rgba(168,85,247,0.15)]" 
+            : "h-16 px-6 bg-zinc-950/70 backdrop-blur-xl border-zinc-800/80 shadow-xl shadow-purple-900/5"
+        }`}>
           <Link to="/" className="flex items-center gap-2.5 group">
             <span className="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-fuchsia-500 flex items-center justify-center font-extrabold text-white shadow-md shadow-purple-500/20 group-hover:scale-105 transition-all duration-200">
               ✓
@@ -125,17 +141,17 @@ function LandingPage() {
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-2">
-            <a href="#features" onClick={(e) => handleScroll(e, "features")} className="px-3 py-1.5 text-sm font-semibold text-zinc-400 hover:text-purple-400 transition-colors duration-200">Features</a>
-            <a href="#stats" onClick={(e) => handleScroll(e, "stats")} className="px-3 py-1.5 text-sm font-semibold text-zinc-400 hover:text-purple-400 transition-colors duration-200">Stats</a>
-            <a href="#preview" onClick={(e) => handleScroll(e, "preview")} className="px-3 py-1.5 text-sm font-semibold text-zinc-400 hover:text-purple-400 transition-colors duration-200">Preview</a>
+          <nav className="hidden md:flex items-center gap-7">
+            <a href="#features" onClick={(e) => handleScroll(e, "features")} className="px-1 py-1 text-sm font-semibold text-zinc-400 hover:text-white transition-colors duration-200 nav-link-hover">Features</a>
+            <a href="#stats" onClick={(e) => handleScroll(e, "stats")} className="px-1 py-1 text-sm font-semibold text-zinc-400 hover:text-white transition-colors duration-200 nav-link-hover">Stats</a>
+            <a href="#preview" onClick={(e) => handleScroll(e, "preview")} className="px-1 py-1 text-sm font-semibold text-zinc-400 hover:text-white transition-colors duration-200 nav-link-hover">Preview</a>
           </nav>
 
           <div className="flex items-center gap-4">
             {isLoggedIn ? (
               <Link
                 to="/home"
-                className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white text-xs sm:text-sm font-bold rounded-lg shadow-lg shadow-purple-500/20 transition-all hover:scale-105 duration-200"
+                className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white text-xs sm:text-sm font-extrabold rounded-xl shadow-lg shadow-purple-500/25 transition-all hover:scale-105 active:scale-95 duration-200"
               >
                 <LayoutDashboard size={14} />
                 Dashboard
@@ -144,13 +160,13 @@ function LandingPage() {
               <>
                 <Link
                   to="/login"
-                  className="px-3 py-1.5 text-sm font-semibold text-zinc-400 hover:text-white transition-colors"
+                  className="px-3 py-1.5 text-sm font-semibold text-zinc-400 hover:text-white transition-colors nav-link-hover"
                 >
                   Log In
                 </Link>
                 <Link
                   to="/sign-up"
-                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white text-xs sm:text-sm font-bold rounded-lg shadow-lg shadow-purple-500/20 transition-all hover:scale-105 duration-200"
+                  className="px-5 py-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white text-xs sm:text-sm font-extrabold rounded-xl shadow-lg shadow-purple-500/25 transition-all hover:scale-105 active:scale-95 duration-200"
                 >
                   Get Started
                 </Link>
@@ -162,13 +178,16 @@ function LandingPage() {
 
       {/* Hero Section */}
       <main className="relative z-10 max-w-7xl mx-auto px-6 pt-16 md:pt-28 pb-24">
-        <div className="text-center max-w-3xl mx-auto">
+        <div className="text-center max-w-3xl mx-auto relative">
+          {/* Neon Radial Glow behind Hero Content */}
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[350px] h-[350px] rounded-full bg-purple-600/10 blur-[120px] pointer-events-none select-none z-0" />
+
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-xs font-semibold text-purple-400 tracking-wide mb-8 shadow-[0_0_15px_rgba(168,85,247,0.05)] select-none"
+            className="relative z-10 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-xs font-semibold text-purple-400 tracking-wide mb-8 shadow-[0_0_15px_rgba(168,85,247,0.05)] select-none"
           >
             <Sparkles size={12} className="animate-spin duration-[6000ms] text-purple-400" />
             <span>Focus on what matters, stress less</span>
@@ -178,7 +197,7 @@ function LandingPage() {
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight"
+            className="relative z-10 text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight"
           >
             Master Your Day, <br className="hidden sm:inline" />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-500 animate-pulse-slow">
@@ -190,7 +209,7 @@ function LandingPage() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="text-lg text-zinc-400 mb-10 leading-relaxed"
+            className="relative z-10 text-lg text-zinc-400 mb-10 leading-relaxed"
           >
             Experience a beautifully designed, lightning-fast productivity tracker. Organize your thoughts, highlight daily priorities, track completed milestones, and stay ahead of your schedule with ease.
           </motion.p>
@@ -199,7 +218,7 @@ function LandingPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.32, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20"
+            className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4 mb-20"
           >
             {isLoggedIn ? (
               <Link
@@ -236,7 +255,7 @@ function LandingPage() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="relative max-w-4xl mx-auto rounded-2xl border border-zinc-800/80 bg-[#0d0d16]/40 shadow-[0_0_50px_rgba(168,85,247,0.1)] overflow-hidden backdrop-blur-md p-4 sm:p-6 mb-24 hover:shadow-[0_0_70px_rgba(168,85,247,0.15)] transition-shadow duration-500"
+          className="relative max-w-4xl mx-auto rounded-2xl border border-zinc-800/50 bg-[#0d0d16]/40 shadow-[0_0_50px_rgba(168,85,247,0.1)] overflow-hidden backdrop-blur-md p-4 sm:p-6 mb-24 hover:shadow-[0_0_70px_rgba(168,85,247,0.15)] transition-shadow duration-500 premium-glow-border premium-glow-border-hover"
         >
           {/* Top macbook-style dots */}
           <div className="flex items-center justify-between border-b border-zinc-900/80 pb-4 mb-6">
@@ -391,7 +410,7 @@ function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-2">
             {/* Card 1: Priority Starring (Wide - Col-span 2) */}
             <FadeInWhenVisible delay={0} className="md:col-span-2 h-full">
-            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px] h-full">
+            <div className="group relative overflow-hidden bg-zinc-950/40 backdrop-blur-xl border border-zinc-900/80 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(168,85,247,0.08)] flex flex-col justify-between min-h-[260px] h-full premium-glow-border premium-glow-border-hover">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
@@ -421,7 +440,7 @@ function LandingPage() {
 
             {/* Card 2: Smarter Workflows (Tall - 1 Column) */}
             <FadeInWhenVisible delay={0.1} className="h-full">
-            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[380px] h-full">
+            <div className="group relative overflow-hidden bg-zinc-950/40 backdrop-blur-xl border border-zinc-900/80 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(168,85,247,0.08)] flex flex-col justify-between min-h-[380px] h-full premium-glow-border premium-glow-border-hover">
               <div className="absolute inset-0 bg-gradient-to-b from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
@@ -470,7 +489,7 @@ function LandingPage() {
 
             {/* Card 3: Real-Time Progress (Square - Col-span 1) */}
             <FadeInWhenVisible delay={0.2} className="h-full">
-            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px] h-full">
+            <div className="group relative overflow-hidden bg-zinc-950/40 backdrop-blur-xl border border-zinc-900/80 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(168,85,247,0.08)] flex flex-col justify-between min-h-[260px] h-full premium-glow-border premium-glow-border-hover">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
@@ -510,7 +529,7 @@ function LandingPage() {
 
             {/* Card 4: Your Space, Your Data (Wide - Col-span 2) */}
             <FadeInWhenVisible delay={0.15} className="md:col-span-2 h-full">
-            <div className="group relative overflow-hidden bg-zinc-950/45 border border-zinc-900 hover:border-purple-500/30 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.06)] flex flex-col justify-between min-h-[260px] h-full">
+            <div className="group relative overflow-hidden bg-zinc-950/40 backdrop-blur-xl border border-zinc-900/80 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(168,85,247,0.08)] flex flex-col justify-between min-h-[260px] h-full premium-glow-border premium-glow-border-hover">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">

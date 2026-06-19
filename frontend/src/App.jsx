@@ -279,7 +279,7 @@ function App() {
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full rounded-3xl border border-zinc-900 bg-[#0e0e11]/80 backdrop-blur-xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-[0_24px_50px_-12px_rgba(0,0,0,0.7)]"
+          className="w-full rounded-3xl border border-zinc-900/60 bg-[#0e0e11]/85 backdrop-blur-xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-[0_24px_50px_-12px_rgba(0,0,0,0.75)] premium-glow-border premium-glow-border-hover"
         >
           {/* Cyber Grid Overlay */}
           <div 

@@ -24,6 +24,7 @@ function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const dropDownRef = useRef(null);
 
   // Fetch streak data once user is authenticated
@@ -61,10 +62,28 @@ function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
-      <header className="relative z-40 w-full border-b border-zinc-900 bg-zinc-950/40 backdrop-blur-md sticky top-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+      <header className={`z-40 w-full sticky top-0 transition-all duration-300 ${
+        isScrolled 
+          ? "border-b border-purple-500/25 bg-zinc-950/85 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.4)]" 
+          : "border-b border-zinc-900 bg-zinc-950/40 backdrop-blur-md"
+      }`}>
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 transition-all duration-300 ${
+          isScrolled ? "h-16" : "h-20"
+        }`}>
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group flex-shrink-0">
             <span className="w-6 h-6 rounded bg-purple-600 flex items-center justify-center font-bold text-white text-xs shadow-lg shadow-purple-500/20 group-hover:scale-105 transition-transform duration-200">
