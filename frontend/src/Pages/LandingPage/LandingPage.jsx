@@ -117,7 +117,7 @@ function LandingPage() {
   });
 
   return (
-    <div className="relative min-h-screen bg-[#05050a] text-zinc-100 font-sans bg-grid-pattern-glow">
+    <div className="relative min-h-screen bg-[#05050a] text-zinc-100 font-sans bg-grid-pattern-glow overflow-x-hidden">
       {/* Background Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
         <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-purple-900/20 blur-[120px] animate-pulse duration-[6000ms]" />
@@ -126,7 +126,7 @@ function LandingPage() {
       </div>
 
       {/* Header */}
-      <header className={`fixed left-0 right-0 z-50 max-w-6xl mx-auto px-4 sm:px-6 w-full transition-all duration-500 ease-in-out ${isScrolled ? "top-2 scale-[0.99]" : "top-4"}`}>
+      <header className={`fixed left-1/2 -translate-x-1/2 z-50 max-w-6xl w-full px-4 sm:px-6 transition-all duration-500 ease-in-out ${isScrolled ? "top-2 scale-[0.99]" : "top-4"}`}>
         <div className={`w-full flex items-center justify-between rounded-2xl border transition-all duration-500 ease-in-out premium-glow-border ${
           isScrolled 
             ? "h-14 px-5 bg-zinc-950/90 backdrop-blur-xl border-purple-500/25 shadow-[0_0_30px_rgba(168,85,247,0.15)]" 
@@ -619,7 +619,7 @@ function LandingPage() {
               ].map((faq, idx) => (
                 <div 
                   key={idx}
-                  className="bg-zinc-950/45 border border-zinc-900 rounded-2xl overflow-hidden transition-all duration-300"
+                  className="bg-zinc-950/45 border border-zinc-900 rounded-2xl overflow-hidden"
                 >
                   <button
                     onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
@@ -635,10 +635,10 @@ function LandingPage() {
                   </button>
                   <div 
                     className={`transition-all duration-300 ease-in-out ${
-                      activeFaq === idx ? "max-h-[200px] border-t border-zinc-900 bg-zinc-900/10" : "max-h-0 pointer-events-none"
+                      activeFaq === idx ? "max-h-[300px] bg-zinc-900/10" : "max-h-0 pointer-events-none"
                     } overflow-hidden`}
                   >
-                    <p className="p-5 text-xs sm:text-sm text-zinc-400 leading-relaxed text-left">
+                    <p className="p-5 text-xs sm:text-sm text-zinc-400 leading-relaxed text-left border-t border-zinc-900">
                       {faq.a}
                     </p>
                   </div>
