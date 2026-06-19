@@ -5,6 +5,7 @@ import store from "./Store";
 import Authentication from "../src/Pages/AuthenticationPage.jsx";
 import axios from "axios";
 import { getToken } from "./utils/auth";
+import { initSyncManager } from "./utils/syncManager";
 
 // Configure global Axios interceptor to automatically attach X-Authorization header
 axios.interceptors.request.use(
@@ -20,8 +21,12 @@ axios.interceptors.request.use(
   }
 );
 
+// Initialize offline capability sync manager
+initSyncManager();
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <Provider store={store}>
     <Authentication />
   </Provider>
 );
+

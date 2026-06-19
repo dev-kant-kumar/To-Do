@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, SlidersHorizontal, Flame, Calendar, Menu, LayoutDashboard, User, Sparkles, LogOut } from "lucide-react";
+import { ChevronDown, SlidersHorizontal, Flame, Calendar, Menu, LayoutDashboard, User, Sparkles, LogOut, Wifi, WifiOff, RefreshCw } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import { clearAuth } from "../utils/auth";
 import AccountCenterDropDown from "./AccountCenterDropDown";
 import StreakModal from "./StreakModal";
+import { getOnlineStatus, isSyncingInProgress, syncOfflineQueue, dbGet, addConnectionListener, removeConnectionListener, addSyncListener, removeSyncListener } from "../utils/syncManager";
 
 function Header() {
   const dispatch = useDispatch();
@@ -29,10 +30,56 @@ function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const dropDownRef = useRef(null);
 
+  const [online, setOnline] = useState(getOnlineStatus());
+  const [syncing, setSyncing] = useState(isSyncingInProgress());
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // Connection & Sync Listeners
+  useEffect(() => {
+    const handleConnection = (status) => setOnline(status);
+    const handleSync = (status) => setSyncing(status);
+
+    addConnectionListener(handleConnection);
+    addSyncListener(handleSync);
+
+    const updatePendingCount = async () => {
+      const queue = await dbGet("queue") || [];
+      setPendingCount(queue.length);
+    };
+
+    updatePendingCount();
+    const interval = setInterval(updatePendingCount, 2500);
+
+    const handleSyncCompleted = () => {
+      updatePendingCount();
+    };
+    window.addEventListener("todo-offline-synced", handleSyncCompleted);
+    window.addEventListener("todo-connection-changed", handleSyncCompleted);
+
+    return () => {
+      removeConnectionListener(handleConnection);
+      removeSyncListener(handleSync);
+      clearInterval(interval);
+      window.removeEventListener("todo-offline-synced", handleSyncCompleted);
+      window.removeEventListener("todo-connection-changed", handleSyncCompleted);
+    };
+  }, []);
+
+  const handleManualSync = async () => {
+    if (syncing) return;
+    if (!navigator.onLine) {
+      toast.error("Cannot synchronize. You are currently offline.");
+      return;
+    }
+    toast.info("Starting synchronization...");
+    await syncOfflineQueue();
+  };
+
   // Fetch streak data once user is authenticated
   useEffect(() => {
     if (userInfo?.userId) {
       dispatch(fetchStreakData());
+      syncOfflineQueue(); // Sync any offline updates when logged in/loaded
     }
   }, [userInfo?.userId, dispatch]);
 
@@ -151,6 +198,40 @@ function Header() {
                 <Calendar size={13} className="text-purple-400" />
                 <span className="hidden sm:inline">Planner</span>
               </Link>
+            )}
+
+            {/* Sync status */}
+            {userInfo?.userId && (
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {!online ? (
+                  <div
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] sm:text-xs font-semibold select-none shadow-sm"
+                    title="Offline Mode. Updates are queued locally."
+                  >
+                    <WifiOff size={11} className="text-red-500 animate-pulse" />
+                    <span className="hidden xs:inline">Offline Mode</span>
+                    <span className="xs:hidden">Offline</span>
+                  </div>
+                ) : pendingCount > 0 ? (
+                  <button
+                    onClick={handleManualSync}
+                    disabled={syncing}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] sm:text-xs font-bold shadow-sm hover:bg-amber-500/20 hover:border-amber-500/50 transition-all duration-200 cursor-pointer focus:outline-none ${syncing ? "cursor-wait" : ""}`}
+                    title="Sync pending changes with the server"
+                  >
+                    <RefreshCw size={11} className={`text-amber-500 ${syncing ? "animate-spin" : ""}`} />
+                    <span>Sync ({pendingCount})</span>
+                  </button>
+                ) : (
+                  <div
+                    className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] sm:text-xs font-medium select-none shadow-sm"
+                    title="Connected to server. All tasks synced."
+                  >
+                    <Wifi size={11} className="text-emerald-500" />
+                    <span className="hidden md:inline">Online</span>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Notification Bell — visible on all screen sizes */}

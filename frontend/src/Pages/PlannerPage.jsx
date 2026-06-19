@@ -66,6 +66,15 @@ export default function PlannerPage() {
     fetchAllTasks();
   }, [fetchAllTasks]);
 
+  // Listen for connection recovery synchronization events
+  useEffect(() => {
+    const handleSync = () => {
+      fetchAllTasks();
+    };
+    window.addEventListener("todo-offline-synced", handleSync);
+    return () => window.removeEventListener("todo-offline-synced", handleSync);
+  }, [fetchAllTasks]);
+
   // Backlog tasks: tasks that have no startDate/endDate or dueDate scheduled
   const backlogTasks = useMemo(() => {
     return tasks.filter((t) => !t.deleted && !t.completed && !t.startDate && !t.dueDate);

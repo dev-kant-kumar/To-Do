@@ -42,6 +42,7 @@ function AuthenticationPage() {
   const dispatch = useDispatch();
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { preloader } = useSelector((state) => state.Loader);
+  const userInfo = useSelector((state) => state.UserSlice);
 
   // Fetch user info from token
   useEffect(() => {
@@ -86,7 +87,13 @@ function AuthenticationPage() {
       <BrowserRouter>
         <Routes>
           {/* Public Landing Page */}
-          <Route path="/" element={<><SEO title="todo. | Simple, Clean Task Management" description="Organize your day, track your projects, and boost your daily productivity with todo. — a minimalist, high-fidelity task manager." /><LandingPage /></>} />
+          <Route path="/" element={
+            userInfo?.userId ? (
+              <Navigate to="/home" replace />
+            ) : (
+              <><SEO title="todo. | Simple, Clean Task Management" description="Organize your day, track your projects, and boost your daily productivity with todo. — a minimalist, high-fidelity task manager." /><LandingPage /></>
+            )
+          } />
 
           {/* Auth (Guest Only) */}
           <Route element={<GuestRoute />}>

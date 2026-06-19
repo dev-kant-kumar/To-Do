@@ -237,6 +237,17 @@ function Tasks() {
     }
   }, [currentFilterType, userInfo.userId, fetchTodo]);
 
+  // Listen for connection recovery synchronization events
+  useEffect(() => {
+    const handleSync = () => {
+      if (userInfo.userId) {
+        fetchTodo(userInfo.userId);
+      }
+    };
+    window.addEventListener("todo-offline-synced", handleSync);
+    return () => window.removeEventListener("todo-offline-synced", handleSync);
+  }, [userInfo.userId, fetchTodo]);
+
   // Event handlers
   const taskHandler = useCallback(() => {
     setSelectedTask(null);

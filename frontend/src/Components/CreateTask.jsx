@@ -184,6 +184,22 @@ function CreateTask({ onClose, initialDate }) {
     [apiUrl, userInfo?.userId, fetchTodos, priority, dueDate, description]
   );
 
+  // Handle close with proper cleanup
+  const handleClose = useCallback(() => {
+    setInputValue("");
+    setPriority("low");
+    setDueDate("");
+    setDescription("");
+    setError("");
+    setIsLoading(false);
+
+    if (onClose) {
+      onClose();
+    } else if (refElement.current) {
+      refElement.current.style.display = "none";
+    }
+  }, [onClose]);
+
   // Handle form submission
   const createTaskBtn = useCallback(
     async (e) => {
@@ -205,7 +221,7 @@ function CreateTask({ onClose, initialDate }) {
         handleClose();
       }
     },
-    [inputValue, validateInput, sendCreatedTask]
+    [inputValue, validateInput, sendCreatedTask, handleClose]
   );
 
   // Handle cancel button
@@ -217,22 +233,6 @@ function CreateTask({ onClose, initialDate }) {
       handleClose();
     }
   }, [inputValue, description, dueDate, priority, handleClose]);
-
-  // Handle close with proper cleanup
-  const handleClose = useCallback(() => {
-    setInputValue("");
-    setPriority("low");
-    setDueDate("");
-    setDescription("");
-    setError("");
-    setIsLoading(false);
-
-    if (onClose) {
-      onClose();
-    } else if (refElement.current) {
-      refElement.current.style.display = "none";
-    }
-  }, [onClose]);
 
   // Handle form submission via Enter key
   const handleKeyPress = useCallback(

@@ -13,6 +13,8 @@
   - [x] Add animations, grid backgrounds, and theme configurations in `index.css`
 - [x] Add Header enhancements
   - [x] Add the glowing "Cloud Sync" status indicator inside `Header.jsx`
+- [x] Update Bento Grid features in LandingPage.jsx with actual application capabilities (Command Planner, Gamified Streaks, Backlog Drag-to-Plan)
+- [x] Configure automatic redirection from root path (/) to dashboard (/home) for logged-in users to fix PWA standalone launch behavior
 - [x] Redesign Landing Page
   - [x] Remove duplicate `✨` emoji from Hero Badge in `LandingPage.jsx`
   - [x] Replace static preview mockup with a live, interactive React state-driven mock dashboard (complete, star, add task, filter tabs)

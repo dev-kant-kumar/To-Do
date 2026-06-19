@@ -17,7 +17,10 @@ import {
   ChevronDown,
   HelpCircle,
   Lock,
-  LogIn
+  LogIn,
+  Calendar,
+  Flame,
+  SlidersHorizontal
 } from "lucide-react";
 import { getToken } from "../../utils/auth";
 
@@ -409,32 +412,40 @@ function LandingPage() {
           </FadeInWhenVisible>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-2">
-            {/* Card 1: Priority Starring (Wide - Col-span 2) */}
+            {/* Card 1: Command Planner (Wide - Col-span 2) */}
             <FadeInWhenVisible delay={0} className="md:col-span-2 h-full">
             <div className="group relative overflow-hidden bg-zinc-950/40 backdrop-blur-xl border border-zinc-900/80 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(168,85,247,0.08)] flex flex-col justify-between min-h-[260px] h-full premium-glow-border premium-glow-border-hover">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
                   <span className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                    <Star size={20} fill={bentoStarred ? "currentColor" : "none"} className={bentoStarred ? "text-amber-400" : ""} />
+                    <Calendar size={20} className="text-amber-400" />
                   </span>
                 </div>
-                <h3 className="font-bold text-white text-lg mb-2 text-left">Priority Starring</h3>
+                <h3 className="font-bold text-white text-lg mb-2 text-left">Command Planner</h3>
                 <p className="text-zinc-400 text-xs sm:text-sm text-left leading-relaxed max-w-md">
-                  Keep critical items front-and-center. Pinning a task highlights it on your dashboard, keeping your focus on what moves the needle most. Try it on the interactive row below:
+                  Plan your week and month tasks visually on a modern calendar. Columns in Week View expand smoothly on hover to showcase task titles and details at a glance.
                 </p>
               </div>
 
-              {/* Mini Interactive Starring Row Widget */}
-              <div 
-                onClick={() => setBentoStarred(!bentoStarred)}
-                className="mt-6 flex items-center justify-between px-4 py-3 bg-zinc-900/20 border border-zinc-900 rounded-xl cursor-pointer hover:border-zinc-800 transition-colors max-w-md select-none"
-              >
-                <div className="flex items-center gap-3">
-                  <Star size={16} fill={bentoStarred ? "currentColor" : "none"} className={bentoStarred ? "text-amber-400 animate-star-pulse" : "text-zinc-400"} />
-                  <span className="text-xs font-semibold text-zinc-300">Complete architectural audit checklist</span>
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20">High</span>
+              {/* Mini Interactive Column Accordion Row Widget */}
+              <div className="mt-6 flex gap-2 select-none">
+                {["Mon", "Tue", "Wed", "Thu (Today)", "Fri"].map((day) => {
+                  const isToday = day.includes("Today");
+                  return (
+                    <div 
+                      key={day}
+                      className={`flex-grow p-2.5 rounded-xl border text-center transition-all duration-300 flex flex-col gap-1 cursor-pointer min-w-[50px] hover:flex-[1.8] ${
+                        isToday 
+                          ? "border-amber-500/40 bg-amber-500/5 text-amber-400 font-extrabold" 
+                          : "border-zinc-800/80 bg-zinc-900/10 text-zinc-400"
+                      }`}
+                    >
+                      <span className="text-[9px] uppercase tracking-wider">{day}</span>
+                      <span className="text-[10px] text-zinc-100 font-semibold">{isToday ? "2 tasks" : "Empty"}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
             </FadeInWhenVisible>
@@ -488,70 +499,59 @@ function LandingPage() {
             </div>
             </FadeInWhenVisible>
 
-            {/* Card 3: Real-Time Progress (Square - Col-span 1) */}
+            {/* Card 3: Gamified Streaks (Square - Col-span 1) */}
             <FadeInWhenVisible delay={0.2} className="h-full">
             <div className="group relative overflow-hidden bg-zinc-950/40 backdrop-blur-xl border border-zinc-900/80 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(168,85,247,0.08)] flex flex-col justify-between min-h-[260px] h-full premium-glow-border premium-glow-border-hover">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
                   <span className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                    <CheckCircle2 size={20} />
+                    <Flame size={20} className="text-amber-500 animate-pulse" />
                   </span>
                 </div>
-                <h3 className="font-bold text-white text-lg mb-2 text-left">Real-Time Progress</h3>
+                <h3 className="font-bold text-white text-lg mb-2 text-left">Gamified Streaks</h3>
                 <p className="text-zinc-400 text-xs sm:text-sm text-left leading-relaxed">
-                  Celebrate small wins. Keep tabs on your completion rates and watch your productivity ratio update as you check off items.
+                  Stay motivated. Track your consecutive active days, unlock achievement sparks, and maintain your momentum with streak stats and milestone badges.
                 </p>
               </div>
 
-              {/* Dynamic Progress Indicator Ring */}
-              <div className="mt-4 flex items-center gap-4 bg-zinc-900/10 border border-zinc-900 rounded-xl p-3 select-none">
-                {/* SVG Progress Circle */}
-                <div className="relative w-10 h-10 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-10 h-10 transform -rotate-90">
-                    <circle cx="20" cy="20" r="16" stroke="currentColor" className="text-zinc-800" strokeWidth="3.5" fill="transparent" />
-                    <circle cx="20" cy="20" r="16" stroke="currentColor" className="text-purple-500 transition-all duration-500" strokeWidth="3.5" fill="transparent"
-                      strokeDasharray={`${2 * Math.PI * 16}`}
-                      strokeDashoffset={`${2 * Math.PI * 16 * (1 - (mockTasks.filter(t => t.completed).length / mockTasks.length))}`} />
-                  </svg>
-                  <span className="absolute text-[9px] font-bold text-purple-400">
-                    {Math.round((mockTasks.filter(t => t.completed).length / mockTasks.length) * 100)}%
-                  </span>
+              {/* Dynamic Streak Badge visual widget */}
+              <div className="mt-4 flex items-center justify-between bg-zinc-900/20 border border-zinc-900 rounded-xl p-3 select-none">
+                <div className="flex items-center gap-2">
+                  <Flame size={15} className="text-amber-500 fill-amber-500" />
+                  <span className="text-xs font-bold text-zinc-300">5 Day Streak!</span>
                 </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-[10px] font-extrabold text-zinc-300 uppercase tracking-widest">Progress</span>
-                  <span className="text-[10px] text-zinc-500 font-medium">
-                    {mockTasks.filter(t => t.completed).length} of {mockTasks.length} tasks completed
-                  </span>
-                </div>
+                <span className="text-[9px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded">
+                  Active
+                </span>
               </div>
             </div>
             </FadeInWhenVisible>
 
-            {/* Card 4: Your Space, Your Data (Wide - Col-span 2) */}
+            {/* Card 4: Drag & Drop Scheduling (Wide - Col-span 2) */}
             <FadeInWhenVisible delay={0.15} className="md:col-span-2 h-full">
             <div className="group relative overflow-hidden bg-zinc-950/40 backdrop-blur-xl border border-zinc-900/80 p-8 rounded-3xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(168,85,247,0.08)] flex flex-col justify-between min-h-[260px] h-full premium-glow-border premium-glow-border-hover">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div>
                 <div className="text-purple-400 mb-6 group-hover:scale-105 transition-transform flex items-center justify-start">
                   <span className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                    <ShieldCheck size={20} />
+                    <SlidersHorizontal size={20} />
                   </span>
                 </div>
-                <h3 className="font-bold text-white text-lg mb-2 text-left">Your Space, Your Data</h3>
+                <h3 className="font-bold text-white text-lg mb-2 text-left">Backlog Drawer & Drag-to-Plan</h3>
                 <p className="text-zinc-400 text-xs sm:text-sm text-left leading-relaxed max-w-md">
-                  We take privacy seriously. Your workspace, tasks, and data are entirely yours. No tracking pixels, no advertisement profiling, and complete data export rights.
+                  Keep unplanned tasks in your backlog drawer and schedule them instantly by dragging them onto the calendar columns, complete with smart protection from past planning.
                 </p>
               </div>
 
-              {/* Secure Lock visual mock row */}
+              {/* Secure Drag visual mock row */}
               <div className="mt-6 flex items-center justify-between px-4 py-3 bg-zinc-900/20 border border-zinc-900 rounded-xl max-w-md select-none">
                 <div className="flex items-center gap-3">
-                  <ShieldCheck size={14} className="text-emerald-400" />
-                  <span className="text-xs text-emerald-400 font-bold tracking-wide">Data Encrypted & Private</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                  <span className="text-xs text-zinc-300 font-semibold truncate max-w-[200px]">Implement OAuth flows</span>
                 </div>
-                <div className="text-[10px] text-zinc-500 font-semibold">
-                  Zero Third-Party Tracking
+                <div className="text-[10px] text-purple-400 font-extrabold uppercase bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 animate-pulse">
+                  Drag to Calendar
                 </div>
               </div>
             </div>
