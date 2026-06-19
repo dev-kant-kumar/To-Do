@@ -694,19 +694,18 @@ function LandingPage() {
             </ul>
           </div>
 
-          {/* Column 4: System Status */}
+          {/* Column 4: Support */}
           <div className="flex flex-col gap-3">
-            <h4 className="font-bold text-white text-xs tracking-wider uppercase">Status</h4>
-            <div className="inline-flex items-center gap-2 self-start px-3 py-1.5 rounded-lg bg-emerald-950/30 border border-emerald-900/60 text-emerald-400 text-xs font-semibold">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              All Systems Operational
-            </div>
-            <p className="text-zinc-600 text-xs mt-1 leading-relaxed">
-              We sync and update your tasks securely. Backed by automated server checks.
+            <h4 className="font-bold text-white text-xs tracking-wider uppercase">Support</h4>
+            <p className="text-zinc-500 text-xs sm:text-sm leading-relaxed">
+              Have questions or need assistance? Reach out to our support team directly.
             </p>
+            <a 
+              href="mailto:todo@devkantkumar.com" 
+              className="text-purple-400 hover:text-purple-300 font-semibold text-xs sm:text-sm transition-colors duration-200 mt-1 self-start"
+            >
+              todo@devkantkumar.com
+            </a>
           </div>
         </div>
 
