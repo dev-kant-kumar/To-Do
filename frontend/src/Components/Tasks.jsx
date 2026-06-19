@@ -2,13 +2,14 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CreateTask from "./CreateTask";
 import TaskDetailsModal from "./TaskDetailsModal";
+import ConfirmationModal from "./Common/ConfirmationModal";
 import ImgForAddTasks from "../assets/add-tasks.png";
 import ImgForStarredTasks from "../assets/starredTasks.png";
 import ImgForTodaysCreatedTasks from "../assets/todayCreatedTasks.png";
 import ImgForDelTasks from "../assets/deleteTasks.png";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import { setTodo, setTodoLength, setSearchQuery } from "../Store/Reducers/TodoFilterSlice";
+import { setTodo, setTodoLength, setSearchQuery, setFocusTask, setShowCreateTask } from "../Store/Reducers/TodoFilterSlice";
 import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
 import { toast } from "react-toastify";
 import { 
@@ -87,14 +88,27 @@ function Tasks() {
     { key: "deleted", label: "Deleted", icon: <Trash2 size={14} /> },
   ], []);
 
-  // Local state
-  const [showCreateTask, setShowCreateTask] = useState(false);
+  // Redux state for task creation dialog
+  const showCreateTask = useSelector((state) => state.TodoFilterSlice.showCreateTask);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTaskIds, setSelectedTaskIds] = useState(new Set());
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [counts, setCounts] = useState({});
   const [draggedTaskId, setDraggedTaskId] = useState(null);
   const [dragOverTaskId, setDragOverTaskId] = useState(null);
+
+  // Auto-open modal when notification bell triggers a task focus
+  const focusTaskId = useSelector((state) => state.TodoFilterSlice.focusTaskId);
+  useEffect(() => {
+    if (!focusTaskId || !todoData.todo?.length) return;
+    const target = todoData.todo.find((t) => t._id === focusTaskId);
+    if (target) {
+      setSelectedTask(target);
+      dispatch(setShowCreateTask(false));
+      dispatch(setFocusTask(null)); // clear so it can be triggered again
+    }
+  }, [focusTaskId, todoData.todo, dispatch]);
 
   // Fetch counts when userId changes or todo list updates
   useEffect(() => {
@@ -226,8 +240,8 @@ function Tasks() {
   // Event handlers
   const taskHandler = useCallback(() => {
     setSelectedTask(null);
-    setShowCreateTask((prev) => !prev);
-  }, []);
+    dispatch(setShowCreateTask(!showCreateTask));
+  }, [dispatch, showCreateTask]);
 
   const toggleTaskComplete = useCallback(
     async (taskID, status) => {
@@ -314,10 +328,13 @@ function Tasks() {
   }, [apiUrl, userInfo.userId, fetchTodo]);
 
   // Bulk action handlers
-  const handleBulkDelete = useCallback(async () => {
+  const handleBulkDelete = useCallback(() => {
     if (selectedTaskIds.size === 0 || !userInfo.userId) return;
-    if (!window.confirm(`Are you sure you want to delete ${selectedTaskIds.size} selected tasks?`)) return;
+    setIsDeleteModalOpen(true);
+  }, [userInfo.userId, selectedTaskIds]);
 
+  const handleConfirmBulkDelete = useCallback(async () => {
+    setIsDeleteModalOpen(false);
     setIsLoading(true);
     try {
       await Promise.all(
@@ -330,13 +347,14 @@ function Tasks() {
       );
       setSelectedTaskIds(new Set());
       await fetchTodo(userInfo.userId);
+      toast.success("Tasks deleted successfully!");
     } catch (error) {
       console.error("Error deleting tasks:", error);
       toast.error("Failed to delete selected tasks");
     } finally {
       setIsLoading(false);
     }
-  }, [selectedTaskIds, userInfo.userId, fetchTodo, apiUrl]);
+  }, [apiUrl, userInfo.userId, fetchTodo, selectedTaskIds]);
 
   const handleBulkComplete = useCallback(async (complete = true) => {
     if (selectedTaskIds.size === 0 || !userInfo.userId) return;
@@ -829,6 +847,18 @@ function Tasks() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.18 } }}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        className="flex items-stretch gap-1 sm:gap-1.5 group/row -mx-4 sm:mx-0"
+      >
+        {/* ── Drag handle — lives OUTSIDE the card ── */}
+        <div
+          className="flex items-center justify-center w-6 pl-1 flex-shrink-0 text-zinc-500 hover:text-zinc-400 cursor-grab active:cursor-grabbing rounded-lg transition-colors select-none flex"
+          title="Drag to reorder"
+        >
+          <GripVertical size={14} className="stroke-[2.5]" />
+        </div>
+
+        {/* ── Task card ── */}
+        <div
         draggable={true}
         onDragStart={(e) => handleDragStart(e, task)}
         onDragOver={(e) => handleDragOver(e, task)}
@@ -836,9 +866,9 @@ function Tasks() {
         onDrop={(e) => handleDrop(e, task)}
         onClick={() => {
           setSelectedTask(task);
-          setShowCreateTask(false);
+          dispatch(setShowCreateTask(false));
         }}
-        className={`group relative flex flex-col gap-3.5 p-4 rounded-2xl border transition-all duration-200 text-left cursor-pointer ${
+        className={`group relative flex flex-col gap-3.5 p-4 sm:rounded-2xl rounded-none border-b border-t-0 border-l-0 border-r-0 sm:border-t sm:border-l sm:border-r sm:border-b border-zinc-800/40 sm:border-zinc-900 transition-all duration-200 text-left cursor-pointer flex-1 min-w-0 ${
           isDragged
             ? "opacity-40 scale-[0.98] border-dashed border-purple-500/40 bg-zinc-950/20"
             : isDragOver
@@ -846,20 +876,13 @@ function Tasks() {
               ? "border-t-2 border-t-purple-500/80 bg-purple-950/5 scale-[1.01] shadow-[0_0_15px_rgba(168,85,247,0.1)] border-b-zinc-900 border-l-zinc-900 border-r-zinc-900"
               : "border-b-2 border-b-purple-500/80 bg-purple-950/5 scale-[1.01] shadow-[0_0_15px_rgba(168,85,247,0.1)] border-t-zinc-900 border-l-zinc-900 border-r-zinc-900"
             : isSelected 
-            ? "bg-purple-950/10 border-purple-500/30 shadow-[0_0_12px_rgba(168,85,247,0.04)]" 
-            : "bg-zinc-900/35 border-zinc-900 hover:border-zinc-800/80 hover:bg-zinc-900/50 hover:-translate-y-0.5 shadow-lg shadow-zinc-950/30"
+            ? "bg-purple-950/10 border-purple-500/30 sm:shadow-[0_0_12px_rgba(168,85,247,0.04)] shadow-none" 
+            : "bg-transparent sm:bg-zinc-900/35 sm:hover:border-zinc-800/80 sm:hover:bg-zinc-900/50 sm:hover:-translate-y-0.5 sm:shadow-lg shadow-none"
         }`}
       >
         {/* Card Header: Checkbox, Title, Star */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2.5 min-w-0">
-            {/* Grab Handle */}
-            <div 
-              className="text-zinc-600 hover:text-zinc-400 cursor-grab active:cursor-grabbing p-0.5 -ml-1 mr-0.5 rounded transition-colors hidden sm:block flex-shrink-0 mt-0.5"
-              title="Drag to reorder"
-            >
-              <GripVertical size={14} className="stroke-[2.5]" />
-            </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -913,8 +936,8 @@ function Tasks() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Move Up/Down Buttons */}
-            <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wider select-none">
+            {/* Move Up/Down Buttons — hidden on mobile as they can drag & drop */}
+            <div className="hidden sm:flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wider select-none">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -956,6 +979,7 @@ function Tasks() {
               <Check size={12} className="stroke-[3]" />
             </button>
           </div>
+        </div>
         </div>
       </motion.div>
     );
@@ -1063,7 +1087,7 @@ function Tasks() {
       <div className="flex-grow flex flex-col overflow-hidden text-left -mx-4 lg:-mx-6">
         {Toolbar}
         <div className="flex-grow overflow-y-auto pr-1 scrollbar-none px-4 lg:px-6">
-          <div className="flex flex-col gap-3.5 pb-6 mt-3 max-w-3xl mx-auto w-full">
+          <div className="flex flex-col gap-3.5 pb-6 mt-3 w-full">
             <AnimatePresence mode="popLayout">
               {sortedTasks.map((task) => renderTaskCard(task))}
             </AnimatePresence>
@@ -1105,10 +1129,13 @@ function Tasks() {
       transition={{ duration: 0.35 }}
       className="flex-grow flex flex-col h-full"
     >
-      {TitleHeader}
+      {/* TitleHeader — hidden on mobile to save vertical space */}
+      <div className="hidden sm:block">
+        {TitleHeader}
+      </div>
 
       {/* Horizontal Filter Dock */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-2 scrollbar-none flex-shrink-0 border-b border-zinc-900/60 -mx-4 lg:-mx-6 px-4 lg:px-6">
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-3 sm:pb-4 mb-1 sm:mb-2 scrollbar-none flex-shrink-0 border-b border-zinc-900/60 -mx-4 lg:-mx-6 px-4 lg:px-6">
         {filtersList.map(({ key, label, icon }) => {
           const isActive = currentFilterType === key;
           const countKey = key === "todo" ? "pending" : key;
@@ -1128,18 +1155,18 @@ function Tasks() {
                   })
                 );
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer border select-none focus:outline-none flex-shrink-0 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-200 cursor-pointer border select-none focus:outline-none flex-shrink-0 ${
                 isActive
                   ? "bg-purple-600/10 border-purple-500/30 text-purple-300 shadow-md shadow-purple-950/10"
                   : "bg-zinc-900/40 border-zinc-800/40 text-zinc-400 hover:bg-zinc-900/80 hover:text-zinc-200"
               }`}
             >
-              <span className={isActive ? "text-purple-400" : "text-zinc-500"}>
+              <span className={`transition-colors ${isActive ? "text-purple-400" : "text-zinc-500"} scale-90 sm:scale-100`}>
                 {icon}
               </span>
               <span>{label}</span>
               {count > 0 && (
-                <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold border transition-colors ${
+                <span className={`ml-0.5 px-1 sm:px-1.5 py-0.5 rounded-full text-[8px] sm:text-[9px] font-extrabold border transition-colors ${
                   isActive 
                     ? "bg-purple-500/20 border-purple-500/30 text-purple-300"
                     : "bg-zinc-800/60 border-zinc-800/85 text-zinc-500"
@@ -1161,6 +1188,7 @@ function Tasks() {
       ) : (
         TasksListView
       )}
+      {showCreateTask && <CreateTask onClose={() => dispatch(setShowCreateTask(false))} />}
       {selectedTask && (
         <TaskDetailsModal
           key={selectedTask._id}
@@ -1169,17 +1197,16 @@ function Tasks() {
           onUpdate={() => fetchTodo(userInfo.userId)}
         />
       )}
-      {showCreateTask && <CreateTask onClose={taskHandler} />}
-      {!isDeletedFilter && (
-        <button
-          onClick={taskHandler}
-          disabled={isLoading}
-          title="Create a new task"
-          className="fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-purple-600 hover:bg-purple-500 text-white rounded-full flex items-center justify-center shadow-2xl shadow-purple-950/60 hover:shadow-purple-900/60 active:scale-95 transition-all duration-200 border border-purple-500/30 focus:outline-none z-40 cursor-pointer"
-        >
-          <Plus size={24} className="stroke-[3]" />
-        </button>
-      )}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        title="Delete Tasks"
+        message={`Are you sure you want to delete ${selectedTaskIds.size} selected task${selectedTaskIds.size === 1 ? "" : "s"}?`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirmBulkDelete}
+        onCancel={() => setIsDeleteModalOpen(false)}
+        type="danger"
+      />
     </motion.div>
   );
 }

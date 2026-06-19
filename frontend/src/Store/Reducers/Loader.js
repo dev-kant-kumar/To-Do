@@ -1,10 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { getToken } from "../../utils/auth";
 
 const Loader = createSlice({
   name: "loader",
   initialState: {
     loader: false,
-    preloader: !!localStorage.getItem("token"),
+    preloader: !!getToken(),
   },
   reducers: {
     setLoader(state, action) {

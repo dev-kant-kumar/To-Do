@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { getToken } from "../utils/auth";
 import { RxCross2 } from "react-icons/rx";
 import { Calendar, AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2 } from "lucide-react";
 
@@ -77,7 +79,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
     }
 
     setIsLoading(true);
-    const token = localStorage.getItem("token");
+    const token = getToken();
 
     try {
       const response = await axios.post(
@@ -116,7 +118,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
   const handleDelete = async () => {
     if (isLoading) return;
     setIsLoading(true);
-    const token = localStorage.getItem("token");
+    const token = getToken();
 
     try {
       const response = await axios.post(
@@ -149,7 +151,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
   };
 
   const minDateTime = getCurrentLocalDateTimeString();
-  return (
+  return createPortal(
     <AnimatePresence>
     <motion.div
       ref={modalRef}
@@ -203,7 +205,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
               className={`p-2 rounded-xl border transition-all duration-200 focus:outline-none cursor-pointer ${
                 isStarred 
                   ? "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20" 
-                  : "bg-zinc-900/40 border-zinc-800/60 hover:bg-zinc-850 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200"
+                  : "bg-zinc-900/40 border-zinc-800/60 hover:bg-zinc-800 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200"
               }`}
               title={isStarred ? "Unstar task" : "Star task"}
             >
@@ -229,7 +231,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
               disabled={isLoading}
               aria-label="Close dialog"
               type="button"
-              className="hidden lg:flex p-2 rounded-xl bg-zinc-900/40 border border-zinc-800/60 hover:bg-zinc-850 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200 transition-all duration-200 group focus:outline-none cursor-pointer"
+              className="hidden lg:flex p-2 rounded-xl bg-zinc-900/40 border border-zinc-800/60 hover:bg-zinc-800 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200 transition-all duration-200 group focus:outline-none cursor-pointer"
             >
               <RxCross2 className="w-4 h-4 opacity-70 group-hover:opacity-100" />
             </button>
@@ -285,11 +287,11 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
                 className="w-full flex-grow px-4 py-3 bg-zinc-900/50 text-zinc-200 rounded-xl border border-zinc-800 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 text-sm"
               />
               {/* Description Character Counter */}
-              <div className="absolute bottom-2 right-3 text-[10px] text-zinc-550 select-none font-semibold">
+              <div className="absolute bottom-2 right-3 text-[10px] text-zinc-400 select-none font-semibold">
                 <span className={description.length > MAX_DESCRIPTION_LENGTH * 0.9 ? "text-red-400" : ""}>
                   {description.length}
                 </span>
-                <span className="text-zinc-650">/{MAX_DESCRIPTION_LENGTH}</span>
+                <span className="text-zinc-500">/{MAX_DESCRIPTION_LENGTH}</span>
               </div>
             </div>
           </div>
@@ -389,7 +391,8 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
         }
       `}</style>
     </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

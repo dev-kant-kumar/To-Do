@@ -1,7 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 function Footer({ minimal = false }) {
+  const userInfo = useSelector((state) => state.UserSlice);
   const handleScroll = (e, id) => {
     const element = document.getElementById(id);
     if (element) {
@@ -16,7 +18,7 @@ function Footer({ minimal = false }) {
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© {new Date().getFullYear()} todo. All rights reserved.</p>
           <p className="flex items-center gap-1">
-            Made with <span className="text-purple-500/80">♥</span> for developers & creators
+            Made with <span className="text-purple-500/80">♥</span> for everyone
           </p>
         </div>
       </footer>
@@ -28,7 +30,7 @@ function Footer({ minimal = false }) {
       <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10 mb-12 text-left">
         {/* Column 1: Brand & Info */}
         <div className="flex flex-col gap-4">
-          <Link to="/" className="flex items-center gap-2 group self-start">
+          <Link to={userInfo?.userId ? "/home" : "/"} className="flex items-center gap-2 group self-start">
             <span className="w-6 h-6 rounded bg-purple-600 flex items-center justify-center font-bold text-white text-xs">
               ✓
             </span>

@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { clearUserInfo } from "../Store/Reducers/UserSlice";
+import { clearAuth } from "../utils/auth";
 
 function AccountCenterDropDown() {
   const dispatch = useDispatch();
@@ -15,7 +16,7 @@ function AccountCenterDropDown() {
   };
 
   const logoutHandler = () => {
-    localStorage.clear();
+    clearAuth();
     dispatch(clearUserInfo());
     navigate("/login");
     toast.info("You have been logged out");
@@ -50,19 +51,6 @@ function AccountCenterDropDown() {
         >
           <span>Profile Settings</span>
           <IoPerson className="text-zinc-500 hover:text-zinc-300" size={14} />
-        </button>
-
-        <div className="border-t border-zinc-900/80 my-1"></div>
-
-        {/* Premium Upgrade Link */}
-        <button
-          onClick={() => navigate("/pricing")}
-          className="w-full flex items-center justify-between px-3 py-2 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded-lg transition-all text-sm font-extrabold focus:outline-none cursor-pointer"
-        >
-          <span className="flex items-center gap-1">
-            Upgrade Premium
-            <Sparkles size={11} className="fill-amber-400" />
-          </span>
         </button>
 
         <div className="border-t border-zinc-900/80 my-1"></div>

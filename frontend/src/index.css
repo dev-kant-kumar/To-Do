@@ -34,12 +34,37 @@
     0%, 100% { border-color: rgba(147, 51, 234, 0.2); }
     50% { border-color: rgba(168, 85, 247, 0.6); }
   }
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    15%       { transform: rotate(-14deg); }
+    30%       { transform: rotate(14deg); }
+    45%       { transform: rotate(-8deg); }
+    60%       { transform: rotate(8deg); }
+    75%       { transform: rotate(-4deg); }
+    85%       { transform: rotate(4deg); }
+    92%       { transform: rotate(-2deg); }
+  }
+}
+
+/* Prevent text selection globally to avoid issues with drag and drop */
+*, *::before, *::after {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+/* Allow selection in inputs, textareas and editable elements */
+input, textarea, [contenteditable="true"], [contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
 }
 
 ::selection {
   color: white;
   background-color: #9040dd;
 }
+
 
 html, body {
   overflow-x: hidden;

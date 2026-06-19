@@ -40,6 +40,8 @@ export default function PlannerPage() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [schedulingTaskId, setSchedulingTaskId] = useState(null); // ID of task currently choosing date for
+  const [showBacklog, setShowBacklog] = useState(true);
+  const [createTaskInitialDate, setCreateTaskInitialDate] = useState(null);
 
   // Fetch all user tasks (including planned and unplanned)
   const fetchAllTasks = useCallback(async () => {
@@ -160,9 +162,19 @@ export default function PlannerPage() {
     return cells;
   }, [currentDate]);
 
+  // Helper to check if a date is in the past
+  const isPastDate = useCallback((dateStr) => {
+    const todayStr = toDateKey(new Date());
+    return dateStr < todayStr;
+  }, []);
+
   // Schedule task API update
   const handleScheduleTask = async (taskID, dateStr) => {
     if (!taskID || !userInfo.userId) return;
+    if (isPastDate(dateStr)) {
+      toast.error("Cannot schedule tasks in the past");
+      return;
+    }
     const targetDate = new Date(dateStr);
     try {
       await axios.post(`${apiUrl}todo/updateTask`, {
@@ -223,6 +235,53 @@ export default function PlannerPage() {
     }
   };
 
+  // Drag and Drop handlers for scheduling
+  const [draggedOverDate, setDraggedOverDate] = useState(null);
+
+  const handleDragStart = (e, taskId) => {
+    e.dataTransfer.setData("text/plain", taskId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e, dateStr) => {
+    if (isPastDate(dateStr)) return;
+    e.preventDefault();
+  };
+
+  const handleDragEnter = (e, dateStr) => {
+    if (isPastDate(dateStr)) return;
+    e.preventDefault();
+    setDraggedOverDate(dateStr);
+  };
+
+  const handleDragLeave = (e, dateStr) => {
+    if (draggedOverDate === dateStr) {
+      setDraggedOverDate(null);
+    }
+  };
+
+  const handleDropOnDay = async (e, dateStr) => {
+    e.preventDefault();
+    setDraggedOverDate(null);
+    if (isPastDate(dateStr)) {
+      toast.error("Cannot schedule tasks in the past");
+      return;
+    }
+    const taskId = e.dataTransfer.getData("text/plain");
+    if (!taskId) return;
+    await handleScheduleTask(taskId, dateStr);
+  };
+
+  const handleCellClick = (date) => {
+    const dateStr = toDateKey(date);
+    if (isPastDate(dateStr)) {
+      toast.warning("Cannot schedule tasks on past dates");
+      return;
+    }
+    setCreateTaskInitialDate(dateStr);
+    setShowCreateTask(true);
+  };
+
   const weekHeaderLabel = useMemo(() => {
     const start = weekDays[0];
     const end = weekDays[6];
@@ -235,7 +294,7 @@ export default function PlannerPage() {
   }, [currentDate]);
 
   return (
-    <div className="relative min-h-screen bg-[#05050a] text-zinc-150 flex flex-col overflow-x-hidden font-sans">
+    <div className="relative min-h-screen bg-[#05050a] text-zinc-200 flex flex-col overflow-x-hidden font-sans">
       {/* Background Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none select-none overflow-hidden z-0">
         <div className="absolute -top-[10%] -left-[10%] w-[55%] h-[55%] rounded-full bg-purple-900/10 blur-[130px]" />
@@ -252,7 +311,7 @@ export default function PlannerPage() {
             <CalendarIcon size={20} className="text-amber-400" />
             <div>
               <h2 className="text-base font-extrabold text-zinc-100">Task Command Planner</h2>
-              <p className="text-[10px] text-zinc-500 mt-0.5">Schedule tasks, structure columns, and coordinate priorities.</p>
+              <p className="text-[10px] text-zinc-400 mt-0.5">Schedule tasks, structure columns, and coordinate priorities.</p>
             </div>
           </div>
 
@@ -264,7 +323,7 @@ export default function PlannerPage() {
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all focus:outline-none cursor-pointer ${
                   activeView === "week"
                     ? "bg-purple-600/20 text-purple-300 border border-purple-500/30"
-                    : "text-zinc-500 hover:text-zinc-350"
+                    : "text-zinc-400 hover:text-zinc-200"
                 }`}
               >
                 Week View
@@ -274,12 +333,31 @@ export default function PlannerPage() {
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all focus:outline-none cursor-pointer ${
                   activeView === "month"
                     ? "bg-purple-600/20 text-purple-300 border border-purple-500/30"
-                    : "text-zinc-500 hover:text-zinc-350"
+                    : "text-zinc-400 hover:text-zinc-200"
                 }`}
               >
                 Month View
               </button>
             </div>
+
+            {/* Backlog Toggle */}
+            <button
+              onClick={() => setShowBacklog(!showBacklog)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all focus:outline-none cursor-pointer ${
+                showBacklog
+                  ? "bg-purple-600/20 text-purple-300 border-purple-500/30 hover:bg-purple-600/30"
+                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+              }`}
+              title={showBacklog ? "Hide Backlog Drawer" : "Show Backlog Drawer"}
+            >
+              <FolderMinus size={13} />
+              <span>Backlog</span>
+              <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                showBacklog ? "bg-purple-500/30 text-purple-200" : "bg-zinc-800 text-zinc-400"
+              }`}>
+                {backlogTasks.length}
+              </span>
+            </button>
 
             {/* Time anchors */}
             <div className="flex items-center gap-2">
@@ -300,14 +378,17 @@ export default function PlannerPage() {
         <div className="flex flex-col lg:flex-row gap-6 items-stretch w-full">
           
           {/* 1. Main Calendar Board (Left Column) */}
-          <div className="flex-grow w-full lg:w-[70%] flex flex-col">
+          <div className={`flex-grow flex flex-col transition-all duration-300 ${
+            showBacklog ? "w-full lg:w-[70%]" : "w-full lg:w-full"
+          }`}>
             
             {/* Week view board columns */}
             {activeView === "week" && (
-              <div className="grid grid-cols-1 sm:grid-cols-7 gap-3 h-full min-h-[500px]">
+              <div className="flex flex-col sm:flex-row gap-3 h-full min-h-[650px] w-full">
                 {weekDays.map((day, i) => {
                   const dateStr = toDateKey(day);
                   const isToday = dateStr === toDateKey(new Date());
+                  const isPast = dateStr < toDateKey(new Date());
                   const dayTasks = scheduledTasksMap[dateStr] || [];
                   const label = day.toLocaleDateString("en-US", { weekday: "short" });
                   const dateNum = day.getDate();
@@ -315,30 +396,40 @@ export default function PlannerPage() {
                   return (
                     <div 
                       key={i} 
-                      className={`flex flex-col bg-zinc-900/10 border rounded-2xl p-3 shadow-sm min-h-[140px] sm:min-h-0 ${
-                        isToday ? "border-amber-500/25 bg-amber-500/5" : "border-zinc-850/60"
+                      onDragOver={(e) => handleDragOver(e, dateStr)}
+                      onDragEnter={(e) => handleDragEnter(e, dateStr)}
+                      onDragLeave={(e) => handleDragLeave(e, dateStr)}
+                      onDrop={(e) => handleDropOnDay(e, dateStr)}
+                      className={`flex flex-col border rounded-2xl p-3 shadow-sm min-h-[140px] sm:min-h-0 transition-all duration-350 ease-out sm:flex-1 sm:w-0 sm:min-w-[100px] sm:hover:flex-[2.2] sm:hover:min-w-[180px] group/col ${
+                        dateStr === draggedOverDate
+                          ? "border-purple-500 bg-purple-500/10 scale-[1.02] shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                          : isToday
+                          ? "border-amber-500/50 bg-amber-500/10 shadow-lg shadow-amber-500/5"
+                          : isPast
+                          ? "border-zinc-900 bg-zinc-950/20 opacity-60"
+                          : "border-zinc-800 hover:border-zinc-700/80 hover:bg-zinc-900/40 bg-zinc-900/30"
                       }`}
                     >
                       {/* Column day header */}
-                      <div className="flex items-center justify-between pb-2 border-b border-zinc-850/60 mb-2.5 flex-shrink-0">
-                        <span className={`text-[10px] font-black uppercase tracking-wider ${isToday ? "text-amber-400" : "text-zinc-500"}`}>{label}</span>
-                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black ${
-                          isToday ? "bg-amber-400 text-black shadow-lg shadow-amber-400/20" : "text-zinc-300"
+                      <div className="flex items-center justify-between pb-2 border-b border-zinc-800 mb-2.5 flex-shrink-0 transition-colors group-hover/col:border-zinc-700">
+                        <span className={`text-[10px] font-black uppercase tracking-wider transition-colors ${isToday ? "text-amber-400" : "text-zinc-300 group-hover/col:text-zinc-100"}`}>{label}</span>
+                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black transition-all ${
+                          isToday ? "bg-amber-400 text-black shadow-lg shadow-amber-400/20 group-hover/col:scale-110" : "text-zinc-200 group-hover/col:text-white group-hover/col:bg-zinc-800/50"
                         }`}>
                           {dateNum}
                         </span>
                       </div>
 
                       {/* Column planned tasks */}
-                      <div className="flex flex-col gap-2 overflow-y-auto max-h-[420px] scrollbar-none flex-grow">
+                      <div className="flex flex-col gap-2 overflow-y-auto max-h-[560px] scrollbar-none flex-grow">
                         {dayTasks.map((t) => (
                           <div 
                             key={t._id}
                             onClick={() => setSelectedTask(t)}
-                            className="p-2 rounded-xl bg-zinc-950/45 border border-zinc-850 hover:border-zinc-700 transition-all text-left cursor-pointer group flex flex-col gap-1"
+                            className="p-2 rounded-xl bg-zinc-950/45 border border-zinc-800 hover:border-zinc-700 transition-all text-left cursor-pointer group flex flex-col gap-1"
                           >
                             <div className="flex items-start justify-between gap-1.5">
-                              <span className={`text-[11px] font-semibold leading-snug break-all ${t.completed ? "line-through text-zinc-600" : "text-zinc-200"}`}>
+                              <span className={`text-[11px] font-semibold leading-snug break-all ${t.completed ? "line-through text-zinc-500" : "text-zinc-200"}`}>
                                 {t.task}
                               </span>
                               <button 
@@ -355,16 +446,25 @@ export default function PlannerPage() {
                               <div className={`w-1.5 h-1.5 rounded-full ${
                                 t.priority === "high" ? "bg-red-500" : t.priority === "medium" ? "bg-amber-500" : "bg-emerald-500"
                               }`} />
-                              <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-wider">{t.priority}</span>
+                              <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-wider">{t.priority}</span>
                             </div>
                           </div>
                         ))}
                         {dayTasks.length === 0 && (
                           <div 
-                            className="flex-grow flex flex-col items-center justify-center border border-dashed border-zinc-800/40 rounded-xl py-6 hover:bg-zinc-900/10 cursor-pointer transition-colors"
-                            onClick={() => setSchedulingTaskId(null)} // Focus/reset
+                            className={`flex-grow flex flex-col items-center justify-center border border-dashed rounded-xl py-6 transition-colors ${
+                              isPast 
+                                ? "border-zinc-900/40 cursor-not-allowed" 
+                                : "border-zinc-800 hover:bg-zinc-900/20 cursor-pointer"
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (isPast) return;
+                              setCreateTaskInitialDate(dateStr);
+                              setShowCreateTask(true);
+                            }}
                           >
-                            <span className="text-[9px] text-zinc-650 font-bold">Planned Empty</span>
+                            <span className="text-[9px] text-zinc-400 font-bold">Planned Empty</span>
                           </div>
                         )}
                       </div>
@@ -376,44 +476,56 @@ export default function PlannerPage() {
 
             {/* Month view board cells */}
             {activeView === "month" && (
-              <div className="bg-zinc-950/20 border border-zinc-850/60 rounded-2xl p-4 shadow-sm flex-grow">
+              <div className="bg-zinc-950/20 border border-zinc-800 rounded-2xl p-4 shadow-sm flex-grow min-h-[650px] flex flex-col">
                 {/* Weekday titles */}
-                <div className="grid grid-cols-7 gap-2 text-center pb-2 border-b border-zinc-850/40 mb-2">
+                <div className="grid grid-cols-7 gap-2 text-center pb-2 border-b border-zinc-800 mb-2">
                   {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                    <span key={day} className="text-[10px] font-black uppercase tracking-wider text-zinc-500">{day}</span>
+                    <span key={day} className="text-[10px] font-black uppercase tracking-wider text-zinc-300">{day}</span>
                   ))}
                 </div>
                 {/* 42 grid cells */}
-                <div className="grid grid-cols-7 gap-2 h-full min-h-[440px]">
+                <div className="grid grid-cols-7 gap-2 flex-grow">
                   {monthDays.map((cell, idx) => {
                     const dateStr = toDateKey(cell.date);
                     const isToday = dateStr === toDateKey(new Date());
+                    const isPast = dateStr < toDateKey(new Date());
                     const dayTasks = scheduledTasksMap[dateStr] || [];
                     const dateNum = cell.date.getDate();
 
                     return (
                       <div 
                         key={idx}
-                        className={`flex flex-col border rounded-xl p-1.5 text-left transition-all ${
-                          cell.currentMonth ? "bg-zinc-900/5 text-zinc-200" : "bg-zinc-950/20 text-zinc-600 opacity-40"
-                        } ${
-                          isToday ? "border-amber-500/20 bg-amber-500/5" : "border-zinc-850/50"
+                        onDragOver={(e) => handleDragOver(e, dateStr)}
+                        onDragEnter={(e) => handleDragEnter(e, dateStr)}
+                        onDragLeave={(e) => handleDragLeave(e, dateStr)}
+                        onDrop={(e) => handleDropOnDay(e, dateStr)}
+                        className={`flex flex-col border rounded-xl p-1.5 text-left transition-all cursor-pointer ${
+                          dateStr === draggedOverDate
+                            ? "border-purple-500 bg-purple-500/10 scale-[1.02] shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                            : isToday && dateStr !== draggedOverDate
+                            ? "border-amber-500/50 bg-amber-500/10" 
+                            : isPast
+                            ? "bg-zinc-950/40 text-zinc-500 opacity-50 border-zinc-900 cursor-not-allowed"
+                            : cell.currentMonth 
+                            ? "bg-zinc-900/10 text-zinc-200 border-zinc-800 hover:border-zinc-700/80 hover:bg-zinc-900/20" 
+                            : "bg-zinc-950/30 text-zinc-500 opacity-60 border-zinc-800"
                         }`}
+                        onClick={() => handleCellClick(cell.date)}
                       >
                         <div className="flex justify-between items-center mb-1 flex-shrink-0">
-                          <span className={`text-[10px] font-black ${isToday ? "text-amber-400" : "text-zinc-400"}`}>{dateNum}</span>
+                          <span className={`text-[10px] font-black ${isToday ? "text-amber-400" : "text-zinc-300"}`}>{dateNum}</span>
                           {dayTasks.length > 0 && (
                             <span className="text-[8px] px-1 font-bold rounded bg-purple-500/10 border border-purple-500/20 text-purple-300">{dayTasks.length}</span>
                           )}
                         </div>
                         {/* Compact list of month tasks */}
-                        <div className="flex flex-col gap-1 overflow-y-auto max-h-[80px] scrollbar-none flex-grow">
+                        <div className="flex flex-col gap-1 overflow-y-auto max-h-[110px] scrollbar-none flex-grow">
                           {dayTasks.map((t) => (
                             <div 
                               key={t._id}
                               onClick={() => setSelectedTask(t)}
                               title={`${t.task} (${t.priority} priority)`}
-                              className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-zinc-950/40 border border-zinc-850 hover:border-zinc-700 transition-colors flex items-center justify-between gap-1 cursor-pointer truncate"
+                              className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-zinc-950/40 border border-zinc-800 hover:border-zinc-700 transition-colors flex items-center justify-between gap-1 cursor-pointer truncate"
                             >
                               <span className={`truncate flex-1 ${t.completed ? "line-through text-zinc-600" : "text-zinc-200"}`}>{t.task}</span>
                               <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
@@ -432,16 +544,17 @@ export default function PlannerPage() {
           </div>
 
           {/* 2. Unscheduled Backlog Drawer (Right Column) */}
-          <div className="w-full lg:w-80 flex-shrink-0 bg-zinc-950/40 border border-zinc-800/80 rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
+          {showBacklog && (
+            <div className="w-full lg:w-80 flex-shrink-0 bg-zinc-950/40 border border-zinc-800 rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
             
             {/* Drawer Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-850/60 flex-shrink-0 text-left">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800/50 flex-shrink-0 text-left">
               <div>
                 <h3 className="text-xs font-black text-zinc-300 uppercase tracking-widest flex items-center gap-1.5">
                   <FolderMinus size={13} className="text-purple-400" />
                   <span>Unplanned Backlog</span>
                 </h3>
-                <p className="text-[9px] text-zinc-550 mt-0.5">Tasks needing dates scheduled.</p>
+                <p className="text-[9px] text-zinc-400 mt-0.5">Tasks needing dates scheduled.</p>
               </div>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-zinc-900 border border-zinc-800 text-zinc-400">
                 {backlogTasks.length}
@@ -465,10 +578,12 @@ export default function PlannerPage() {
                 return (
                   <div
                     key={t._id}
-                    className={`relative p-3.5 rounded-2xl border transition-all duration-200 text-left cursor-pointer flex flex-col gap-2.5 ${
+                    draggable={true}
+                    onDragStart={(e) => handleDragStart(e, t._id)}
+                    className={`relative p-3.5 rounded-2xl border transition-all duration-200 text-left cursor-pointer flex flex-col gap-2.5 active:cursor-grabbing hover:scale-[1.01] ${
                       isSelectedForScheduling
-                        ? "bg-amber-500/5 border-amber-500/30 shadow-[0_0_12px_rgba(251,191,36,0.05)]"
-                        : "bg-zinc-900/20 border-zinc-850/70 hover:border-zinc-800/80"
+                        ? "bg-amber-500/10 border-amber-500/40 shadow-[0_0_12px_rgba(251,191,36,0.05)]"
+                        : "bg-zinc-900/40 border-zinc-800 hover:border-zinc-700"
                     }`}
                     onClick={() => {
                       if (!isSelectedForScheduling) setSelectedTask(t);
@@ -476,7 +591,7 @@ export default function PlannerPage() {
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2.5">
-                      <span className="font-semibold text-xs text-zinc-150 leading-tight">
+                      <span className="font-semibold text-xs text-zinc-100 leading-tight">
                         {t.task}
                       </span>
                       {/* Priority Dot */}
@@ -487,7 +602,7 @@ export default function PlannerPage() {
 
                     {/* Desc */}
                     {t.description && (
-                      <p className="text-[10px] text-zinc-400 leading-normal -mt-1">{t.description}</p>
+                      <p className="text-[10px] text-zinc-300 leading-normal -mt-1">{t.description}</p>
                     )}
 
                     {/* Action Schedule Bar */}
@@ -495,13 +610,20 @@ export default function PlannerPage() {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={(e) => handleToggleStarred(e, t._id, t.starred)}
-                          className="p-1 rounded hover:bg-zinc-800 text-zinc-650 hover:text-amber-400 transition-colors"
+                          className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-amber-400 transition-colors"
                         >
-                          <Star size={11} className={t.starred ? "text-amber-400 fill-amber-400" : ""} />
+                          {t.starred ? (
+                            <Star size={12} className="text-amber-400 fill-amber-400" />
+                          ) : (
+                            <Star size={12} />
+                          )}
                         </button>
                         <button
-                          onClick={(e) => handleToggleComplete(e, t._id, t.completed)}
-                          className="p-1 rounded hover:bg-zinc-800 text-zinc-650 hover:text-purple-400 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTask(t);
+                          }}
+                          className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-purple-400 transition-colors"
                         >
                           <CheckCircle2 size={11} />
                         </button>
@@ -513,12 +635,13 @@ export default function PlannerPage() {
                           <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                             <input
                               type="date"
+                              min={toDateKey(new Date())}
                               onChange={(e) => handleScheduleTask(t._id, e.target.value)}
                               className="text-[10px] bg-zinc-950 border border-zinc-800 rounded p-1 text-zinc-300 font-bold focus:outline-none focus:border-amber-500/40"
                             />
                             <button
                               onClick={() => setSchedulingTaskId(null)}
-                              className="text-[10px] text-zinc-500 hover:text-zinc-350 px-1 font-bold"
+                              className="text-[10px] text-zinc-400 hover:text-zinc-200 px-1 font-bold"
                             >
                               &times;
                             </button>
@@ -544,13 +667,13 @@ export default function PlannerPage() {
               })}
               {backlogTasks.length === 0 && (
                 <div className="flex-grow flex flex-col items-center justify-center py-16 text-center">
-                  <span className="text-zinc-600 font-bold text-xs">Backlog Empty</span>
-                  <p className="text-[10px] text-zinc-700 mt-1 max-w-[160px]">All pending tasks scheduled on the calendar.</p>
+                  <span className="text-zinc-200 font-bold text-xs">Backlog Empty</span>
+                  <p className="text-[10px] text-zinc-400 mt-1 max-w-[160px]">All pending tasks scheduled on the calendar.</p>
                 </div>
               )}
             </div>
-            
           </div>
+          )}
           
         </div>
       </main>
@@ -566,8 +689,10 @@ export default function PlannerPage() {
       )}
       {showCreateTask && (
         <CreateTask 
+          initialDate={createTaskInitialDate}
           onClose={() => {
             setShowCreateTask(false);
+            setCreateTaskInitialDate(null);
             fetchAllTasks();
           }} 
         />

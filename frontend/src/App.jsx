@@ -5,8 +5,10 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import Header from "./Components/Header";
 import Tasks from "./Components/Tasks";
+import MobileNav from "./Components/MobileNav";
 import { fetchStreakData } from "./Store/Reducers/StreakSlice";
 import { StreakHighlightCard } from "./Components/ActivityTracker";
+import { registerSW } from "./utils/serviceWorker";
 
 function App() {
   const dispatch = useDispatch();
@@ -53,6 +55,13 @@ function App() {
       fetchTodayStats();
     }
   }, [userInfo?.userId, dispatch, fetchTodayStats, todoData.todo]);
+
+  // Register Service Worker once so background notifications work
+  // even when the todo. tab is closed (browser must still be running).
+  useEffect(() => {
+    registerSW();
+  }, []);
+
 
   const renderMorningIllustration = () => (
     <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" className="relative z-10">
@@ -272,115 +281,110 @@ function App() {
       <Header />
 
       {/* Main Container */}
-      <main className="relative z-10 flex-grow max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 flex flex-col gap-6">
+      <main className="relative z-10 flex-grow max-w-7xl w-full mx-auto px-0 sm:px-4 lg:px-8 py-4 lg:py-6 flex flex-col gap-4 lg:gap-6 pb-24 lg:pb-6">
         
-        {/* Dynamic Greeting Control Panel */}
+        {/* ── Greeting — hidden on mobile, full card on sm+ ──── */}
         <motion.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full rounded-3xl border border-zinc-900/60 bg-[#0e0e11]/85 backdrop-blur-xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-[0_24px_50px_-12px_rgba(0,0,0,0.75)] premium-glow-border premium-glow-border-hover"
+          className="hidden sm:block"
         >
-          {/* Cyber Grid Overlay */}
-          <div 
-            className="absolute inset-0 opacity-[0.03] pointer-events-none"
-            style={{
-              backgroundImage: "linear-gradient(to right, #8b5cf6 1px, transparent 1px), linear-gradient(to bottom, #8b5cf6 1px, transparent 1px)",
-              backgroundSize: "24px 24px"
-            }}
-          />
-
-          {/* Time-of-day specific radial glow */}
-          <div 
-            className="absolute top-0 right-0 w-96 h-full pointer-events-none select-none"
-            style={{
-              background: `radial-gradient(circle at 80% 20%, ${glowColor}, transparent 65%)`
-            }}
-          />
-          
-          <div className="flex-1 text-left relative z-10 flex flex-col gap-2.5">
-            <div className="flex flex-col">
-              <span className="text-[10px] md:text-xs font-extrabold uppercase tracking-widest text-purple-400">
-                {timeGreeting}
-              </span>
-              <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight leading-none mt-1">
-                {name}
-              </h1>
+          {/* Full greeting card (sm+) */}
+          <div
+            className="hidden sm:flex w-full rounded-3xl border border-zinc-900/60 bg-[#0e0e11]/85 backdrop-blur-xl p-6 md:p-8 flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-[0_24px_50px_-12px_rgba(0,0,0,0.75)] premium-glow-border premium-glow-border-hover"
+          >
+            {/* Cyber Grid Overlay */}
+            <div
+              className="absolute inset-0 opacity-[0.03] pointer-events-none"
+              style={{
+                backgroundImage: "linear-gradient(to right, #8b5cf6 1px, transparent 1px), linear-gradient(to bottom, #8b5cf6 1px, transparent 1px)",
+                backgroundSize: "24px 24px"
+              }}
+            />
+            {/* Time-of-day specific radial glow */}
+            <div
+              className="absolute top-0 right-0 w-96 h-full pointer-events-none select-none"
+              style={{ background: `radial-gradient(circle at 80% 20%, ${glowColor}, transparent 65%)` }}
+            />
+            <div className="flex-1 text-left relative z-10 flex flex-col gap-2.5">
+              <div className="flex flex-col">
+                <span className="text-[10px] md:text-xs font-extrabold uppercase tracking-widest text-purple-400">
+                  {timeGreeting}
+                </span>
+                <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight leading-none mt-1">
+                  {name}
+                </h1>
+              </div>
+              {todayStats.loading ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="w-3.5 h-3.5 border-2 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
+                  <span className="text-xs text-zinc-500">Checking your schedule...</span>
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1 flex-wrap">
+                  {todayStats.total > 0 ? (
+                    <>
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-zinc-300 bg-zinc-900/60 px-2.5 py-1 rounded-full border border-zinc-800/80 shadow-sm">
+                        <span className={`w-2 h-2 rounded-full ${todayStats.pending === 0 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]'} animate-pulse`} />
+                        {todayStats.pending === 0 ? "All tasks cleared" : `${todayStats.pending} pending task${todayStats.pending !== 1 ? 's' : ''}`}
+                      </span>
+                      <span className="text-xs md:text-sm font-medium text-zinc-400 leading-relaxed flex items-center gap-1.5 flex-wrap">
+                        {todayStats.pending === 0 ? (
+                          <span className="inline-flex items-center gap-1">
+                            <span>Excellent work! You're completely caught up for today.</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400 animate-bounce ml-0.5 inline-block align-text-bottom">
+                              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                            </svg>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1">
+                            <span>out of {todayStats.total} scheduled today. Let's check them off!</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400 animate-pulse ml-0.5 inline-block align-text-bottom">
+                              <circle cx="12" cy="12" r="10" />
+                              <circle cx="12" cy="12" r="6" />
+                              <circle cx="12" cy="12" r="2" />
+                            </svg>
+                          </span>
+                        )}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-xs md:text-sm font-medium text-zinc-500 flex items-center gap-1.5">
+                      <span>No tasks scheduled for today. Ready to plan some?</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500 animate-pulse ml-0.5 inline-block align-text-bottom">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                      </svg>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
-            
-            {todayStats.loading ? (
-              <div className="flex items-center gap-2 mt-1">
-                <div className="w-3.5 h-3.5 border-2 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
-                <span className="text-xs text-zinc-500">Checking your schedule...</span>
-              </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1 flex-wrap">
-                {todayStats.total > 0 ? (
-                  <>
-                    <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-zinc-300 bg-zinc-900/60 px-2.5 py-1 rounded-full border border-zinc-800/80 shadow-sm">
-                      <span className={`w-2 h-2 rounded-full ${todayStats.pending === 0 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]'} animate-pulse`} />
-                      {todayStats.pending === 0 
-                        ? "All tasks cleared" 
-                        : `${todayStats.pending} pending task${todayStats.pending !== 1 ? 's' : ''}`
-                      }
-                    </span>
-                    <span className="text-xs md:text-sm font-medium text-zinc-400 leading-relaxed flex items-center gap-1.5 flex-wrap">
-                      {todayStats.pending === 0 ? (
-                        <span className="inline-flex items-center gap-1">
-                          <span>Excellent work! You're completely caught up for today.</span>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400 animate-bounce ml-0.5 inline-block align-text-bottom">
-                            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-                          </svg>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1">
-                          <span>out of {todayStats.total} scheduled today. Let's check them off!</span>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400 animate-pulse ml-0.5 inline-block align-text-bottom">
-                            <circle cx="12" cy="12" r="10" />
-                            <circle cx="12" cy="12" r="6" />
-                            <circle cx="12" cy="12" r="2" />
-                          </svg>
-                        </span>
-                      )}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-xs md:text-sm font-medium text-zinc-500 flex items-center gap-1.5">
-                    <span>No tasks scheduled for today. Ready to plan some?</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500 animate-pulse ml-0.5 inline-block align-text-bottom">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    </svg>
-                  </span>
-                )}
-              </div>
-            )}
-          </div>          
-
-          {/* Time-of-day illustration container */}
-          <div className="flex-shrink-0 relative z-10 w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-zinc-900/20 border border-zinc-800/40 backdrop-blur-md flex items-center justify-center p-3 shadow-inner shadow-white/5">
-            {renderGreetingIllustration(hr)}
+            {/* Time-of-day illustration */}
+            <div className="flex-shrink-0 relative z-10 w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-zinc-900/20 border border-zinc-800/40 backdrop-blur-md flex items-center justify-center p-3 shadow-inner shadow-white/5">
+              {renderGreetingIllustration(hr)}
+            </div>
           </div>
-          
         </motion.div>
 
         {/* Dashboard Content Grid */}
         <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
-          {/* Left Column (65% width) - Tasks List */}
+          {/* Left Column — Tasks (full width on mobile, 65% on desktop) */}
           <motion.section
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
-            className="flex-grow w-full lg:w-[65%] bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-4 lg:p-6 shadow-2xl lg:h-[620px] flex flex-col"
+            className="flex-grow w-full lg:w-[65%] sm:bg-zinc-950/40 bg-transparent border border-transparent sm:border-zinc-800/80 backdrop-blur-md sm:rounded-2xl rounded-none p-4 sm:p-6 shadow-none sm:shadow-2xl lg:h-[620px] flex flex-col"
           >
             <Tasks />
           </motion.section>
 
-          {/* Right Column (35% width) - Gamified Streak and Milestone Progress */}
+          {/* Right Column — only visible on lg+ (streak/progress on mobile lives in MobileNav Me sheet) */}
           <motion.section
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full lg:w-80 flex-shrink-0 flex flex-col gap-6"
+            className="hidden lg:flex w-full lg:w-80 flex-shrink-0 flex-col gap-6"
           >
             {/* Daily Progress Card */}
             {!todayStats.loading && todayStats.total > 0 && (
@@ -517,6 +521,13 @@ function App() {
         </div>
 
       </main>
+
+      {/* Mobile bottom navigation — hidden on lg+ */}
+      <MobileNav
+        todayStats={todayStats}
+        currentStreak={currentStreak}
+        longestStreak={longestStreak}
+      />
     </div>
   );
 }

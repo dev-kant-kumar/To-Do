@@ -70,6 +70,7 @@ app.get("/health", (req, res) => {
 app.use("/todo", TodoRoutes);
 app.use("/filters", TodoFiltersRoutes);
 app.use("/user", UserRoutes);
+app.use("/email", require("./src/routes/emailPreviewRoutes"));
 
 // Server
 app.listen(PORT, () => {

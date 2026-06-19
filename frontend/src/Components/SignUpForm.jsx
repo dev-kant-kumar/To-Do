@@ -44,6 +44,9 @@ function SignUpForm() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showOtpVerify, setShowOtpVerify] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [formError, setFormError] = useState("");
 
   // Sync to sessionStorage
   useEffect(() => {
@@ -197,12 +200,13 @@ function SignUpForm() {
 
   const formValidation = async (e) => {
     e.preventDefault();
+    setFormError("");
     if (!validateAll()) {
-      toast.error("Please fill all the required fields");
+      setFormError("Please fill all the required fields");
       return;
     }
     if (!agreedToTerms) {
-      toast.error("You must agree to the Terms & Conditions");
+      setFormError("You must agree to the Terms & Conditions");
       return;
     }
 
@@ -216,16 +220,64 @@ function SignUpForm() {
       });
 
       if (res.data.status === true) {
-        toast.success(res.data.message || "Registration successful!");
-        toast("Welcome onboard! Please log in to manage your tasks.");
-        sessionStorage.removeItem("signup_draft");
-        navigate("/login");
+        toast.success(res.data.message || "Verification code sent to your email!");
+        setShowOtpVerify(true);
       } else {
-        toast.info(res.data.message || "Failed to sign up.");
+        setFormError(res.data.message || "Failed to sign up.");
       }
     } catch (err) {
       console.error("Signup failed:", err);
-      toast.error(err.response?.data?.message || "Error occurred during signup!");
+      setFormError(err.response?.data?.message || "Error occurred during signup!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOtpVerify = async (e) => {
+    e.preventDefault();
+    setFormError("");
+    if (otpValue.length !== 6) {
+      setFormError("Please enter a 6-digit verification code");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await axios.post(apiUrl + "user/verifyotp", {
+        email: inputValue.email.toLowerCase(),
+        otp: otpValue,
+      });
+
+      if (res.data.status === true) {
+        toast.success("Account created and verified successfully!");
+        sessionStorage.removeItem("signup_draft");
+        navigate("/login");
+      } else {
+        setFormError(res.data.message || "Incorrect verification code.");
+      }
+    } catch (err) {
+      console.error("OTP verification failed:", err);
+      setFormError(err.response?.data?.message || "Failed to verify code.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setFormError("");
+    setIsLoading(true);
+    try {
+      const res = await axios.post(apiUrl + "user/resendotp", {
+        email: inputValue.email.toLowerCase(),
+      });
+      if (res.data.status === true) {
+        toast.success("A new verification code has been sent!");
+      } else {
+        setFormError(res.data.message || "Failed to resend code.");
+      }
+    } catch (err) {
+      console.error("Resend OTP failed:", err);
+      setFormError(err.response?.data?.message || "Failed to resend code.");
     } finally {
       setIsLoading(false);
     }
@@ -260,13 +312,81 @@ function SignUpForm() {
           className="w-full max-w-md bg-zinc-950/70 border border-zinc-800/80 p-8 sm:p-10 rounded-2xl backdrop-blur-xl shadow-2xl"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-extrabold tracking-tight text-white mb-2">Sign Up</h2>
+            <h2 className="text-3xl font-extrabold tracking-tight text-white mb-2">
+              {showOtpVerify ? "Verify Email" : "Sign Up"}
+            </h2>
             <p className="text-sm text-zinc-400">
-              Create your account to start managing tasks.
+              {showOtpVerify 
+                ? `We have sent a 6-digit verification code to ${inputValue.email}.`
+                : "Create your account to start managing tasks."}
             </p>
           </div>
 
-          <form onSubmit={formValidation} className="space-y-5">
+          {showOtpVerify ? (
+            <form onSubmit={handleOtpVerify} className="space-y-5">
+              <div className="space-y-1.5">
+                <label htmlFor="otp" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  Verification Code
+                </label>
+                <div className="relative">
+                  <input
+                    id="otp"
+                    type="text"
+                    maxLength={6}
+                    value={otpValue}
+                    onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
+                    disabled={isLoading}
+                    placeholder="Enter 6-digit code"
+                    className="w-full bg-zinc-900 border border-zinc-800/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-4 py-3 text-center text-zinc-100 text-lg tracking-widest outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              {formError && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold px-4 py-3 rounded-xl text-center">
+                  {formError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading || otpValue.length !== 6}
+                className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 transition-all hover:scale-[1.01] duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    Verify & Create Account
+                    <ArrowRight size={16} />
+                  </>
+                )}
+              </button>
+
+              <div className="text-center text-xs space-y-2 mt-4">
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={isLoading}
+                  className="text-purple-400 hover:text-purple-300 font-semibold focus:outline-none block w-full text-center"
+                >
+                  Resend Verification Code
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowOtpVerify(false)}
+                  disabled={isLoading}
+                  className="text-zinc-500 hover:text-zinc-400 font-semibold focus:outline-none block w-full text-center"
+                >
+                  Go Back
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={formValidation} className="space-y-5">
 
             {/* Username */}
             <div className="space-y-1.5">
@@ -407,6 +527,12 @@ function SignUpForm() {
               </label>
             </div>
 
+            {formError && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold px-4 py-3 rounded-xl text-center">
+                {formError}
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -425,7 +551,8 @@ function SignUpForm() {
                 </>
               )}
             </button>
-          </form>
+            </form>
+          )}
 
           <div className="mt-8 text-center text-sm text-zinc-400">
             Already have an account?{" "}

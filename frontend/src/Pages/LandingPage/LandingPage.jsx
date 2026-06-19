@@ -19,6 +19,7 @@ import {
   Lock,
   LogIn
 } from "lucide-react";
+import { getToken } from "../../utils/auth";
 
 // Reusable scroll-triggered fade-in component
 function FadeInWhenVisible({ children, delay = 0, className = "" }) {
@@ -60,7 +61,7 @@ function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     setIsLoggedIn(!!token);
 
     const handleScrollEvent = () => {
@@ -132,7 +133,7 @@ function LandingPage() {
             ? "h-14 px-5 bg-zinc-950/90 backdrop-blur-xl border-purple-500/25 shadow-[0_0_30px_rgba(168,85,247,0.15)]" 
             : "h-16 px-6 bg-zinc-950/70 backdrop-blur-xl border-zinc-800/80 shadow-xl shadow-purple-900/5"
         }`}>
-          <Link to="/" className="flex items-center gap-2.5 group">
+          <Link to={isLoggedIn ? "/home" : "/"} className="flex items-center gap-2.5 group">
             <span className="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-fuchsia-500 flex items-center justify-center font-extrabold text-white shadow-md shadow-purple-500/20 group-hover:scale-105 transition-all duration-200">
               ✓
             </span>
@@ -279,12 +280,12 @@ function LandingPage() {
                   className={`flex items-center justify-between px-3 py-2.5 rounded-lg font-medium cursor-pointer transition-all duration-200 ${
                     mockActiveTab === "all" 
                       ? "bg-purple-500/10 border border-purple-500/20 text-purple-300" 
-                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-905/30"
+                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/30"
                   }`}
                 >
                   <span className="flex items-center gap-2"><ListTodo size={14} /> All Tasks</span>
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border transition-colors ${
-                    mockActiveTab === "all" ? "bg-purple-500/20 border-purple-500/30 text-purple-300" : "bg-zinc-900 border-zinc-800 text-zinc-650"
+                    mockActiveTab === "all" ? "bg-purple-500/20 border-purple-500/30 text-purple-300" : "bg-zinc-900 border-zinc-800 text-zinc-400"
                   }`}>{mockTasks.length}</span>
                 </li>
                 <li 
@@ -292,12 +293,12 @@ function LandingPage() {
                   className={`flex items-center justify-between px-3 py-2.5 rounded-lg font-medium cursor-pointer transition-all duration-200 ${
                     mockActiveTab === "starred" 
                       ? "bg-purple-500/10 border border-purple-500/20 text-purple-300" 
-                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-905/30"
+                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/30"
                   }`}
                 >
                   <span className="flex items-center gap-2"><Star size={14} /> Starred</span>
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border transition-colors ${
-                    mockActiveTab === "starred" ? "bg-purple-500/20 border-purple-500/30 text-purple-300" : "bg-zinc-900 border-zinc-800 text-zinc-650"
+                    mockActiveTab === "starred" ? "bg-purple-500/20 border-purple-500/30 text-purple-300" : "bg-zinc-900 border-zinc-800 text-zinc-400"
                   }`}>{mockTasks.filter(t => t.starred).length}</span>
                 </li>
                 <li 
@@ -305,12 +306,12 @@ function LandingPage() {
                   className={`flex items-center justify-between px-3 py-2.5 rounded-lg font-medium cursor-pointer transition-all duration-200 ${
                     mockActiveTab === "completed" 
                       ? "bg-purple-500/10 border border-purple-500/20 text-purple-300" 
-                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-905/30"
+                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/30"
                   }`}
                 >
                   <span className="flex items-center gap-2"><CheckCircle2 size={14} /> Completed</span>
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border transition-colors ${
-                    mockActiveTab === "completed" ? "bg-purple-500/20 border-purple-500/30 text-purple-300" : "bg-zinc-900 border-zinc-800 text-zinc-650"
+                    mockActiveTab === "completed" ? "bg-purple-500/20 border-purple-500/30 text-purple-300" : "bg-zinc-900 border-zinc-800 text-zinc-400"
                   }`}>{mockTasks.filter(t => t.completed).length}</span>
                 </li>
               </ul>
@@ -320,7 +321,7 @@ function LandingPage() {
             <div className="md:col-span-2 flex flex-col gap-4">
               <div className="flex items-center justify-between select-none">
                 <h3 className="font-bold text-zinc-300 uppercase tracking-wider text-[10px]">Active Tasks ({mockActiveTab})</h3>
-                <span className="text-[10px] text-zinc-550 font-mono">Today</span>
+                <span className="text-[10px] text-zinc-400 font-mono">Today</span>
               </div>
 
               {/* Tasks List */}
@@ -362,7 +363,7 @@ function LandingPage() {
                         <span className="text-[10px] text-zinc-600 font-mono">{task.time}</span>
                         <button 
                           onClick={() => handleDeleteMockTask(task.id)}
-                          className="text-zinc-650 hover:text-red-400 p-0.5 rounded hover:bg-zinc-900/50 transition-all duration-150"
+                          className="text-zinc-400 hover:text-red-400 p-0.5 rounded hover:bg-zinc-900/50 transition-all duration-150"
                           title="Delete Task"
                         >
                           <Trash2 size={12} />
@@ -380,7 +381,7 @@ function LandingPage() {
                   value={newMockText}
                   onChange={(e) => setNewMockText(e.target.value)}
                   placeholder="Type a task and press Enter (e.g. Try starring me)..."
-                  className="flex-grow px-3 py-2 bg-zinc-900/40 border border-zinc-900 hover:border-zinc-800/80 focus:border-purple-500/30 rounded-xl text-xs text-zinc-200 placeholder-zinc-650 focus:outline-none focus:bg-zinc-950/20 transition-all duration-200"
+                  className="flex-grow px-3 py-2 bg-zinc-900/40 border border-zinc-900 hover:border-zinc-800/80 focus:border-purple-500/30 rounded-xl text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:bg-zinc-950/20 transition-all duration-200"
                 />
                 <button 
                   type="submit"
@@ -430,7 +431,7 @@ function LandingPage() {
                 className="mt-6 flex items-center justify-between px-4 py-3 bg-zinc-900/20 border border-zinc-900 rounded-xl cursor-pointer hover:border-zinc-800 transition-colors max-w-md select-none"
               >
                 <div className="flex items-center gap-3">
-                  <Star size={16} fill={bentoStarred ? "currentColor" : "none"} className={bentoStarred ? "text-amber-400 animate-star-pulse" : "text-zinc-650"} />
+                  <Star size={16} fill={bentoStarred ? "currentColor" : "none"} className={bentoStarred ? "text-amber-400 animate-star-pulse" : "text-zinc-400"} />
                   <span className="text-xs font-semibold text-zinc-300">Complete architectural audit checklist</span>
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20">High</span>
@@ -459,29 +460,29 @@ function LandingPage() {
                 <div 
                   onClick={() => setBentoFilter("all")}
                   className={`flex items-center justify-between p-2 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
-                    bentoFilter === "all" ? "bg-purple-500/10 text-purple-300 border border-purple-500/20" : "text-zinc-505 hover:text-zinc-350"
+                    bentoFilter === "all" ? "bg-purple-500/10 text-purple-300 border border-purple-500/20" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
                   <span className="flex items-center gap-1.5"><ListTodo size={12} /> All Tasks</span>
-                  <span className="text-[10px] text-zinc-550 bg-zinc-950/40 px-1.5 py-0.5 rounded border border-zinc-900">12</span>
+                  <span className="text-[10px] text-zinc-400 bg-zinc-950/40 px-1.5 py-0.5 rounded border border-zinc-900">12</span>
                 </div>
                 <div 
                   onClick={() => setBentoFilter("active")}
                   className={`flex items-center justify-between p-2 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
-                    bentoFilter === "active" ? "bg-purple-500/10 text-purple-300 border border-purple-500/20" : "text-zinc-505 hover:text-zinc-350"
+                    bentoFilter === "active" ? "bg-purple-500/10 text-purple-300 border border-purple-500/20" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
                   <span className="flex items-center gap-1.5"><Star size={12} fill={bentoFilter === "active" ? "currentColor" : "none"} /> Starred</span>
-                  <span className="text-[10px] text-zinc-550 bg-zinc-950/40 px-1.5 py-0.5 rounded border border-zinc-900">4</span>
+                  <span className="text-[10px] text-zinc-400 bg-zinc-950/40 px-1.5 py-0.5 rounded border border-zinc-900">4</span>
                 </div>
                 <div 
                   onClick={() => setBentoFilter("deleted")}
                   className={`flex items-center justify-between p-2 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
-                    bentoFilter === "deleted" ? "bg-purple-500/10 text-purple-300 border border-purple-500/20" : "text-zinc-550 hover:text-zinc-350"
+                    bentoFilter === "deleted" ? "bg-purple-500/10 text-purple-300 border border-purple-500/20" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
                   <span className="flex items-center gap-1.5"><Trash2 size={12} /> Deleted</span>
-                  <span className="text-[10px] text-zinc-550 bg-zinc-950/40 px-1.5 py-0.5 rounded border border-zinc-900">2</span>
+                  <span className="text-[10px] text-zinc-400 bg-zinc-950/40 px-1.5 py-0.5 rounded border border-zinc-900">2</span>
                 </div>
               </div>
             </div>
@@ -518,7 +519,7 @@ function LandingPage() {
                   </span>
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-[10px] font-extrabold text-zinc-350 uppercase tracking-widest">Progress</span>
+                  <span className="text-[10px] font-extrabold text-zinc-300 uppercase tracking-widest">Progress</span>
                   <span className="text-[10px] text-zinc-500 font-medium">
                     {mockTasks.filter(t => t.completed).length} of {mockTasks.length} tasks completed
                   </span>
@@ -655,7 +656,7 @@ function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           {/* Column 1: Brand & Info */}
           <div className="flex flex-col gap-4">
-            <Link to="/" className="flex items-center gap-2 group self-start">
+            <Link to={isLoggedIn ? "/home" : "/"} className="flex items-center gap-2 group self-start">
               <span className="w-6 h-6 rounded bg-purple-600 flex items-center justify-center font-bold text-white text-xs">
                 ✓
               </span>

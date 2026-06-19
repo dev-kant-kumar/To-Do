@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 // Redux
 import { setUserInfo, clearUserInfo } from "../Store/Reducers/UserSlice";
 import { setPreLoader } from "../Store/Reducers/Loader";
+import { getToken, removeToken } from "../utils/auth";
 
 // Route Guards
 import { ProtectedRoute, GuestRoute } from "../Components/ProtectedRoutes";
@@ -18,7 +19,6 @@ import SignIn from "../Components/SigninForm";
 import Home from "../Pages/Home";
 import ProfilePage from "../Pages/ProfilePage";
 import PlannerPage from "../Pages/PlannerPage";
-import PricingPage from "../Pages/PricingPage";
 import ErrorPage from "../Pages/ErrorPage";
 import LandingPage from "./LandingPage/LandingPage";
 import ForgotPasswordForm from "../Components/ForgotPasswordForm";
@@ -45,7 +45,7 @@ function AuthenticationPage() {
 
   // Fetch user info from token
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     if (!token) {
       dispatch(setPreLoader(false));
       return;
@@ -63,13 +63,13 @@ function AuthenticationPage() {
           const { _id, name, username, email, date } = res.data.data;
           dispatch(setUserInfo({ _id, name, username, email, date }));
         } else {
-          localStorage.removeItem("token");
+          removeToken();
           dispatch(clearUserInfo());
         }
       })
       .catch((err) => {
         console.error("Authentication fetch user data failed:", err);
-        localStorage.removeItem("token");
+        removeToken();
         dispatch(clearUserInfo());
       })
       .finally(() => dispatch(setPreLoader(false)));
@@ -102,7 +102,6 @@ function AuthenticationPage() {
             <Route path="/home" element={<><SEO title="Dashboard | todo." description="Manage your tasks, filter by Starred, Today, or Deleted, and track your daily lists on todo.." /><Home /></>} />
             <Route path="/profile" element={<><SEO title="Settings | todo." description="Update your personal information, manage security, and configure your todo. profile." /><ProfilePage /></>} />
             <Route path="/planner" element={<><SEO title="Planner | todo." description="Plan your week and month tasks visually on a modern calendar view." /><PlannerPage /></>} />
-            <Route path="/pricing" element={<><SEO title="Upgrade to Premium | todo." description="Unlock premium features including priority stacks, weekly/monthly planners, and custom dashboards." /><PricingPage /></>} />
           </Route>
 
           {/* Legal Pages - Nested (Public) */}

@@ -1,7 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
+import ConfirmationModal from "./Common/ConfirmationModal";
 import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { toast } from "react-toastify";
 import { RxCross2 } from "react-icons/rx";
@@ -18,7 +20,7 @@ const getCurrentLocalDateTimeString = () => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-function CreateTask({ onClose }) {
+function CreateTask({ onClose, initialDate }) {
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.UserSlice);
   const activeFilter = useSelector((state) => state.ActiveDeletedFilter);
@@ -26,10 +28,11 @@ function CreateTask({ onClose }) {
   // Local state
   const [inputValue, setInputValue] = useState("");
   const [priority, setPriority] = useState("low");
-  const [dueDate, setDueDate] = useState(getCurrentLocalDateTimeString);
+  const [dueDate, setDueDate] = useState(initialDate ? `${initialDate}T09:00` : "");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const refElement = useRef();
   const inputRef = useRef();
@@ -61,13 +64,13 @@ function CreateTask({ onClose }) {
 
   // Get current filter type for fetching
   const getCurrentFilterType = useCallback(() => {
-    if (activeFilter?.isTodoActive) return "todo";
+    if (activeFilter?.isTodoActive) return "all";
     if (activeFilter?.isAllActive) return "all";
     if (activeFilter?.isStarredActive) return "starred";
     if (activeFilter?.isCompletedActive) return "completed";
     if (activeFilter?.isWeekActive) return "week";
     if (activeFilter?.isDeletedActive) return "deleted";
-    return "todo";
+    return "all";
   }, [activeFilter]);
 
   // Input validation
@@ -196,7 +199,7 @@ function CreateTask({ onClose }) {
       if (success) {
         setInputValue("");
         setPriority("low");
-        setDueDate(getCurrentLocalDateTimeString());
+        setDueDate("");
         setDescription("");
         setError("");
         handleClose();
@@ -209,23 +212,17 @@ function CreateTask({ onClose }) {
   const cancelBtn = useCallback(() => {
     if (inputValue.trim() || description.trim() || dueDate || priority !== "low") {
       // Show confirmation if user has typed something
-      if (
-        window.confirm(
-          "Are you sure you want to cancel? Your input will be lost."
-        )
-      ) {
-        handleClose();
-      }
+      setShowCancelConfirm(true);
     } else {
       handleClose();
     }
-  }, [inputValue, description, dueDate, priority]);
+  }, [inputValue, description, dueDate, priority, handleClose]);
 
   // Handle close with proper cleanup
   const handleClose = useCallback(() => {
     setInputValue("");
     setPriority("low");
-    setDueDate(getCurrentLocalDateTimeString());
+    setDueDate("");
     setDescription("");
     setError("");
     setIsLoading(false);
@@ -259,7 +256,7 @@ function CreateTask({ onClose }) {
   );
 
   const minDateTime = getCurrentLocalDateTimeString();
-  return (
+  return createPortal(
     <AnimatePresence>
     <motion.div
       ref={refElement}
@@ -303,7 +300,7 @@ function CreateTask({ onClose }) {
             disabled={isLoading}
             aria-label="Close dialog"
             type="button"
-            className="hidden lg:flex p-1.5 rounded-lg bg-zinc-900/40 border border-zinc-800/60 hover:bg-zinc-850 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
+            className="hidden lg:flex p-1.5 rounded-lg bg-zinc-900/40 border border-zinc-800/60 hover:bg-zinc-800 hover:border-zinc-700/80 text-zinc-400 hover:text-zinc-200 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
           >
             <RxCross2 className="w-4 h-4 group-hover:scale-105 transition-transform duration-200" />
           </button>
@@ -342,7 +339,7 @@ function CreateTask({ onClose }) {
                 >
                   {inputValue.length}
                 </span>
-                <span className="text-zinc-650">/{MAX_TASK_LENGTH}</span>
+                <span className="text-zinc-500">/{MAX_TASK_LENGTH}</span>
               </div>
             </div>
 
@@ -374,11 +371,11 @@ function CreateTask({ onClose }) {
                 className="w-full flex-grow px-4 py-3 bg-zinc-900/30 text-zinc-200 rounded-xl border border-zinc-800/60 focus:border-[#9040dd] focus:outline-none resize-none transition-all duration-200 disabled:opacity-50 text-sm placeholder-zinc-500"
               />
               {/* Description Character Counter */}
-              <div className="absolute bottom-2 right-3 text-[10px] text-zinc-550 select-none font-semibold">
+              <div className="absolute bottom-2 right-3 text-[10px] text-zinc-400 select-none font-semibold">
                 <span className={description.length > MAX_DESCRIPTION_LENGTH * 0.9 ? "text-red-400" : ""}>
                   {description.length}
                 </span>
-                <span className="text-zinc-650">/{MAX_DESCRIPTION_LENGTH}</span>
+                <span className="text-zinc-500">/{MAX_DESCRIPTION_LENGTH}</span>
               </div>
             </div>
           </div>
@@ -459,9 +456,22 @@ function CreateTask({ onClose }) {
           </div>
         </form>
       </motion.div>
-      
+      <ConfirmationModal
+        isOpen={showCancelConfirm}
+        title="Unsaved Changes"
+        message="Are you sure you want to cancel? Your input will be lost."
+        confirmText="Yes, Cancel"
+        cancelText="Keep Editing"
+        onConfirm={() => {
+          setShowCancelConfirm(false);
+          handleClose();
+        }}
+        onCancel={() => setShowCancelConfirm(false)}
+        type="warning"
+      />
     </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

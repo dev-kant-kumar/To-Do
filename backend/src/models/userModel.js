@@ -24,6 +24,28 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  otp: {
+    type: String,
+  },
+  otpExpires: {
+    type: Date,
+  },
+  resetPasswordOtp: {
+    type: String,
+  },
+  resetPasswordOtpExpires: {
+    type: Date,
+  },
+  deleteAccountOtp: {
+    type: String,
+  },
+  deleteAccountOtpExpires: {
+    type: Date,
+  },
 });
 
 module.exports = mongoose.model("user", UserSchema);

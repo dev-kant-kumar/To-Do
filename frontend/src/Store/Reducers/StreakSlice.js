@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { getToken } from "../../utils/auth";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -61,7 +62,7 @@ function computeStreaks(activityMap) {
 export const fetchStreakData = createAsyncThunk(
   "streak/fetchStreakData",
   async (_, { rejectWithValue }) => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     if (!token) return rejectWithValue("No token");
     try {
       const apiUrl = import.meta.env.VITE_API_BASE_URL;

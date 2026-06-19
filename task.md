@@ -3,6 +3,12 @@
 - [x] Create root-level configuration files
   - [x] Copy `sitemap.xml` to the project root
   - [x] Create `ai-agent.xml` with detailed system instructions and feature guide at project root
+- [ ] Implement Secure Authentication
+  - [ ] Secure the `/email` route with a passcode prompt portal.
+  - [ ] Add session cookie checking and logout lock mechanisms.
+  - [ ] Stop and clean up separate preview background servers.
+  - [ ] Fix backend `signIn` controller to generate and dispatch OTP emails for unverified users.
+  - [ ] Implement inline OTP verification view in `SigninForm.jsx`.
 - [x] Add global CSS animations and themes
   - [x] Add animations, grid backgrounds, and theme configurations in `index.css`
 - [x] Add Header enhancements

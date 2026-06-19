@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import ImgPageNotFound from "../assets/errorpage.png";
+import { useSelector } from "react-redux";
 
 function ErrorPage() {
+  const userInfo = useSelector((state) => state.UserSlice);
   return (
     <div className="relative min-h-screen bg-[#05050a] text-zinc-100 flex flex-col font-sans overflow-x-hidden">
       {/* Background Mesh Gradients */}
@@ -13,7 +15,7 @@ function ErrorPage() {
       {/* Minimalistic Header */}
       <header className="relative z-10 w-full border-b border-zinc-900 bg-zinc-950/40 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group select-none">
+          <Link to={userInfo?.userId ? "/home" : "/"} className="flex items-center gap-2 group select-none">
             <span className="w-6 h-6 rounded bg-purple-600 flex items-center justify-center font-bold text-white text-xs shadow-lg shadow-purple-500/20 group-hover:scale-105 transition-transform duration-200">
               ✓
             </span>
