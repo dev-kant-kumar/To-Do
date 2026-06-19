@@ -86,7 +86,7 @@ function Footer({ minimal = false }) {
           </a>
           <span className="text-zinc-800">|</span>
           <p className="flex items-center gap-1">
-            Made with <span className="text-purple-500/80">♥</span> for developers & creators
+            Made with <span className="text-purple-500/80">♥</span> for everyone
           </p>
         </div>
       </div>
