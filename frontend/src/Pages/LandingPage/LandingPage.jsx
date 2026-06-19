@@ -117,7 +117,7 @@ function LandingPage() {
   });
 
   return (
-    <div className="relative min-h-screen bg-[#05050a] text-zinc-100 overflow-x-hidden font-sans bg-grid-pattern-glow">
+    <div className="relative min-h-screen bg-[#05050a] text-zinc-100 font-sans bg-grid-pattern-glow">
       {/* Background Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
         <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-purple-900/20 blur-[120px] animate-pulse duration-[6000ms]" />

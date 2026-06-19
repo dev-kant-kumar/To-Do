@@ -41,6 +41,11 @@
   background-color: #9040dd;
 }
 
+html, body {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: #05050a;
   color: #f4f4f5;

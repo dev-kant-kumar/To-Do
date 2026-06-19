@@ -262,7 +262,7 @@ function App() {
   const { timeGreeting, name, glowColor, hr } = getGreetingData();
 
   return (
-    <div className="relative min-h-screen bg-[#05050a] text-zinc-100 flex flex-col overflow-x-hidden font-sans">
+    <div className="relative min-h-screen bg-[#05050a] text-zinc-100 flex flex-col font-sans">
       {/* Background Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none select-none overflow-hidden z-0">
         <div className="absolute -top-[10%] -left-[10%] w-[55%] h-[55%] rounded-full bg-purple-900/10 blur-[130px]" />
