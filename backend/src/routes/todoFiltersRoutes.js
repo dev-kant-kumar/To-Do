@@ -10,6 +10,7 @@ const {
   showTasksCreatedWeekAgo,
   showDeletedTask,
   getTodoCounts,
+  getActivityData,
 } = require("../controllers/todoFiltersController");
 
 TodoFiltersRoutes.post("/all", auth, showAllTasks);
@@ -19,5 +20,6 @@ TodoFiltersRoutes.post("/today", auth, showTasksCreatedToday);
 TodoFiltersRoutes.post("/week", auth, showTasksCreatedWeekAgo);
 TodoFiltersRoutes.post("/deleted", auth, showDeletedTask);
 TodoFiltersRoutes.post("/counts", auth, getTodoCounts);
+TodoFiltersRoutes.post("/activity", auth, getActivityData);
 
 module.exports = TodoFiltersRoutes;

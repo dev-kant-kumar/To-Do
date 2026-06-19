@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
-import { ListTodo, Star, Calendar, Trash2, X } from "lucide-react";
+import { ListTodo, Star, Calendar, Trash2, X, BarChart2 } from "lucide-react";
 
 const FILTERS = [
   { key: "all", label: "All", icon: <ListTodo size={18} /> },
@@ -133,6 +133,25 @@ function Filters({ setShow }) {
             </li>
           );
         })}
+
+        <div className="h-[1px] bg-zinc-800/40 my-2 mx-2" />
+
+        <li
+          onClick={() => {
+            navigate("/profile?tab=activity");
+            if (setShow) {
+              setShow(false);
+            }
+          }}
+          className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer select-none border bg-transparent border-transparent text-zinc-400 hover:bg-zinc-900/30 hover:text-zinc-200"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-zinc-500">
+              <BarChart2 size={18} />
+            </span>
+            <span className="text-sm font-semibold">Activity Tracker</span>
+          </div>
+        </li>
       </ul>
     </div>
   );

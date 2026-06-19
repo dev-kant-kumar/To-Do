@@ -43,7 +43,7 @@ async function markCompleted(req, res) {
 
   const markCompleteStatus = await Todo.findOneAndUpdate(
     { _id: taskID, userId: userId },
-    { $set: { completed: true } }
+    { $set: { completed: true, completedAt: new Date() } }
   );
 
   if (markCompleteStatus) {
@@ -67,7 +67,7 @@ async function unMarkCompleted(req, res) {
 
   const unMarkCompletedStatus = await Todo.findOneAndUpdate(
     { _id: taskID, userId: userId },
-    { $set: { completed: false } }
+    { $set: { completed: false, completedAt: null } }
   );
 
   if (unMarkCompletedStatus) {

@@ -13,11 +13,13 @@ import {
   Mail, 
   Calendar,
   LogOut,
-  Check
+  Check,
+  BarChart2
 } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { setUserInfo, clearUserInfo } from "../Store/Reducers/UserSlice";
+import ActivityTracker from "../Components/ActivityTracker";
 
 function ProfilePage() {
   const userInfo = useSelector((state) => state.UserSlice);
@@ -25,7 +27,7 @@ function ProfilePage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get("tab") || "personal";
+  const activeTab = searchParams.get("tab") || "activity";
 
   const setActiveTab = (tabName) => {
     setSearchParams({ tab: tabName });
@@ -348,6 +350,18 @@ function ProfilePage() {
                 </button>
 
                 <button
+                  onClick={() => setActiveTab("activity")}
+                  className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-3 cursor-pointer ${
+                    activeTab === "activity"
+                      ? "bg-purple-600/15 border border-purple-500/30 text-purple-350 shadow-lg shadow-purple-950/15"
+                      : "bg-transparent border border-transparent text-zinc-405 hover:bg-zinc-900/30 hover:text-zinc-200"
+                  }`}
+                >
+                  <BarChart2 size={15} />
+                  <span>Activity Tracker</span>
+                </button>
+
+                <button
                   onClick={() => setActiveTab("password")}
                   className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-3 cursor-pointer ${
                     activeTab === "password"
@@ -371,7 +385,9 @@ function ProfilePage() {
           </div>
 
           {/* Right Panel: Form Card matching active tab */}
-          <div className="md:col-span-2 bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col justify-between md:min-h-[460px] min-h-0">
+          <div className={`md:col-span-2 bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col justify-between md:min-h-[460px] min-h-0 ${
+            activeTab === "activity" ? "overflow-y-auto" : ""
+          }`}>
             
             {activeTab === "personal" ? (
               /* TAB 1: Personal Information */
@@ -503,8 +519,11 @@ function ProfilePage() {
                   </div>
                 )}
               </div>
+            ) : activeTab === "activity" ? (
+              /* TAB 2: Activity Tracker */
+              <ActivityTracker />
             ) : (
-              /* TAB 2: Login & Password */
+              /* TAB 3: Login & Password */
               <div className="flex flex-col h-full justify-between">
                 <div className="space-y-6">
                   {/* Header Title */}

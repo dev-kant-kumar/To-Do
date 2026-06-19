@@ -172,6 +172,88 @@ async function getTodoCounts(req, res) {
   }
 }
 
+async function getActivityData(req, res) {
+  console.log("getActivityData reached");
+  const userId = req.id;
+
+  try {
+    const now = new Date();
+    const oneYearAgo = new Date(now);
+    oneYearAgo.setFullYear(now.getFullYear() - 1);
+    oneYearAgo.setHours(0, 0, 0, 0);
+
+    // Aggregate completed tasks by date
+    // Use completedAt if available, fall back to updatedAt for legacy data
+    const activityData = await Todo.aggregate([
+      {
+        $match: {
+          userId: userId.toString(),
+          completed: true,
+          deleted: false,
+          $or: [
+            { completedAt: { $gte: oneYearAgo } },
+            {
+              completedAt: null,
+              updatedAt: { $gte: oneYearAgo },
+            },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          effectiveDate: {
+            $ifNull: ["$completedAt", "$updatedAt"],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$effectiveDate" },
+            month: { $month: "$effectiveDate" },
+            day: { $dayOfMonth: "$effectiveDate" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1,
+          "_id.day": 1,
+        },
+      },
+    ]);
+
+    // Transform into a flat date-keyed map: { "2026-06-19": 3 }
+    const dateMap = {};
+    activityData.forEach((entry) => {
+      const { year, month, day } = entry._id;
+      const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      dateMap[dateKey] = entry.count;
+    });
+
+    // Also include overall stats
+    const totalCompleted = await Todo.countDocuments({
+      userId: userId,
+      completed: true,
+      deleted: false,
+    });
+
+    res.send({
+      status: true,
+      activity: dateMap,
+      totalCompleted,
+    });
+  } catch (error) {
+    console.error("Error fetching activity data:", error);
+    res.status(500).send({
+      status: false,
+      message: "Internal server error while fetching activity data",
+    });
+  }
+}
+
 module.exports = {
   showAllTasks,
   showCompletedTasks,
@@ -180,4 +262,5 @@ module.exports = {
   showTasksCreatedWeekAgo,
   showDeletedTask,
   getTodoCounts,
+  getActivityData,
 };
