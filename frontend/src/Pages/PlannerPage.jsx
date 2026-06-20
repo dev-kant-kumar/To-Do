@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import Header from "../Components/Header";
 import TaskDetailsModal from "../Components/TaskDetailsModal";
 import CreateTask from "../Components/CreateTask";
+import BackgroundLayer from "../Components/BackgroundLayer";
 
 // Helpers
 function toDateKey(date) {
@@ -304,11 +305,7 @@ export default function PlannerPage() {
 
   return (
     <div className="relative min-h-screen bg-[#05050a] text-zinc-200 flex flex-col overflow-x-hidden font-sans">
-      {/* Background Mesh Gradients */}
-      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden z-0">
-        <div className="absolute -top-[10%] -left-[10%] w-[55%] h-[55%] rounded-full bg-purple-900/10 blur-[130px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[60%] h-[60%] rounded-full bg-fuchsia-950/10 blur-[160px]" />
-      </div>
+      <BackgroundLayer />
 
       <Header />
 

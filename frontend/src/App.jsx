@@ -9,6 +9,7 @@ import MobileNav from "./Components/MobileNav";
 import { fetchStreakData } from "./Store/Reducers/StreakSlice";
 import { StreakHighlightCard } from "./Components/ActivityTracker";
 import { registerSW } from "./utils/serviceWorker";
+import BackgroundLayer from "./Components/BackgroundLayer";
 
 function App() {
   const dispatch = useDispatch();
@@ -272,11 +273,7 @@ function App() {
 
   return (
     <div className="relative min-h-screen bg-[#05050a] text-zinc-100 flex flex-col font-sans">
-      {/* Background Mesh Gradients */}
-      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden z-0">
-        <div className="absolute -top-[10%] -left-[10%] w-[55%] h-[55%] rounded-full bg-purple-900/10 blur-[130px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[60%] h-[60%] rounded-full bg-fuchsia-950/10 blur-[160px]" />
-      </div>
+      <BackgroundLayer />
 
       <Header />
 

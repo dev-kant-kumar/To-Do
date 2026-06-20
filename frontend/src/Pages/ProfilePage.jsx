@@ -16,13 +16,16 @@ import {
   LogOut,
   Check,
   BarChart2,
-  Settings
+  Settings,
+  Palette
 } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { setUserInfo, clearUserInfo } from "../Store/Reducers/UserSlice";
 import { getToken, clearAuth } from "../utils/auth";
 import ActivityTracker from "../Components/ActivityTracker";
+import BackgroundPicker from "../Components/BackgroundPicker";
+import BackgroundLayer from "../Components/BackgroundLayer";
 
 function ProfilePage() {
   const userInfo = useSelector((state) => state.UserSlice);
@@ -368,11 +371,7 @@ function ProfilePage() {
 
   return (
     <div className="relative min-h-screen bg-[#05050a] text-zinc-100 flex flex-col overflow-x-hidden font-sans">
-      {/* Background Mesh Gradients */}
-      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden z-0">
-        <div className="absolute -top-[10%] -left-[10%] w-[55%] h-[55%] rounded-full bg-purple-900/10 blur-[130px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[60%] h-[60%] rounded-full bg-fuchsia-950/10 blur-[160px]" />
-      </div>
+      <BackgroundLayer />
 
       <Header setShow={() => {}} />
 
@@ -445,6 +444,18 @@ function ProfilePage() {
                 >
                   <BarChart2 size={15} />
                   <span>Activity Tracker</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab("appearance")}
+                  className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-3 cursor-pointer ${
+                    activeTab === "appearance"
+                      ? "bg-purple-600/15 border border-purple-500/30 text-purple-350 shadow-lg shadow-purple-950/15"
+                      : "bg-transparent border border-transparent text-zinc-405 hover:bg-zinc-900/30 hover:text-zinc-200"
+                  }`}
+                >
+                  <Palette size={15} />
+                  <span>Appearance</span>
                 </button>
 
                 <button
@@ -764,6 +775,18 @@ function ProfilePage() {
                     </button>
                   </div>
                 )}
+              </div>
+            ) : activeTab === "appearance" ? (
+              /* TAB 5: Appearance */
+              <div className="flex flex-col h-full justify-between">
+                <div className="space-y-6">
+                  {/* Header Title */}
+                  <div className="border-b border-zinc-900/60 pb-4 text-left">
+                    <h2 className="text-lg font-bold text-zinc-100">Appearance</h2>
+                    <p className="text-[10px] text-zinc-500 mt-1 font-medium">Personalize your background image and adjust color overlays.</p>
+                  </div>
+                  <BackgroundPicker />
+                </div>
               </div>
             ) : (
               /* TAB 4: Account Settings */

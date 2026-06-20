@@ -24,9 +24,13 @@ axios.interceptors.request.use(
 // Initialize offline capability sync manager
 initSyncManager();
 
+import { BackgroundProvider } from "./hooks/useBackground";
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <Provider store={store}>
-    <Authentication />
+    <BackgroundProvider>
+      <Authentication />
+    </BackgroundProvider>
   </Provider>
 );
 
