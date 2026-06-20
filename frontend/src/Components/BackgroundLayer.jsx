@@ -53,11 +53,11 @@ export default function BackgroundLayer() {
         )}
       </div>
 
-      {/* Floating Action Button to Customize Background */}
+      {/* Floating Action Button to Customize Background - Hidden on mobile/tablet to avoid overlapping bottom navigation */}
       {!isProfilePage && (
         <Link
           to="/profile?tab=appearance"
-          className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-30 flex items-center gap-2 p-3 rounded-full bg-zinc-950/85 border border-purple-500/35 text-purple-300 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.55)] hover:bg-purple-950/20 hover:border-purple-500/60 hover:text-purple-200 hover:scale-[1.05] transition-all duration-300 cursor-pointer active:scale-95 group focus:outline-none"
+          className="hidden lg:flex fixed bottom-6 right-6 z-30 items-center gap-2 p-3 rounded-full bg-zinc-950/85 border border-purple-500/35 text-purple-300 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.55)] hover:bg-purple-950/20 hover:border-purple-500/60 hover:text-purple-200 hover:scale-[1.05] transition-all duration-300 cursor-pointer active:scale-95 group focus:outline-none"
           title="Customize Background"
         >
           <Palette size={18} className="animate-pulse" />

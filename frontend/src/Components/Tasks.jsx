@@ -1178,7 +1178,10 @@ function Tasks() {
       </div>
 
       {/* Horizontal Filter Dock */}
-      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-3 sm:pb-4 mb-1 sm:mb-2 scrollbar-none flex-shrink-0 border-b border-zinc-900/60 -mx-4 lg:-mx-6 px-4 lg:px-6">
+      <div 
+        className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-3 sm:pb-4 mb-1 sm:mb-2 scrollbar-none flex-shrink-0 border-b border-zinc-900/60 -mx-4 lg:-mx-6 px-4 lg:px-6 touch-pan-x"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
         {filtersList.map(({ key, label, icon }) => {
           const isActive = currentFilterType === key;
           const countKey = key === "todo" ? "pending" : key;

@@ -322,8 +322,8 @@ export default function PlannerPage() {
           </div>
 
           {/* Nav Controls */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 bg-zinc-900/30 border border-zinc-800/60 p-1 rounded-xl">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-1.5 bg-zinc-900/30 border border-zinc-800/60 p-1 rounded-xl flex-shrink-0">
               <button
                 onClick={() => setActiveView("week")}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all focus:outline-none cursor-pointer ${
@@ -349,7 +349,7 @@ export default function PlannerPage() {
             {/* Backlog Toggle */}
             <button
               onClick={() => setShowBacklog(!showBacklog)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all focus:outline-none cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all focus:outline-none cursor-pointer flex-shrink-0 ${
                 showBacklog
                   ? "bg-purple-600/20 text-purple-300 border-purple-500/30 hover:bg-purple-600/30"
                   : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
@@ -366,11 +366,11 @@ export default function PlannerPage() {
             </button>
 
             {/* Time anchors */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button onClick={handlePrev} className="p-2 rounded-xl bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200 cursor-pointer focus:outline-none">
                 <ChevronLeft size={14} />
               </button>
-              <span className="text-xs font-extrabold text-zinc-300 min-w-[120px]">
+              <span className="text-xs font-extrabold text-zinc-300 min-w-[140px] text-center whitespace-nowrap">
                 {activeView === "week" ? weekHeaderLabel : monthHeaderLabel}
               </span>
               <button onClick={handleNext} className="p-2 rounded-xl bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200 cursor-pointer focus:outline-none">
