@@ -5,9 +5,13 @@ import { toast } from "react-toastify";
 const DB_NAME = "todo-app-offline-v1";
 const STORE_NAME = "offline_store";
 
+// Module-level map to translate temporary task IDs to database ObjectIds in real-time
+const tempIdMap = {};
+
 // ── IndexedDB Helpers ────────────────────────────────────────────────────────
 
 let dbPromise = null;
+let dbInstance = null;
 
 function openDB() {
   if (dbPromise) return dbPromise;
@@ -20,7 +24,10 @@ function openDB() {
         db.createObjectStore(STORE_NAME);
       }
     };
-    request.onsuccess = (e) => resolve(e.target.result);
+    request.onsuccess = (e) => {
+      dbInstance = e.target.result;
+      resolve(dbInstance);
+    };
     request.onerror = (e) => {
       dbPromise = null; // reset to allow retries if failed
       reject(e.target.error);
@@ -106,8 +113,17 @@ async function recalculateOfflineCounts(tasks) {
 
   const todayCount = tasks.filter((t) => {
     if (t.deleted) return false;
-    const date = t.date ? new Date(t.date) : new Date(t.createdAt || Date.now());
-    return date >= startOfDay && date <= endOfDay;
+    
+    const createdDate = t.date ? new Date(t.date) : new Date(t.createdAt || Date.now());
+    const isCreatedToday = createdDate >= startOfDay && createdDate <= endOfDay;
+    
+    const completedDate = t.completedAt ? new Date(t.completedAt) : null;
+    const isCompletedToday = t.completed && completedDate && completedDate >= startOfDay && completedDate <= endOfDay;
+    
+    const dueDate = t.dueDate ? new Date(t.dueDate) : null;
+    const isPendingAndDueTodayOrOverdue = !t.completed && dueDate && dueDate <= endOfDay;
+
+    return isCreatedToday || isCompletedToday || isPendingAndDueTodayOrOverdue;
   }).length;
 
   const deletedCount = tasks.filter((t) => t.deleted).length;
@@ -137,15 +153,28 @@ async function handleOfflineRead(endpoint, payload) {
     const completedCount = tasks.filter((t) => t.completed && !t.deleted).length;
     const pendingCount = tasks.filter((t) => !t.completed && !t.deleted).length;
 
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    const startOfDay = payload.startOfDay ? new Date(payload.startOfDay) : new Date();
+    const endOfDay = payload.endOfDay ? new Date(payload.endOfDay) : new Date();
+    if (!payload.startOfDay) {
+      startOfDay.setHours(0, 0, 0, 0);
+    }
+    if (!payload.endOfDay) {
+      endOfDay.setHours(23, 59, 59, 999);
+    }
 
     const todayCount = tasks.filter((t) => {
       if (t.deleted) return false;
-      const date = t.date ? new Date(t.date) : new Date(t.createdAt || Date.now());
-      return date >= startOfDay && date <= endOfDay;
+      
+      const createdDate = t.date ? new Date(t.date) : new Date(t.createdAt || Date.now());
+      const isCreatedToday = createdDate >= startOfDay && createdDate <= endOfDay;
+      
+      const completedDate = t.completedAt ? new Date(t.completedAt) : null;
+      const isCompletedToday = t.completed && completedDate && completedDate >= startOfDay && completedDate <= endOfDay;
+      
+      const dueDate = t.dueDate ? new Date(t.dueDate) : null;
+      const isPendingAndDueTodayOrOverdue = !t.completed && dueDate && dueDate <= endOfDay;
+
+      return isCreatedToday || isCompletedToday || isPendingAndDueTodayOrOverdue;
     }).length;
 
     const deletedCount = tasks.filter((t) => t.deleted).length;
@@ -176,28 +205,54 @@ async function handleOfflineRead(endpoint, payload) {
   } else if (endpoint === "filters/deleted") {
     filtered = tasks.filter((t) => t.deleted);
   } else if (endpoint === "filters/today") {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    const startOfDay = payload.startOfDay ? new Date(payload.startOfDay) : new Date();
+    const endOfDay = payload.endOfDay ? new Date(payload.endOfDay) : new Date();
+    if (!payload.startOfDay) {
+      startOfDay.setHours(0, 0, 0, 0);
+    }
+    if (!payload.endOfDay) {
+      endOfDay.setHours(23, 59, 59, 999);
+    }
     filtered = tasks.filter((t) => {
       if (t.deleted) return false;
-      const date = t.date ? new Date(t.date) : new Date(t.createdAt || Date.now());
-      return date >= startOfDay && date <= endOfDay;
+      
+      const createdDate = t.date ? new Date(t.date) : new Date(t.createdAt || Date.now());
+      const isCreatedToday = createdDate >= startOfDay && createdDate <= endOfDay;
+      
+      const completedDate = t.completedAt ? new Date(t.completedAt) : null;
+      const isCompletedToday = t.completed && completedDate && completedDate >= startOfDay && completedDate <= endOfDay;
+      
+      const dueDate = t.dueDate ? new Date(t.dueDate) : null;
+      const isPendingAndDueTodayOrOverdue = !t.completed && dueDate && dueDate <= endOfDay;
+
+      return isCreatedToday || isCompletedToday || isPendingAndDueTodayOrOverdue;
     });
   } else if (endpoint === "filters/week") {
     // Show all tasks created within the last 7 days (inclusive of today)
-    const now = new Date();
-    const endOfToday = new Date(now);
-    endOfToday.setHours(23, 59, 59, 999);
-    const startOf7DaysAgo = new Date(now);
-    startOf7DaysAgo.setDate(now.getDate() - 6); // 6 + today = 7 full days
-    startOf7DaysAgo.setHours(0, 0, 0, 0);
+    let startOf7DaysAgo = payload.startOf7DaysAgo ? new Date(payload.startOf7DaysAgo) : null;
+    let endOfToday = payload.endOfToday ? new Date(payload.endOfToday) : null;
+    if (!startOf7DaysAgo || !endOfToday) {
+      const now = new Date();
+      startOf7DaysAgo = new Date(now);
+      startOf7DaysAgo.setDate(now.getDate() - 6); // 6 + today = 7 full days
+      startOf7DaysAgo.setHours(0, 0, 0, 0);
+      endOfToday = new Date(now);
+      endOfToday.setHours(23, 59, 59, 999);
+    }
 
     filtered = tasks.filter((t) => {
       if (t.deleted) return false;
-      const date = t.date ? new Date(t.date) : new Date(t.createdAt || Date.now());
-      return date >= startOf7DaysAgo && date <= endOfToday;
+      
+      const createdDate = t.date ? new Date(t.date) : new Date(t.createdAt || Date.now());
+      const isCreatedToday = createdDate >= startOf7DaysAgo && createdDate <= endOfToday;
+      
+      const completedDate = t.completedAt ? new Date(t.completedAt) : null;
+      const isCompletedToday = t.completed && completedDate && completedDate >= startOf7DaysAgo && completedDate <= endOfToday;
+      
+      const dueDate = t.dueDate ? new Date(t.dueDate) : null;
+      const isPendingAndDueTodayOrOverdue = !t.completed && dueDate && dueDate <= endOfToday;
+
+      return isCreatedToday || isCompletedToday || isPendingAndDueTodayOrOverdue;
     });
   }
 
@@ -258,8 +313,11 @@ async function handleOfflineWrite(endpoint, payload, headers) {
       if (payload.priority !== undefined) task.priority = payload.priority;
       if (payload.dueDate !== undefined) task.dueDate = payload.dueDate;
       if (payload.startDate !== undefined) task.startDate = payload.startDate;
+      if (payload.endDate !== undefined) task.endDate = payload.endDate;
       if (payload.starred !== undefined) task.starred = payload.starred;
       if (payload.completed !== undefined) task.completed = payload.completed;
+      if (payload.completedAt !== undefined) task.completedAt = payload.completedAt;
+      if (payload.rankIndex !== undefined) task.rankIndex = payload.rankIndex;
       task.updatedAt = new Date().toISOString();
     }
   } else if (endpoint === "todo/deleteTask") {
@@ -267,9 +325,17 @@ async function handleOfflineWrite(endpoint, payload, headers) {
     if (taskIndex !== -1) {
       if (payload.taskID.startsWith("temp_")) {
         tasks.splice(taskIndex, 1);
-        // Optimize: remove corresponding addTask from queue if it hasn't synced
+        // Optimize: remove corresponding addTask and all update/starred/completion toggles for this tempId from the queue
         const filteredQueue = queue.filter(
-          (item) => !(item.url.includes("todo/addTask") && item.tempId === payload.taskID)
+          (item) => {
+            if (item.url.includes("todo/addTask") && item.tempId === payload.taskID) {
+              return false;
+            }
+            if (item.data && item.data.taskID === payload.taskID) {
+              return false;
+            }
+            return true;
+          }
         );
         await dbPut("queue", filteredQueue);
         await dbPut("tasks", tasks);
@@ -277,6 +343,21 @@ async function handleOfflineWrite(endpoint, payload, headers) {
         return { status: true, message: "Task deleted successfully" };
       } else {
         tasks[taskIndex].deleted = true;
+      }
+    }
+  } else if (endpoint === "todo/undoDelete") {
+    const taskIndex = tasks.findIndex((t) => t._id === payload.taskID);
+    if (taskIndex !== -1) {
+      tasks[taskIndex].deleted = false;
+      // Optimize: remove corresponding deleteTask from queue if it hasn't synced
+      const filteredQueue = queue.filter(
+        (item) => !(item.url.includes("todo/deleteTask") && item.data && item.data.taskID === payload.taskID)
+      );
+      if (filteredQueue.length < queue.length) {
+        await dbPut("queue", filteredQueue);
+        await dbPut("tasks", tasks);
+        await recalculateOfflineCounts(tasks);
+        return { status: true, message: "Task restored successfully" };
       }
     }
   } else if (endpoint === "todo/deleteall") {
@@ -349,7 +430,6 @@ export async function syncOfflineQueue() {
   isSyncing = true;
   notifySyncStatusListeners();
 
-  const idMap = {};
   let processedCount = 0;
 
   try {
@@ -358,8 +438,8 @@ export async function syncOfflineQueue() {
 
       // Reconcile temporary IDs
       if (item.data) {
-        if (item.data.taskID && idMap[item.data.taskID]) {
-          item.data.taskID = idMap[item.data.taskID];
+        if (item.data.taskID && tempIdMap[item.data.taskID]) {
+          item.data.taskID = tempIdMap[item.data.taskID];
         }
       }
 
@@ -383,7 +463,7 @@ export async function syncOfflineQueue() {
           const tempId = item.tempId;
           const realId = response.data.todo._id;
           if (tempId) {
-            idMap[tempId] = realId;
+            tempIdMap[tempId] = realId;
             const tasks = (await dbGet("tasks")) || [];
             const updatedTasks = tasks.map((t) => {
               if (t._id === tempId) {
@@ -405,28 +485,39 @@ export async function syncOfflineQueue() {
     }
 
     // Done syncing
-    await dbPut("queue", []);
+    const currentQueue = (await dbGet("queue")) || [];
+    const remainingQueue = currentQueue.slice(processedCount);
+    await dbPut("queue", remainingQueue);
+
     isSyncing = false;
     notifySyncStatusListeners();
 
     window.dispatchEvent(new CustomEvent("todo-offline-synced"));
     toast.success("Offline updates synchronized successfully!");
+
+    // If more tasks were queued concurrently while this sync loop was running, process them now
+    if (remainingQueue.length > 0) {
+      syncOfflineQueue();
+    }
   } catch (err) {
     console.error("[Sync] Paused due to network error.", err);
     isSyncing = false;
     notifySyncStatusListeners();
 
+    const currentQueue = (await dbGet("queue")) || [];
     const remaining = queue.slice(processedCount);
     const reconciledRemaining = remaining.map((item) => {
-      if (item.data && item.data.taskID && idMap[item.data.taskID]) {
+      if (item.data && item.data.taskID && tempIdMap[item.data.taskID]) {
         return {
           ...item,
-          data: { ...item.data, taskID: idMap[item.data.taskID] },
+          data: { ...item.data, taskID: tempIdMap[item.data.taskID] },
         };
       }
       return item;
     });
-    await dbPut("queue", reconciledRemaining);
+
+    const finalQueue = [...reconciledRemaining, ...currentQueue.slice(queue.length)];
+    await dbPut("queue", finalQueue);
     toast.error("Offline sync paused. Connection lost.");
   }
 }
@@ -517,6 +608,53 @@ export function initSyncManager() {
 
       const endpoint = config.url.substring(apiUrl.length);
 
+      // ── Handle Temporary IDs Online / Offline ──
+      // If a write request targets a task with a temporary ID (starts with temp_),
+      // we must handle it by:
+      // A) Substituting the real ObjectId if the sync manager has already mapped it.
+      // B) Routing the write to handleOfflineWrite (queuing it) if the mapping is not yet available,
+      //    preventing backend database CastErrors.
+      let payload = null;
+      let targetTempId = null;
+
+      if (endpoint.startsWith("todo/")) {
+        if (config.data) {
+          try {
+            payload = typeof config.data === "string" ? JSON.parse(config.data) : config.data;
+            if (payload && payload.taskID && payload.taskID.startsWith("temp_")) {
+              targetTempId = payload.taskID;
+            }
+          } catch (_) {
+            payload = null;
+          }
+        }
+      }
+
+      if (targetTempId) {
+        if (tempIdMap[targetTempId]) {
+          // A) Substitution: Mapping exists
+          payload.taskID = tempIdMap[targetTempId];
+          config.data = typeof config.data === "string" ? JSON.stringify(payload) : payload;
+        } else {
+          // B) Queue: Mapping not yet available, treat as offline write
+          config.adapter = async () => {
+            const data = await handleOfflineWrite(
+              endpoint,
+              payload || {},
+              config.headers
+            );
+            return {
+              data,
+              status: 200,
+              statusText: "OK",
+              headers: {},
+              config,
+            };
+          };
+          return config;
+        }
+      }
+
       if (!isOnline || !navigator.onLine) {
         try {
           // ── Intercept Auth: return cached user identity offline ──
@@ -560,16 +698,16 @@ export function initSyncManager() {
             return config;
           }
 
-          // Intercept Writes
+          // Intercept Writes (standard writes when offline)
           if (endpoint.startsWith("todo/")) {
             config.adapter = async () => {
               const data = await handleOfflineWrite(
                 endpoint,
-                config.data
+                payload || (config.data
                   ? typeof config.data === "string"
                     ? JSON.parse(config.data)
                     : config.data
-                  : {},
+                  : {}),
                 config.headers
               );
               return {
@@ -793,5 +931,73 @@ export function initSyncManager() {
     isOnline = false;
     notifyConnectionListeners();
     startPingInterval();
+  }
+}
+
+export async function clearOfflineData() {
+  // 1. Send CLEAR_USER_DATA message to active service worker
+  try {
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: "CLEAR_USER_DATA" });
+      console.log("[SyncManager] Dispatched CLEAR_USER_DATA to service worker.");
+    }
+  } catch (err) {
+    console.error("[SyncManager] Failed to message service worker:", err);
+  }
+
+  // 2. Close existing client IndexedDB connection
+  if (dbInstance) {
+    dbInstance.close();
+    dbInstance = null;
+  }
+  dbPromise = null;
+
+  // 3. Delete client database
+  await new Promise((resolve) => {
+    const req = indexedDB.deleteDatabase(DB_NAME);
+    req.onsuccess = () => {
+      console.log(`[SyncManager] Deleted database: ${DB_NAME}`);
+      resolve();
+    };
+    req.onerror = (e) => {
+      console.error(`[SyncManager] Failed to delete database: ${DB_NAME}`, e.target.error);
+      resolve();
+    };
+    req.onblocked = () => {
+      console.warn(`[SyncManager] Database deletion blocked: ${DB_NAME}`);
+      resolve();
+    };
+  });
+
+  // 4. Delete service worker database
+  await new Promise((resolve) => {
+    const req = indexedDB.deleteDatabase("todo-sw-v1");
+    req.onsuccess = () => {
+      console.log("[SyncManager] Deleted database: todo-sw-v1");
+      resolve();
+    };
+    req.onerror = (e) => {
+      console.error("[SyncManager] Failed to delete database: todo-sw-v1", e.target.error);
+      resolve();
+    };
+    req.onblocked = () => {
+      console.warn("[SyncManager] Database deletion blocked: todo-sw-v1");
+      resolve();
+    };
+  });
+
+  // 5. Clear runtime caches
+  try {
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      for (const key of keys) {
+        if (key.includes("todo-runtime")) {
+          await caches.delete(key);
+          console.log(`[SyncManager] Deleted runtime cache: ${key}`);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[SyncManager] Failed to clear runtime caches:", err);
   }
 }

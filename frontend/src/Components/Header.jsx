@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import { clearAuth } from "../utils/auth";
 import AccountCenterDropDown from "./AccountCenterDropDown";
 import StreakModal from "./StreakModal";
-import { getOnlineStatus, isSyncingInProgress, syncOfflineQueue, dbGet, addConnectionListener, removeConnectionListener, addSyncListener, removeSyncListener } from "../utils/syncManager";
+import { getOnlineStatus, isSyncingInProgress, syncOfflineQueue, dbGet, addConnectionListener, removeConnectionListener, addSyncListener, removeSyncListener, clearOfflineData } from "../utils/syncManager";
 
 function Header() {
   const dispatch = useDispatch();
@@ -91,7 +91,12 @@ function Header() {
     dispatch(setSearchQuery(""));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await clearOfflineData();
+    } catch (err) {
+      console.error("Failed to clear offline databases:", err);
+    }
     clearAuth();
     dispatch(clearUserInfo());
     navigate("/login");

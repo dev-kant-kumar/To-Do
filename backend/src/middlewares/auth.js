@@ -16,13 +16,13 @@ function auth(req, res, next) {
       req.id = userID;
       next();
     } catch (err) {
-      res.send({
+      res.status(401).send({
         status: false,
         message: "Invalid token!",
       });
     }
   } else {
-    res.send({
+    res.status(401).send({
       status: false,
       message: "No token found!",
     });

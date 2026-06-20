@@ -23,6 +23,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { setUserInfo, clearUserInfo } from "../Store/Reducers/UserSlice";
 import { getToken, clearAuth } from "../utils/auth";
+import { clearOfflineData } from "../utils/syncManager";
 import ActivityTracker from "../Components/ActivityTracker";
 import BackgroundPicker from "../Components/BackgroundPicker";
 import BackgroundLayer from "../Components/BackgroundLayer";
@@ -329,6 +330,11 @@ function ProfilePage() {
         setShowDeleteModal(false);
         setDeleteOtp("");
         setDeleteOtpSent(false);
+        try {
+          await clearOfflineData();
+        } catch (dbErr) {
+          console.error("Failed to clear offline databases:", dbErr);
+        }
         clearAuth();
         dispatch(clearUserInfo());
         navigate("/login");
@@ -347,8 +353,13 @@ function ProfilePage() {
     setIsLogoutModalOpen(true);
   };
 
-  const handleConfirmLogout = () => {
+  const handleConfirmLogout = async () => {
     setIsLogoutModalOpen(false);
+    try {
+      await clearOfflineData();
+    } catch (dbErr) {
+      console.error("Failed to clear offline databases:", dbErr);
+    }
     clearAuth();
     dispatch(clearUserInfo());
     navigate("/login");

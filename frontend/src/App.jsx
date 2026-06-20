@@ -10,6 +10,7 @@ import { fetchStreakData } from "./Store/Reducers/StreakSlice";
 import { StreakHighlightCard } from "./Components/ActivityTracker";
 import { registerSW } from "./utils/serviceWorker";
 import BackgroundLayer from "./Components/BackgroundLayer";
+import { dbGet } from "./utils/syncManager";
 
 function App() {
   const dispatch = useDispatch();
@@ -31,20 +32,36 @@ function App() {
   const fetchTodayStats = useCallback(async () => {
     if (!userInfo?.userId) return;
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}filters/today`, {
-        userId: userInfo.userId,
+      const tasks = (await dbGet("tasks")) || [];
+      
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const todayTasks = tasks.filter((t) => {
+        if (t.deleted) return false;
+        
+        const createdDate = t.date ? new Date(t.date) : new Date(t.createdAt || Date.now());
+        const isCreatedToday = createdDate >= startOfDay && createdDate <= endOfDay;
+        
+        const completedDate = t.completedAt ? new Date(t.completedAt) : null;
+        const isCompletedToday = t.completed && completedDate && completedDate >= startOfDay && completedDate <= endOfDay;
+        
+        const dueDate = t.dueDate ? new Date(t.dueDate) : null;
+        const isPendingAndDueTodayOrOverdue = !t.completed && dueDate && dueDate <= endOfDay;
+
+        return isCreatedToday || isCompletedToday || isPendingAndDueTodayOrOverdue;
       });
-      if (res.data && Array.isArray(res.data)) {
-        const total = res.data.length;
-        const completed = res.data.filter((t) => t.completed).length;
-        const pending = total - completed;
-        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-        setTodayStats({ total, completed, pending, percent, loading: false });
-      } else {
-        setTodayStats({ total: 0, completed: 0, pending: 0, percent: 0, loading: false });
-      }
+
+      const total = todayTasks.length;
+      const completed = todayTasks.filter((t) => t.completed).length;
+      const pending = total - completed;
+      const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      setTodayStats({ total, completed, pending, percent, loading: false });
     } catch (err) {
-      console.error("Error fetching today's stats:", err);
+      console.error("Error calculating today's stats locally:", err);
       setTodayStats({ total: 0, completed: 0, pending: 0, percent: 0, loading: false });
     }
   }, [userInfo?.userId]);

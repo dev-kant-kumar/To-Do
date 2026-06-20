@@ -132,3 +132,46 @@ for (const [route, meta] of Object.entries(routes)) {
 }
 
 console.log("SSG route generation completed successfully!");
+
+// ── Service Worker Assets Injection & Cache Busting ──────────────────────────
+console.log("Updating service worker cache manifest for robust offline support...");
+
+const assetsDir = path.join(distDir, "assets");
+let assets = [];
+if (fs.existsSync(assetsDir)) {
+  const files = fs.readdirSync(assetsDir);
+  assets = files
+    .filter((f) => {
+      const ext = path.extname(f).toLowerCase();
+      return [".js", ".css", ".png", ".jpg", ".jpeg", ".svg", ".ico"].includes(ext);
+    })
+    .map((f) => `/assets/${f}`);
+}
+console.log(`Found ${assets.length} compiled assets to cache.`);
+
+const swPath = path.join(distDir, "sw.js");
+if (fs.existsSync(swPath)) {
+  let swContent = fs.readFileSync(swPath, "utf-8");
+
+  // Format assets array as list strings
+  const assetsString = assets.map((a) => `  '${a}',`).join("\n");
+
+  // Replace SHELL_URLS list in sw.js
+  swContent = swContent.replace(
+    /const\s+SHELL_URLS\s*=\s*\[[\s\S]*?\];?/s,
+    `const SHELL_URLS = [\n  '/',\n  '/index.html',\n  '/manifest.json',\n  '/list.png',\n${assetsString}\n];`
+  );
+
+  // Update SW_VERSION to force service worker updates in user browsers
+  const buildHash = Date.now().toString();
+  swContent = swContent.replace(
+    /const\s+SW_VERSION\s*=\s*['"`]([^'"`]+)['"`];?/,
+    `const SW_VERSION  = '$1-${buildHash}';`
+  );
+
+  fs.writeFileSync(swPath, swContent, "utf-8");
+  console.log("✓ Successfully injected assets and cache-busted SW_VERSION in dist/sw.js");
+} else {
+  console.error("❌ sw.js not found in dist!");
+}
+

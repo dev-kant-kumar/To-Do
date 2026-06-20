@@ -25,11 +25,21 @@ axios.interceptors.request.use(
 initSyncManager();
 
 import { BackgroundProvider } from "./hooks/useBackground";
+import ErrorBoundary from "./Components/ErrorBoundary";
+
+// Global uncaught promise rejection tracker
+if (typeof window !== "undefined") {
+  window.addEventListener("unhandledrejection", (event) => {
+    console.error("[App] Unhandled Promise Rejection:", event.reason);
+  });
+}
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <Provider store={store}>
     <BackgroundProvider>
-      <Authentication />
+      <ErrorBoundary>
+        <Authentication />
+      </ErrorBoundary>
     </BackgroundProvider>
   </Provider>
 );

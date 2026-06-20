@@ -6,6 +6,7 @@ const TodoSchema = new Schema(
     userId: {
       type: String,
       required: true,
+      index: true,
     },
     task: {
       type: String,

@@ -56,30 +56,66 @@ async function addTask(req, res) {
   const { task, priority, dueDate, description } = req.body;
   const userId = req.id;
 
-  const existingUser = await User.findOne({ _id: userId });
-  if (existingUser) {
-    const newTask = new Todo({
-      userId: userId,
-      task: task,
-      completed: false,
-      starred: false,
-      deleted: false,
-      date: new Date(),
-      priority: priority || "low",
-      dueDate: dueDate || null,
-      description: description || "",
-    });
-
-    await newTask.save();
-    res.send({
-      status: true,
-      message: "Task added successfully",
-      todo: newTask,
-    });
-  } else {
-    res.send({
+  if (!task || typeof task !== "string" || task.trim() === "") {
+    return res.send({
       status: false,
-      message: "No such user found!",
+      message: "Task title is required and must be a non-empty string.",
+    });
+  }
+
+  if (task.length > 250) {
+    return res.send({
+      status: false,
+      message: "Task title cannot exceed 250 characters.",
+    });
+  }
+
+  if (description !== undefined && typeof description === "string" && description.length > 2000) {
+    return res.send({
+      status: false,
+      message: "Task description cannot exceed 2000 characters.",
+    });
+  }
+
+  if (priority && !["low", "medium", "high"].includes(priority)) {
+    return res.send({
+      status: false,
+      message: "Priority must be one of 'low', 'medium', or 'high'.",
+    });
+  }
+
+  try {
+    const existingUser = await User.findOne({ _id: userId });
+    if (existingUser) {
+      const newTask = new Todo({
+        userId: userId,
+        task: task.trim(),
+        completed: false,
+        starred: false,
+        deleted: false,
+        date: new Date(),
+        priority: priority || "low",
+        dueDate: dueDate || null,
+        description: description || "",
+      });
+
+      await newTask.save();
+      res.send({
+        status: true,
+        message: "Task added successfully",
+        todo: newTask,
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "No such user found!",
+      });
+    }
+  } catch (err) {
+    console.error("[addTask] Error:", err);
+    res.status(500).send({
+      status: false,
+      message: "An internal server error occurred while adding the task.",
     });
   }
 }
@@ -168,15 +204,24 @@ async function markStarred(req, res) {
   const { taskID } = req.body;
   const userId = req.id;
 
-  const markStarredStatus = await Todo.findOneAndUpdate(
-    { _id: taskID, userId: userId },
-    { $set: { starred: true } }
-  );
+  if (!taskID) {
+    return res.send({ status: false, message: "Task ID is required" });
+  }
 
-  if (markStarredStatus) {
-    res.send({ status: true, message: "Task successfully marked as starred." });
-  } else {
-    res.send({ status: false, message: "No such task found" });
+  try {
+    const markStarredStatus = await Todo.findOneAndUpdate(
+      { _id: taskID, userId: userId },
+      { $set: { starred: true } }
+    );
+
+    if (markStarredStatus) {
+      res.send({ status: true, message: "Task successfully marked as starred." });
+    } else {
+      res.send({ status: false, message: "No such task found" });
+    }
+  } catch (err) {
+    console.error("[markStarred] Error:", err);
+    res.status(500).send({ status: false, message: "Internal server error" });
   }
 }
 
@@ -184,15 +229,24 @@ async function unMarkStarred(req, res) {
   const { taskID } = req.body;
   const userId = req.id;
 
-  const unMarkStarredStatus = await Todo.findOneAndUpdate(
-    { _id: taskID, userId: userId },
-    { $set: { starred: false } }
-  );
+  if (!taskID) {
+    return res.send({ status: false, message: "Task ID is required" });
+  }
 
-  if (unMarkStarredStatus) {
-    res.send({ status: true, message: "Task successfully unmarked as starred." });
-  } else {
-    res.send({ status: false, message: "No such task found!" });
+  try {
+    const unMarkStarredStatus = await Todo.findOneAndUpdate(
+      { _id: taskID, userId: userId },
+      { $set: { starred: false } }
+    );
+
+    if (unMarkStarredStatus) {
+      res.send({ status: true, message: "Task successfully unmarked as starred." });
+    } else {
+      res.send({ status: false, message: "No such task found!" });
+    }
+  } catch (err) {
+    console.error("[unMarkStarred] Error:", err);
+    res.status(500).send({ status: false, message: "Internal server error" });
   }
 }
 
@@ -201,15 +255,24 @@ async function deleteTask(req, res) {
   const { taskID } = req.body;
   const userId = req.id;
 
-  const deleteStatus = await Todo.findOneAndUpdate(
-    { _id: taskID, userId: userId },
-    { $set: { deleted: true } }
-  );
+  if (!taskID) {
+    return res.send({ status: false, message: "Task ID is required" });
+  }
 
-  if (deleteStatus) {
-    res.send({ status: true, message: "Task deleted successfully." });
-  } else {
-    res.send({ status: false, message: "No such Task found!" });
+  try {
+    const deleteStatus = await Todo.findOneAndUpdate(
+      { _id: taskID, userId: userId },
+      { $set: { deleted: true } }
+    );
+
+    if (deleteStatus) {
+      res.send({ status: true, message: "Task deleted successfully." });
+    } else {
+      res.send({ status: false, message: "No such Task found!" });
+    }
+  } catch (err) {
+    console.error("[deleteTask] Error:", err);
+    res.status(500).send({ status: false, message: "Internal server error" });
   }
 }
 
@@ -217,15 +280,24 @@ async function undoDelete(req, res) {
   const { taskID } = req.body;
   const userId = req.id;
 
-  const deleteStatus = await Todo.findOneAndUpdate(
-    { _id: taskID, userId: userId },
-    { $set: { deleted: false } }
-  );
+  if (!taskID) {
+    return res.send({ status: false, message: "Task ID is required" });
+  }
 
-  if (deleteStatus) {
-    res.send({ status: true, message: "Task successfully restored from deletion." });
-  } else {
-    res.send({ status: false, message: "No such Task found!" });
+  try {
+    const deleteStatus = await Todo.findOneAndUpdate(
+      { _id: taskID, userId: userId },
+      { $set: { deleted: false } }
+    );
+
+    if (deleteStatus) {
+      res.send({ status: true, message: "Task successfully restored from deletion." });
+    } else {
+      res.send({ status: false, message: "No such Task found!" });
+    }
+  } catch (err) {
+    console.error("[undoDelete] Error:", err);
+    res.status(500).send({ status: false, message: "Internal server error" });
   }
 }
 
@@ -276,6 +348,34 @@ async function updateTask(req, res) {
 
   if (!taskID) {
     return res.send({ status: false, message: "Task ID is required" });
+  }
+
+  if (task !== undefined && (typeof task !== "string" || task.trim() === "")) {
+    return res.send({
+      status: false,
+      message: "Task title must be a non-empty string.",
+    });
+  }
+
+  if (task !== undefined && task.length > 250) {
+    return res.send({
+      status: false,
+      message: "Task title cannot exceed 250 characters.",
+    });
+  }
+
+  if (description !== undefined && typeof description === "string" && description.length > 2000) {
+    return res.send({
+      status: false,
+      message: "Task description cannot exceed 2000 characters.",
+    });
+  }
+
+  if (priority !== undefined && !["low", "medium", "high"].includes(priority)) {
+    return res.send({
+      status: false,
+      message: "Priority must be one of 'low', 'medium', or 'high'.",
+    });
   }
 
   try {

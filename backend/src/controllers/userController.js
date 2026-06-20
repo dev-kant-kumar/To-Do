@@ -30,9 +30,61 @@ function maskEmail(email) {
   return `${maskedLocal}@${maskedDomain}`;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isValidEmail(email) {
+  return typeof email === "string" && EMAIL_REGEX.test(email) && email.length <= 150;
+}
+
+function isValidPassword(password) {
+  return typeof password === "string" && password.length >= 6 && password.length <= 100;
+}
+
+function isValidUsername(username) {
+  return typeof username === "string" && /^[a-zA-Z0-9_.-]+$/.test(username) && username.length >= 3 && username.length <= 30;
+}
+
+function isValidName(name) {
+  return typeof name === "string" && name.trim().length >= 1 && name.length <= 100;
+}
 
 async function signUp(req, res) {
   const { name, username, email, password } = req.body;
+
+  if (!name || !username || !email || !password) {
+    return res.send({
+      status: false,
+      message: "All fields are required!",
+    });
+  }
+
+  if (!isValidName(name)) {
+    return res.send({
+      status: false,
+      message: "Please enter a valid name (1-100 characters).",
+    });
+  }
+
+  if (!isValidUsername(username)) {
+    return res.send({
+      status: false,
+      message: "Username must be 3-30 characters and can only contain letters, numbers, dots, hyphens, and underscores.",
+    });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.send({
+      status: false,
+      message: "Please enter a valid email address.",
+    });
+  }
+
+  if (!isValidPassword(password)) {
+    return res.send({
+      status: false,
+      message: "Password must be between 6 and 100 characters.",
+    });
+  }
 
   try {
     const existingUsername = await user.findOne({ username: username });
@@ -102,6 +154,20 @@ async function signUp(req, res) {
 async function verifyOtp(req, res) {
   const { email, otp } = req.body;
 
+  if (!email || !otp || typeof email !== "string" || typeof otp !== "string") {
+    return res.send({
+      status: false,
+      message: "Email and verification code are required.",
+    });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.send({
+      status: false,
+      message: "Invalid email address format.",
+    });
+  }
+
   try {
     const userData = await user.findOne({ email: email.toLowerCase() });
 
@@ -157,6 +223,20 @@ async function verifyOtp(req, res) {
 async function resendOtp(req, res) {
   const { email } = req.body;
 
+  if (!email || typeof email !== "string") {
+    return res.send({
+      status: false,
+      message: "Email is required.",
+    });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.send({
+      status: false,
+      message: "Invalid email address format.",
+    });
+  }
+
   try {
     const userData = await user.findOne({ email: email.toLowerCase() });
 
@@ -204,19 +284,29 @@ async function resendOtp(req, res) {
 async function signIn(req, res) {
   const { username, password } = req.body;
 
-  const existingUser = await user.findOne({
-    $or: [
-      { username: { $eq: username } },
-      { email: { $eq: username.toLowerCase() } }
-    ]
-  });
-
-  if (!existingUser) {
-    res.send({
+  if (!username || !password || typeof username !== "string" || typeof password !== "string") {
+    return res.send({
       status: false,
-      message: "No account found!",
+      message: "Username/Email and Password are required.",
     });
-  } else {
+  }
+
+  try {
+    const trimmedUsername = username.trim();
+    const existingUser = await user.findOne({
+      $or: [
+        { username: { $eq: trimmedUsername } },
+        { email: { $eq: trimmedUsername.toLowerCase() } }
+      ]
+    });
+
+    if (!existingUser) {
+      return res.send({
+        status: false,
+        message: "No account found!",
+      });
+    }
+
     // Check verification status (backward compatible if isVerified is undefined)
     if (existingUser.isVerified === false) {
       const otp = crypto.randomInt(100000, 999999).toString();
@@ -257,11 +347,32 @@ async function signIn(req, res) {
         message: "Incorrect Password!",
       });
     }
+  } catch (err) {
+    console.error("Signin failed:", err);
+    res.send({
+      status: false,
+      message: "An internal error occurred during login.",
+    });
   }
 }
 
 async function forgotPassword(req, res) {
   const { email } = req.body;
+
+  if (!email || typeof email !== "string") {
+    return res.send({
+      status: false,
+      message: "Email is required.",
+    });
+  }
+
+  if (!isValidEmail(email)) {
+    // Prevent user enumeration by returning success in all cases
+    return res.send({
+      status: true,
+      message: "If that email exists in our system, we have sent a reset code.",
+    });
+  }
 
   try {
     const userData = await user.findOne({ email: email.toLowerCase() });
@@ -303,6 +414,27 @@ async function forgotPassword(req, res) {
 
 async function resetPassword(req, res) {
   const { email, otp, password } = req.body;
+
+  if (!email || !otp || !password || typeof email !== "string" || typeof otp !== "string" || typeof password !== "string") {
+    return res.send({
+      status: false,
+      message: "All fields are required.",
+    });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.send({
+      status: false,
+      message: "Invalid email format.",
+    });
+  }
+
+  if (!isValidPassword(password)) {
+    return res.send({
+      status: false,
+      message: "Password must be between 6 and 100 characters.",
+    });
+  }
 
   try {
     const userData = await user.findOne({ email: email.toLowerCase() });
@@ -351,20 +483,27 @@ async function resetPassword(req, res) {
 }
 
 async function getUserData(req, res) {
-  const username = req.username;
-  if (username) {
-    const userData = await user.findOne({ username: { $eq: username } });
-    if (userData) {
-      res.json({
-        status: true,
-        data: userData,
-      });
-    } else {
-      res.json({
-        status: false,
-        message: "Unauthorized",
-      });
+  try {
+    const username = req.username;
+    if (username) {
+      const userData = await user.findOne({ username: { $eq: username } });
+      if (userData) {
+        return res.json({
+          status: true,
+          data: userData,
+        });
+      }
     }
+    return res.status(401).json({
+      status: false,
+      message: "Unauthorized",
+    });
+  } catch (err) {
+    console.error("getUserData failed:", err);
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+    });
   }
 }
 
@@ -379,10 +518,24 @@ async function updateProfile(req, res) {
     });
   }
 
+  if (name !== undefined && !isValidName(name)) {
+    return res.send({
+      status: false,
+      message: "Please enter a valid name (1-100 characters).",
+    });
+  }
+
+  if (email !== undefined && !isValidEmail(email)) {
+    return res.send({
+      status: false,
+      message: "Please enter a valid email address.",
+    });
+  }
+
   try {
     // Check if the email is already in use by another user
     if (email) {
-      const emailExists = await user.findOne({ email: email, username: { $ne: username } });
+      const emailExists = await user.findOne({ email: email.toLowerCase(), username: { $ne: username } });
       if (emailExists) {
         return res.send({
           status: false,
@@ -393,7 +546,7 @@ async function updateProfile(req, res) {
 
     const updatedUser = await user.findOneAndUpdate(
       { username: username },
-      { name: name, email: email },
+      { name: name, email: email ? email.toLowerCase() : undefined },
       { new: true }
     );
 
@@ -426,6 +579,20 @@ async function changePassword(req, res) {
     return res.send({
       status: false,
       message: "Unauthorized access",
+    });
+  }
+
+  if (!currentPassword || !newPassword || typeof currentPassword !== "string" || typeof newPassword !== "string") {
+    return res.send({
+      status: false,
+      message: "Current password and new password are required.",
+    });
+  }
+
+  if (!isValidPassword(newPassword)) {
+    return res.send({
+      status: false,
+      message: "New password must be between 6 and 100 characters.",
     });
   }
 
@@ -531,7 +698,7 @@ async function deleteAccount(req, res) {
     });
   }
 
-  if (!otp) {
+  if (!otp || typeof otp !== "string") {
     return res.send({
       status: false,
       message: "Verification code is required.",

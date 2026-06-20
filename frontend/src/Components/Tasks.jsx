@@ -116,7 +116,15 @@ function Tasks() {
     const fetchCounts = async () => {
       if (!userInfo.userId) return;
       try {
-        const res = await axios.post(`${apiUrl}filters/counts`, { userId: userInfo.userId });
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const end = new Date();
+        end.setHours(23, 59, 59, 999);
+        const res = await axios.post(`${apiUrl}filters/counts`, {
+          userId: userInfo.userId,
+          startOfDay: start.toISOString(),
+          endOfDay: end.toISOString(),
+        });
         if (res.data) {
           setCounts(res.data);
         }
@@ -207,11 +215,26 @@ function Tasks() {
       setIsLoading(true);
       try {
         const filterEndpoint = currentFilterType === FILTER_TYPES.TODO ? "all" : currentFilterType;
+        const payload = { userId: userId };
+
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const end = new Date();
+        end.setHours(23, 59, 59, 999);
+
+        if (filterEndpoint === "today") {
+          payload.startOfDay = start.toISOString();
+          payload.endOfDay = end.toISOString();
+        } else if (filterEndpoint === "week") {
+          const startOf7DaysAgo = new Date(start);
+          startOf7DaysAgo.setDate(start.getDate() - 6);
+          payload.startOf7DaysAgo = startOf7DaysAgo.toISOString();
+          payload.endOfToday = end.toISOString();
+        }
+
         const response = await axios.post(
           `${apiUrl}filters/${filterEndpoint}`,
-          {
-            userId: userId,
-          }
+          payload
         );
 
         if (response.data?.status === false) {
@@ -331,6 +354,30 @@ function Tasks() {
       } catch (error) {
         console.error("Error deleting task:", error);
         toast.error("Failed to delete task. Please try again.");
+      }
+    },
+    [apiUrl, userInfo.userId, fetchTodo]
+  );
+
+  const restoreTask = useCallback(
+    async (taskID) => {
+      if (!taskID || !userInfo.userId) return;
+
+      try {
+        const response = await axios.post(`${apiUrl}todo/undoDelete`, {
+          taskID,
+          userId: userInfo.userId,
+        });
+
+        if (response.data?.status === true) {
+          toast.success("Task restored successfully!");
+          await fetchTodo(userInfo.userId);
+        } else {
+          toast.error(response.data?.message || "Failed to restore task");
+        }
+      } catch (error) {
+        console.error("Error restoring task:", error);
+        toast.error("Failed to restore task. Please try again.");
       }
     },
     [apiUrl, userInfo.userId, fetchTodo]
@@ -979,48 +1026,64 @@ function Tasks() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Move Up/Down Buttons — hidden on mobile as they can drag & drop */}
-            <div className="hidden sm:flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wider select-none">
+            {isDeletedFilter ? (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleMoveUp(task);
+                  restoreTask(task._id);
                 }}
-                disabled={isFirst}
-                title="Move task up"
-                className="px-2 py-1 rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-20 disabled:pointer-events-none transition-all cursor-pointer flex items-center gap-1"
+                title="Restore task"
+                className="px-2.5 py-1.5 rounded-xl border border-purple-500/20 bg-purple-950/20 text-purple-400 hover:bg-purple-950/40 hover:text-purple-300 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold"
               >
-                <ChevronUp size={11} className="stroke-[3]" />
-                <span>Move Up</span>
+                <RefreshCw size={12} className="animate-spin-slow" />
+                <span>Restore</span>
               </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleMoveDown(task);
-                }}
-                disabled={isLast}
-                title="Move task down"
-                className="px-2 py-1 rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-20 disabled:pointer-events-none transition-all cursor-pointer flex items-center gap-1"
-              >
-                <ChevronDown size={11} className="stroke-[3]" />
-                <span>Move Down</span>
-              </button>
-            </div>
+            ) : (
+              <>
+                {/* Move Up/Down Buttons — hidden on mobile as they can drag & drop */}
+                <div className="hidden sm:flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wider select-none">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMoveUp(task);
+                    }}
+                    disabled={isFirst}
+                    title="Move task up"
+                    className="px-2 py-1 rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-20 disabled:pointer-events-none transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    <ChevronUp size={11} className="stroke-[3]" />
+                    <span>Move Up</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMoveDown(task);
+                    }}
+                    disabled={isLast}
+                    title="Move task down"
+                    className="px-2 py-1 rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-20 disabled:pointer-events-none transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    <ChevronDown size={11} className="stroke-[3]" />
+                    <span>Move Down</span>
+                  </button>
+                </div>
 
-            {/* Check Completion button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleTaskComplete(task._id, task.completed);
-              }}
-              className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
-                task.completed 
-                  ? "bg-emerald-500/20 border-emerald-500/35 text-emerald-400" 
-                  : "border-zinc-800 text-zinc-500 hover:border-emerald-500/30 hover:text-emerald-400 hover:bg-emerald-950/10"
-              }`}
-            >
-              <Check size={12} className="stroke-[3]" />
-            </button>
+                {/* Check Completion button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleTaskComplete(task._id, task.completed);
+                  }}
+                  className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                    task.completed 
+                      ? "bg-emerald-500/20 border-emerald-500/35 text-emerald-400" 
+                      : "border-zinc-800 text-zinc-500 hover:border-emerald-500/30 hover:text-emerald-400 hover:bg-emerald-950/10"
+                  }`}
+                >
+                  <Check size={12} className="stroke-[3]" />
+                </button>
+              </>
+            )}
           </div>
         </div>
         </div>
@@ -1040,7 +1103,9 @@ function Tasks() {
     handleDragStart,
     handleDragOver,
     handleDragEnd,
-    handleDrop
+    handleDrop,
+    isDeletedFilter,
+    restoreTask
   ]);
 
   const Toolbar = useMemo(() => {

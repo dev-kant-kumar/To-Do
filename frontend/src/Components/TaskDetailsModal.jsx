@@ -5,7 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { getToken } from "../utils/auth";
 import { RxCross2 } from "react-icons/rx";
-import { Calendar, AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2 } from "lucide-react";
+import { Calendar, AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2, RefreshCw } from "lucide-react";
 
 const getCurrentLocalDateTimeString = () => {
   const d = new Date();
@@ -150,6 +150,41 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
     }
   };
 
+  const handleRestore = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    const token = getToken();
+
+    try {
+      const response = await axios.post(
+        `${apiUrl}todo/undoDelete`,
+        {
+          taskID: task._id,
+        },
+        {
+          headers: {
+            "X-Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data?.status) {
+        toast.success("Task restored successfully");
+        if (onUpdate) {
+          await onUpdate();
+        }
+        onClose();
+      } else {
+        toast.error(response.data?.message || "Failed to restore task");
+      }
+    } catch (err) {
+      console.error("Error restoring task:", err);
+      toast.error(err.response?.data?.message || "An error occurred while restoring the task");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const minDateTime = getCurrentLocalDateTimeString();
   return createPortal(
     <AnimatePresence>
@@ -222,6 +257,19 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
                 title="Delete task"
               >
                 <Trash2 size={16} />
+              </button>
+            )}
+
+            {/* Restore button */}
+            {task.deleted && (
+              <button
+                type="button"
+                onClick={handleRestore}
+                disabled={isLoading}
+                className="p-2 rounded-xl bg-purple-950/20 hover:bg-purple-950/40 border border-purple-900/30 hover:border-purple-900/50 text-purple-400 hover:text-purple-300 transition-all duration-200 focus:outline-none cursor-pointer"
+                title="Restore task"
+              >
+                <RefreshCw size={16} />
               </button>
             )}
 

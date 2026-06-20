@@ -26,14 +26,22 @@ connectDB();
 
 // Middleware
 app.use(express.json());
-app.use(
-  cors({
-    origin: [
+
+const allowedOrigins = process.env.NODE_ENV === "production"
+  ? [
+      "https://todo.devkantkumar.com",
+      "http://todo.devkantkumar.com"
+    ]
+  : [
       "https://todo.devkantkumar.com",
       "http://todo.devkantkumar.com",
       "http://localhost:5173",
       "http://localhost:5174"
-    ],
+    ];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
     optionsSuccessStatus: 200,
     credentials: true,
   }),
@@ -57,12 +65,12 @@ app.use(morgan("combined", { stream: serverLogStream }));
 
 // Health Check
 app.get("/", (req, res) => {
-  res.status(200).send("This is To-Do Web App Backend Serever");
+  res.status(200).send("This is To-Do Web App Backend Server");
 });
 
 app.get("/health", (req, res) => {
   return res.status(200).json({
-    message: "To-Do App backend server is running health.",
+    message: "To-Do App backend server is running healthily.",
   });
 });
 
@@ -79,4 +87,14 @@ app.listen(PORT, () => {
   if (process.env.NODE_ENV === "development") {
     console.log(`Server running at  :  http://localhost:${PORT}`);
   }
+});
+
+// Process-wide safety handlers for production robustness
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("[Fatal] Unhandled Promise Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("[Fatal] Uncaught Exception thrown:", error);
+  process.exit(1);
 });

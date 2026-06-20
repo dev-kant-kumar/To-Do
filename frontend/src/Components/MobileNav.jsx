@@ -18,6 +18,7 @@ import {
 import { clearAuth } from "../utils/auth";
 import { clearUserInfo } from "../Store/Reducers/UserSlice";
 import { toast } from "react-toastify";
+import { clearOfflineData } from "../utils/syncManager";
 import { setShowCreateTask } from "../Store/Reducers/TodoFilterSlice";
 
 // ─── Me bottom sheet ──────────────────────────────────────────────────────────
@@ -27,7 +28,12 @@ function MeSheet({ open, onClose, todayStats, currentStreak, longestStreak }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await clearOfflineData();
+    } catch (err) {
+      console.error("Failed to clear offline databases:", err);
+    }
     clearAuth();
     dispatch(clearUserInfo());
     navigate("/login");

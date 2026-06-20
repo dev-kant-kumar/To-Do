@@ -296,6 +296,23 @@ self.addEventListener('message', (e) => {
     );
   }
 
+  // Clear all user task and notification data (called on logout/deletion)
+  if (e.data.type === 'CLEAR_USER_DATA') {
+    clearTimeout(checkTimer);
+    checkTimer = null;
+    e.waitUntil(
+      (async () => {
+        try {
+          await dbPut('tasks', []);
+          await dbPut('shown_ids', []);
+          console.log('[SW] Cleared all user task and notification data.');
+        } catch (err) {
+          console.error('[SW] Failed to clear user data in SW db:', err);
+        }
+      })()
+    );
+  }
+
   // Force the SW to take control (used after update)
   if (e.data.type === 'SKIP_WAITING') {
     self.skipWaiting();

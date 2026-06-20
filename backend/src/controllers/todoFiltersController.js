@@ -3,97 +3,141 @@ const StreakEntry = require("../models/streakModel");
 
 async function showAllTasks(req, res) {
   const userId = req.id;
-  const allTasks = await Todo.find({ userId: { $eq: userId }, deleted: false });
+  try {
+    const allTasks = await Todo.find({ userId: { $eq: userId }, deleted: false });
 
-  if (allTasks.length === 0) {
-    res.send({ status: false, message: "No task found! Create tasks first.", length: 0 });
-  } else {
-    res.send(allTasks);
+    if (allTasks.length === 0) {
+      res.send({ status: false, message: "No task found! Create tasks first.", length: 0 });
+    } else {
+      res.send(allTasks);
+    }
+  } catch (err) {
+    console.error("[showAllTasks] Error:", err);
+    res.status(500).send({ status: false, message: "Internal server error" });
   }
 }
 
 async function showCompletedTasks(req, res) {
   const userId = req.id;
-  const completedTask = await Todo.find({
-    userId: { $eq: userId },
-    completed: true,
-    deleted: false,
-  });
+  try {
+    const completedTask = await Todo.find({
+      userId: { $eq: userId },
+      completed: true,
+      deleted: false,
+    });
 
-  if (completedTask.length === 0) {
-    res.send({ status: false, message: "There are no tasks marked as completed.", length: 0 });
-  } else {
-    res.send(completedTask);
+    if (completedTask.length === 0) {
+      res.send({ status: false, message: "There are no tasks marked as completed.", length: 0 });
+    } else {
+      res.send(completedTask);
+    }
+  } catch (err) {
+    console.error("[showCompletedTasks] Error:", err);
+    res.status(500).send({ status: false, message: "Internal server error" });
   }
 }
 
 async function showStarredTasks(req, res) {
   const userId = req.id;
-  const starredTask = await Todo.find({
-    userId: { $eq: userId },
-    starred: true,
-    deleted: false,
-  });
+  try {
+    const starredTask = await Todo.find({
+      userId: { $eq: userId },
+      starred: true,
+      deleted: false,
+    });
 
-  if (starredTask.length === 0) {
-    res.send({ status: false, message: "There are no tasks marked as starred.", length: 0 });
-  } else {
-    res.send(starredTask);
+    if (starredTask.length === 0) {
+      res.send({ status: false, message: "There are no tasks marked as starred.", length: 0 });
+    } else {
+      res.send(starredTask);
+    }
+  } catch (err) {
+    console.error("[showStarredTasks] Error:", err);
+    res.status(500).send({ status: false, message: "Internal server error" });
   }
 }
 
 async function showTasksCreatedToday(req, res) {
   const userId = req.id;
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date();
-  endOfDay.setHours(23, 59, 59, 999);
+  let startOfDay = req.body.startOfDay ? new Date(req.body.startOfDay) : new Date();
+  let endOfDay = req.body.endOfDay ? new Date(req.body.endOfDay) : new Date();
+  if (!req.body.startOfDay) {
+    startOfDay.setHours(0, 0, 0, 0);
+  }
+  if (!req.body.endOfDay) {
+    endOfDay.setHours(23, 59, 59, 999);
+  }
 
-  const TasksCreatedToday = await Todo.find({
-    userId: userId,
-    deleted: false,
-    date: { $gte: startOfDay, $lt: endOfDay },
-  });
+  try {
+    const TasksCreatedToday = await Todo.find({
+      userId: userId,
+      deleted: false,
+      $or: [
+        { date: { $gte: startOfDay, $lt: endOfDay } },
+        { completed: true, completedAt: { $gte: startOfDay, $lt: endOfDay } },
+        { completed: false, dueDate: { $ne: null, $lt: endOfDay } }
+      ]
+    });
 
-  if (TasksCreatedToday.length === 0) {
-    res.send({ status: false, message: "There are no tasks created today.", length: 0 });
-  } else {
-    res.send(TasksCreatedToday);
+    if (TasksCreatedToday.length === 0) {
+      res.send({ status: false, message: "There are no tasks created today.", length: 0 });
+    } else {
+      res.send(TasksCreatedToday);
+    }
+  } catch (err) {
+    console.error("[showTasksCreatedToday] Error:", err);
+    res.status(500).send({ status: false, message: "Internal server error" });
   }
 }
 
 async function showTasksCreatedWeekAgo(req, res) {
   const userId = req.id;
-  const now = new Date();
+  let startOf7DaysAgo = req.body.startOf7DaysAgo ? new Date(req.body.startOf7DaysAgo) : null;
+  let endOfToday = req.body.endOfToday ? new Date(req.body.endOfToday) : null;
+  if (!startOf7DaysAgo || !endOfToday) {
+    const now = new Date();
+    startOf7DaysAgo = new Date(now);
+    startOf7DaysAgo.setDate(now.getDate() - 6);
+    startOf7DaysAgo.setHours(0, 0, 0, 0);
+    endOfToday = new Date(now);
+    endOfToday.setHours(23, 59, 59, 999);
+  }
 
-  // Return tasks from the past 7 days (inclusive of today)
-  const startOf7DaysAgo = new Date(now);
-  startOf7DaysAgo.setDate(now.getDate() - 6); // 6 prior days + today = 7
-  startOf7DaysAgo.setHours(0, 0, 0, 0);
-  const endOfToday = new Date(now);
-  endOfToday.setHours(23, 59, 59, 999);
+  try {
+    const TasksThisWeek = await Todo.find({
+      userId: { $eq: userId },
+      deleted: false,
+      $or: [
+        { date: { $gte: startOf7DaysAgo, $lte: endOfToday } },
+        { completed: true, completedAt: { $gte: startOf7DaysAgo, $lte: endOfToday } },
+        { completed: false, dueDate: { $ne: null, $lte: endOfToday } }
+      ]
+    });
 
-  const TasksThisWeek = await Todo.find({
-    userId: { $eq: userId },
-    deleted: false,
-    date: { $gte: startOf7DaysAgo, $lte: endOfToday },
-  });
-
-  if (TasksThisWeek.length === 0) {
-    res.send({ status: false, message: "There are no tasks created in the past 7 days.", length: 0 });
-  } else {
-    res.send(TasksThisWeek);
+    if (TasksThisWeek.length === 0) {
+      res.send({ status: false, message: "There are no tasks created in the past 7 days.", length: 0 });
+    } else {
+      res.send(TasksThisWeek);
+    }
+  } catch (err) {
+    console.error("[showTasksCreatedWeekAgo] Error:", err);
+    res.status(500).send({ status: false, message: "Internal server error" });
   }
 }
 
 async function showDeletedTask(req, res) {
   const userId = req.id;
-  const deletedTask = await Todo.find({ userId: { $eq: userId }, deleted: true });
+  try {
+    const deletedTask = await Todo.find({ userId: { $eq: userId }, deleted: true });
 
-  if (deletedTask.length === 0) {
-    res.send({ status: false, message: "There are no tasks marked as deleted.", length: 0 });
-  } else {
-    res.send(deletedTask);
+    if (deletedTask.length === 0) {
+      res.send({ status: false, message: "There are no tasks marked as deleted.", length: 0 });
+    } else {
+      res.send(deletedTask);
+    }
+  } catch (err) {
+    console.error("[showDeletedTask] Error:", err);
+    res.status(500).send({ status: false, message: "Internal server error" });
   }
 }
 
@@ -105,12 +149,24 @@ async function getTodoCounts(req, res) {
     const completedCount = await Todo.countDocuments({ userId, completed: true, deleted: false });
     const pendingCount   = await Todo.countDocuments({ userId, completed: false, deleted: false });
 
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    let startOfDay = req.body.startOfDay ? new Date(req.body.startOfDay) : new Date();
+    let endOfDay = req.body.endOfDay ? new Date(req.body.endOfDay) : new Date();
+    if (!req.body.startOfDay) {
+      startOfDay.setHours(0, 0, 0, 0);
+    }
+    if (!req.body.endOfDay) {
+      endOfDay.setHours(23, 59, 59, 999);
+    }
 
-    const todayCount   = await Todo.countDocuments({ userId, deleted: false, date: { $gte: startOfDay, $lt: endOfDay } });
+    const todayCount   = await Todo.countDocuments({
+      userId,
+      deleted: false,
+      $or: [
+        { date: { $gte: startOfDay, $lt: endOfDay } },
+        { completed: true, completedAt: { $gte: startOfDay, $lt: endOfDay } },
+        { completed: false, dueDate: { $ne: null, $lt: endOfDay } }
+      ]
+    });
     const deletedCount = await Todo.countDocuments({ userId, deleted: true });
 
     res.send({ allCount, starredCount, completedCount, pendingCount, todayCount, deletedCount });

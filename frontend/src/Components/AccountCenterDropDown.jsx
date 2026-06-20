@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { clearUserInfo } from "../Store/Reducers/UserSlice";
 import { clearAuth } from "../utils/auth";
+import { clearOfflineData } from "../utils/syncManager";
 
 function AccountCenterDropDown() {
   const dispatch = useDispatch();
@@ -15,7 +16,12 @@ function AccountCenterDropDown() {
     navigate("/profile");
   };
 
-  const logoutHandler = () => {
+  const logoutHandler = async () => {
+    try {
+      await clearOfflineData();
+    } catch (err) {
+      console.error("Failed to clear offline databases:", err);
+    }
     clearAuth();
     dispatch(clearUserInfo());
     navigate("/login");

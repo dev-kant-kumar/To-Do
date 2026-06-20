@@ -23,7 +23,7 @@ TodoRoutes.post("/markStarred", auth, markStarred);
 TodoRoutes.post("/unMarkStarred", auth, unMarkStarred);
 
 TodoRoutes.post("/deleteTask", auth, deleteTask);
-TodoRoutes.post("/unoDelete", auth, undoDelete);
+TodoRoutes.post("/undoDelete", auth, undoDelete);
 TodoRoutes.post("/deleteall", auth, deleteDeletedTask);
 
 module.exports = TodoRoutes;
