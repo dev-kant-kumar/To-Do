@@ -186,17 +186,18 @@ async function handleOfflineRead(endpoint, payload) {
       return date >= startOfDay && date <= endOfDay;
     });
   } else if (endpoint === "filters/week") {
+    // Show all tasks created within the last 7 days (inclusive of today)
     const now = new Date();
-    const startOfWeekAgo = new Date(now);
-    startOfWeekAgo.setDate(now.getDate() - 7);
-    startOfWeekAgo.setHours(0, 0, 0, 0);
-    const endOfWeekAgo = new Date(startOfWeekAgo);
-    endOfWeekAgo.setHours(23, 59, 59, 999);
+    const endOfToday = new Date(now);
+    endOfToday.setHours(23, 59, 59, 999);
+    const startOf7DaysAgo = new Date(now);
+    startOf7DaysAgo.setDate(now.getDate() - 6); // 6 + today = 7 full days
+    startOf7DaysAgo.setHours(0, 0, 0, 0);
 
     filtered = tasks.filter((t) => {
       if (t.deleted) return false;
       const date = t.date ? new Date(t.date) : new Date(t.createdAt || Date.now());
-      return date >= startOfWeekAgo && date <= endOfWeekAgo;
+      return date >= startOf7DaysAgo && date <= endOfToday;
     });
   }
 
@@ -518,7 +519,26 @@ export function initSyncManager() {
 
       if (!isOnline || !navigator.onLine) {
         try {
-          // Intercept Reads
+          // ── Intercept Auth: return cached user identity offline ──
+          if (endpoint === "user/getUserData") {
+            config.adapter = async () => {
+              const cached = await dbGet("user_cache");
+              if (cached && cached._id) {
+                return {
+                  data: { status: true, data: cached },
+                  status: 200,
+                  statusText: "OK",
+                  headers: {},
+                  config,
+                };
+              }
+              // No cached user — let it propagate so the auth layer uses localStorage fallback
+              throw new Error("No cached user available offline");
+            };
+            return config;
+          }
+
+          // ── Intercept Reads ──
           if (endpoint.startsWith("filters/")) {
             config.adapter = async () => {
               const data = await handleOfflineRead(
@@ -590,6 +610,11 @@ export function initSyncManager() {
 
       if (response.status === 200 && response.data) {
         try {
+          // ── Cache user identity for offline auth ──
+          if (endpoint === "user/getUserData" && response.data?.data?._id) {
+            await dbPut("user_cache", response.data.data);
+          }
+
           if (endpoint === "filters/all") {
             const activeTasks = Array.isArray(response.data) ? response.data : [];
             const currentTasks = (await dbGet("tasks")) || [];
@@ -606,6 +631,8 @@ export function initSyncManager() {
               }
             }
             await dbPut("tasks", unique);
+            // Recalculate counts from freshly fetched tasks
+            await recalculateOfflineCounts(unique);
           } else if (endpoint === "filters/deleted") {
             const deletedTasks = Array.isArray(response.data)
               ? response.data.map((t) => ({ ...t, deleted: true }))
@@ -624,6 +651,42 @@ export function initSyncManager() {
               }
             }
             await dbPut("tasks", unique);
+          } else if (endpoint === "filters/starred") {
+            // Merge starred tasks into the central task store
+            const starredTasks = Array.isArray(response.data)
+              ? response.data.map((t) => ({ ...t, starred: true }))
+              : [];
+            const currentTasks = (await dbGet("tasks")) || [];
+            const starredIds = new Set(starredTasks.map((t) => t._id));
+            // Update starred flag on existing tasks, add new ones
+            const updatedTasks = currentTasks.map((t) =>
+              starredIds.has(t._id) ? { ...t, starred: true } : t
+            );
+            const existingIds = new Set(updatedTasks.map((t) => t._id));
+            starredTasks.forEach((t) => { if (!existingIds.has(t._id)) updatedTasks.push(t); });
+            await dbPut("tasks", updatedTasks);
+          } else if (endpoint === "filters/today") {
+            // Merge today's tasks into the central task store
+            const todayTasks = Array.isArray(response.data) ? response.data : [];
+            const currentTasks = (await dbGet("tasks")) || [];
+            const todayIds = new Set(todayTasks.map((t) => t._id));
+            const updatedTasks = currentTasks.map((t) =>
+              todayIds.has(t._id) ? { ...todayTasks.find((td) => td._id === t._id) } : t
+            );
+            const existingIds = new Set(updatedTasks.map((t) => t._id));
+            todayTasks.forEach((t) => { if (!existingIds.has(t._id)) updatedTasks.push(t); });
+            await dbPut("tasks", updatedTasks);
+          } else if (endpoint === "filters/week") {
+            // Merge this week's tasks into the central task store
+            const weekTasks = Array.isArray(response.data) ? response.data : [];
+            const currentTasks = (await dbGet("tasks")) || [];
+            const weekIds = new Set(weekTasks.map((t) => t._id));
+            const updatedTasks = currentTasks.map((t) =>
+              weekIds.has(t._id) ? { ...weekTasks.find((wt) => wt._id === t._id) } : t
+            );
+            const existingIds = new Set(updatedTasks.map((t) => t._id));
+            weekTasks.forEach((t) => { if (!existingIds.has(t._id)) updatedTasks.push(t); });
+            await dbPut("tasks", updatedTasks);
           } else if (endpoint === "filters/counts") {
             await dbPut("counts", response.data);
           } else if (endpoint === "filters/activity") {
@@ -658,6 +721,23 @@ export function initSyncManager() {
           }
 
           const endpoint = config.url.substring(apiUrl.length);
+
+          // ── AUTH (mid-flight network drop) ──
+          // If the user identity call fails due to network loss, return cached identity
+          if (endpoint === "user/getUserData") {
+            const cached = await dbGet("user_cache");
+            if (cached && cached._id) {
+              return {
+                data: { status: true, data: cached },
+                status: 200,
+                statusText: "OK",
+                headers: {},
+                config,
+              };
+            }
+            // No cache — let AuthenticationPage handle it via localStorage fallback
+            return Promise.reject(error);
+          }
 
           // ── READS ──
           if (endpoint.startsWith("filters/")) {

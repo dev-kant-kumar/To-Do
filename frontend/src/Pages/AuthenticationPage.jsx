@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 // Redux
 import { setUserInfo, clearUserInfo } from "../Store/Reducers/UserSlice";
+import { loadCachedUser } from "../Store/Reducers/UserSlice";
 import { setPreLoader } from "../Store/Reducers/Loader";
 import { getToken, removeToken } from "../utils/auth";
 
@@ -44,7 +45,7 @@ function AuthenticationPage() {
   const { preloader } = useSelector((state) => state.Loader);
   const userInfo = useSelector((state) => state.UserSlice);
 
-  // Fetch user info from token
+  // Fetch user info from token — with full offline resilience
   useEffect(() => {
     const token = getToken();
     if (!token) {
@@ -53,28 +54,68 @@ function AuthenticationPage() {
     }
 
     dispatch(setPreLoader(true));
+
     axios
       .get(`${apiUrl}user/getUserData`, {
         headers: {
           "X-Authorization": `Bearer ${token}`,
         },
+        // Short timeout so offline detection is fast
+        timeout: 8000,
       })
       .then((res) => {
         if (res.data.status) {
           const { _id, name, username, email, date } = res.data.data;
           dispatch(setUserInfo({ _id, name, username, email, date }));
         } else {
+          // Server explicitly rejected the token — treat as logged out
           removeToken();
           dispatch(clearUserInfo());
         }
       })
       .catch((err) => {
-        console.error("Authentication fetch user data failed:", err);
-        removeToken();
-        dispatch(clearUserInfo());
+        const isNetworkError = !err.response;
+        const isAuthError =
+          err.response &&
+          (err.response.status === 401 || err.response.status === 403);
+
+        if (isNetworkError) {
+          // ─── OFFLINE PATH ────────────────────────────────────────────────
+          // Network is unavailable — do NOT wipe the token.
+          // Instead, load the cached user identity from localStorage and
+          // hydrate Redux. The user stays authenticated and can use the app.
+          console.warn("[Auth] Network unavailable — loading from cache.");
+          const cached = loadCachedUser();
+          if (cached && cached._id) {
+            dispatch(setUserInfo(cached));
+          } else {
+            // No cache at all (first-ever load, never been online) — must log in
+            removeToken();
+            dispatch(clearUserInfo());
+          }
+        } else if (isAuthError) {
+          // ─── AUTH REJECTED ───────────────────────────────────────────────
+          // The server says this token is invalid/expired — log the user out.
+          console.error("[Auth] Token rejected by server:", err.response.status);
+          removeToken();
+          dispatch(clearUserInfo());
+        } else {
+          // ─── OTHER SERVER ERROR (5xx etc.) ───────────────────────────────
+          // Server is having trouble but the token may still be valid.
+          // Fall back to cache to keep the user in the app.
+          console.warn("[Auth] Server error — loading from cache:", err.response?.status);
+          const cached = loadCachedUser();
+          if (cached && cached._id) {
+            dispatch(setUserInfo(cached));
+          } else {
+            removeToken();
+            dispatch(clearUserInfo());
+          }
+        }
       })
       .finally(() => dispatch(setPreLoader(false)));
   }, [apiUrl, dispatch]);
+
 
   // Preloader
   if (preloader) {

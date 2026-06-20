@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector, useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 import {
   BarChart2,
   Flame,
@@ -9,29 +10,19 @@ import {
   CheckCircle2,
   TrendingUp,
   Calendar,
-  Zap,
+  AlertTriangle,
 } from "lucide-react";
-import { fetchStreakData } from "../Store/Reducers/StreakSlice";
-
-// ─── Milestone definitions ─────────────────────────────────────────────────
-const MILESTONES = [
-  { days: 3,   badge: "Starter Spark",    emoji: "✨" },
-  { days: 7,   badge: "Week Warrior",     emoji: "🏆" },
-  { days: 14,  badge: "Fortnight Force",  emoji: "⚡" },
-  { days: 30,  badge: "Monthly Master",   emoji: "💎" },
-  { days: 100, badge: "Century Centurion",emoji: "🔱" },
-  { days: 365, badge: "Legendary Streak", emoji: "👑" },
-];
+import { fetchStreakData, STREAK_MILESTONES } from "../Store/Reducers/StreakSlice";
 
 function getMilestoneContext(streak) {
   let prevMilestone = { days: 0, badge: "Beginner", emoji: "🌱" };
-  let nextMilestone = MILESTONES[0];
-  for (let i = 0; i < MILESTONES.length; i++) {
-    if (streak >= MILESTONES[i].days) {
-      prevMilestone = MILESTONES[i];
-      nextMilestone = MILESTONES[i + 1] || null;
+  let nextMilestone = STREAK_MILESTONES[0];
+  for (let i = 0; i < STREAK_MILESTONES.length; i++) {
+    if (streak >= STREAK_MILESTONES[i].days) {
+      prevMilestone = STREAK_MILESTONES[i];
+      nextMilestone = STREAK_MILESTONES[i + 1] || null;
     } else {
-      nextMilestone = MILESTONES[i];
+      nextMilestone = STREAK_MILESTONES[i];
       break;
     }
   }
@@ -162,6 +153,16 @@ export function StreakHighlightCard({ currentStreak, longestStreak, activityMap 
     const t = new Date(); t.setHours(0, 0, 0, 0); return t;
   }, []);
 
+  // ── Streak-at-risk detection ─────────────────────────────────────────────
+  // Show a warning after 18:00 if no completions today and streak > 0
+  const isAtRisk = useMemo(() => {
+    if (currentStreak === 0) return false;
+    const hour = new Date().getHours();
+    if (hour < 18) return false;
+    const todayKey = toDateKey(today);
+    return !(activityMap[todayKey] && activityMap[todayKey] > 0);
+  }, [currentStreak, activityMap, today]);
+
   // Build Monday-anchored current week
   const weekDays = useMemo(() => {
     const dayOfWeek = today.getDay();
@@ -241,6 +242,25 @@ export function StreakHighlightCard({ currentStreak, longestStreak, activityMap 
           </div>
         </div>
 
+        {/* ── Streak-at-risk warning ─────────────────────────────────────── */}
+        <AnimatePresence>
+          {isAtRisk && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-2 bg-red-950/40 border border-red-500/30 rounded-xl px-3 py-2.5"
+            >
+              <AlertTriangle size={14} className="text-red-400 flex-shrink-0 animate-pulse" />
+              <div>
+                <p className="text-xs font-bold text-red-300">Streak at risk!</p>
+                <p className="text-[10px] text-red-400/70">Complete a task before midnight to keep your {currentStreak}-day streak alive.</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Milestone progress bar */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
@@ -290,9 +310,15 @@ export function StreakHighlightCard({ currentStreak, longestStreak, activityMap 
               const hasActivity = activityMap[dateKey] && activityMap[dateKey] > 0;
               const isToday = dayDate.getTime() === today.getTime();
               const isFuture = dayDate.getTime() > today.getTime();
+              // Show at-risk state on today's cell when streak is at risk
+              const isTodayAtRisk = isToday && isAtRisk;
               return (
                 <div key={i} className="flex flex-col items-center gap-1.5">
-                  <span className={`text-[9px] font-bold ${isToday ? "text-amber-400" : "text-zinc-600"}`}>
+                  <span className={`text-[9px] font-bold ${
+                    isToday
+                      ? isTodayAtRisk ? "text-red-400" : "text-amber-400"
+                      : "text-zinc-600"
+                  }`}>
                     {label}
                   </span>
                   {hasActivity ? (
@@ -303,6 +329,14 @@ export function StreakHighlightCard({ currentStreak, longestStreak, activityMap 
                       className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center"
                     >
                       <span className="text-sm">🔥</span>
+                    </motion.div>
+                  ) : isTodayAtRisk ? (
+                    <motion.div
+                      animate={{ opacity: [1, 0.5, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      className="w-8 h-8 rounded-full border-2 border-red-500 bg-red-900/20 flex items-center justify-center"
+                    >
+                      <span className="text-sm">⚠️</span>
                     </motion.div>
                   ) : isToday ? (
                     <div className="w-8 h-8 rounded-full border-2 border-amber-400 bg-amber-400/10 flex items-center justify-center">
@@ -628,6 +662,39 @@ export default function ActivityTracker() {
   useEffect(() => {
     dispatch(fetchStreakData());
   }, [dispatch]);
+
+  // ── Milestone celebration toast ───────────────────────────────────────────
+  // Listens for the custom event fired by StreakSlice's optimistic reducer
+  // and shows a rich, animated toast so the user feels the achievement.
+  useEffect(() => {
+    const handleMilestone = (e) => {
+      const { emoji, badge, days } = e.detail;
+      toast(
+        <div className="flex items-center gap-3">
+          <span className="text-3xl" role="img" aria-label={badge}>{emoji}</span>
+          <div>
+            <p className="font-black text-amber-300 text-sm">{days}-Day Streak! 🎉</p>
+            <p className="text-xs text-zinc-300 mt-0.5">
+              You unlocked <span className="font-bold text-amber-400">{badge}</span>!
+            </p>
+          </div>
+        </div>,
+        {
+          position: "top-center",
+          autoClose: 5000,
+          style: {
+            background: "linear-gradient(135deg, #1c1003, #2d1e00)",
+            border: "1px solid rgba(245,158,11,0.4)",
+            boxShadow: "0 0 24px rgba(245,158,11,0.2)",
+            color: "#fef3c7",
+          },
+          progressStyle: { background: "#f59e0b" },
+        }
+      );
+    };
+    window.addEventListener("todo-streak-milestone", handleMilestone);
+    return () => window.removeEventListener("todo-streak-milestone", handleMilestone);
+  }, []);
 
   const thisYearTotal = useMemo(() => {
     const thisYear = new Date().getFullYear();

@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { setTodo, setTodoLength, setSearchQuery, setFocusTask, setShowCreateTask } from "../Store/Reducers/TodoFilterSlice";
 import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
+import { fetchStreakData, incrementStreakOptimistic, decrementStreakOptimistic } from "../Store/Reducers/StreakSlice";
 import { toast } from "react-toastify";
 import { 
   Trash2, 
@@ -258,7 +259,15 @@ function Tasks() {
     async (taskID, status) => {
       if (!taskID || !userInfo.userId) return;
 
+      const isCompleting = !status; // status = current completed flag; we flip it
       const endpoint = status ? "todo/unMarkComplete" : "todo/markComplete";
+
+      // ── Optimistic streak update — instant UI feedback ────────────────────
+      if (isCompleting) {
+        dispatch(incrementStreakOptimistic());
+      } else {
+        dispatch(decrementStreakOptimistic());
+      }
 
       try {
         await axios.post(`${apiUrl}${endpoint}`, {
@@ -267,12 +276,20 @@ function Tasks() {
         });
 
         await fetchTodo(userInfo.userId);
+        // Reconcile with server — ensures streak is authoritative
+        dispatch(fetchStreakData());
       } catch (error) {
+        // Rollback optimistic update on failure
+        if (isCompleting) {
+          dispatch(decrementStreakOptimistic());
+        } else {
+          dispatch(incrementStreakOptimistic());
+        }
         console.error("Error toggling task completion:", error);
         toast.error("Failed to update task status. Please try again.");
       }
     },
-    [apiUrl, userInfo.userId, fetchTodo]
+    [apiUrl, userInfo.userId, fetchTodo, dispatch]
   );
 
   const toggleStarred = useCallback(
@@ -372,6 +389,14 @@ function Tasks() {
 
     setIsLoading(true);
     const endpoint = complete ? "todo/markComplete" : "todo/unMarkComplete";
+
+    // Optimistic streak update for each selected task
+    if (complete) {
+      selectedTaskIds.forEach(() => dispatch(incrementStreakOptimistic()));
+    } else {
+      selectedTaskIds.forEach(() => dispatch(decrementStreakOptimistic()));
+    }
+
     try {
       await Promise.all(
         Array.from(selectedTaskIds).map((id) =>
@@ -383,13 +408,20 @@ function Tasks() {
       );
       setSelectedTaskIds(new Set());
       await fetchTodo(userInfo.userId);
+      dispatch(fetchStreakData());
     } catch (error) {
+      // Rollback on failure
+      if (complete) {
+        selectedTaskIds.forEach(() => dispatch(decrementStreakOptimistic()));
+      } else {
+        selectedTaskIds.forEach(() => dispatch(incrementStreakOptimistic()));
+      }
       console.error("Error updating tasks:", error);
       toast.error("Failed to update selected tasks status");
     } finally {
       setIsLoading(false);
     }
-  }, [selectedTaskIds, userInfo.userId, fetchTodo, apiUrl]);
+  }, [selectedTaskIds, userInfo.userId, fetchTodo, apiUrl, dispatch]);
 
   const handleBulkStar = useCallback(async (star = true) => {
     if (selectedTaskIds.size === 0 || !userInfo.userId) return;
