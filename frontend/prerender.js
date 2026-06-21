@@ -32,11 +32,18 @@ const routes = {
   },
   "home": {
     title: "Dashboard | todo.",
-    description: "Manage your tasks, filter by Starred, Today, or Deleted, and track your daily lists on todo.."
+    description: "Manage your tasks, filter by Starred, Today, or Deleted, and track your daily lists on todo..",
+    image: "/og-img-v2.png"
   },
   "profile": {
     title: "Settings | todo.",
-    description: "Update your personal information, manage security, and configure your todo. profile."
+    description: "Update your personal information, manage security, and configure your todo. profile.",
+    image: "/og-img-v1.png"
+  },
+  "planner": {
+    title: "Planner | todo.",
+    description: "Plan your week and month tasks visually on a modern calendar view.",
+    image: "/og-img-v3.png"
   },
   "loader": {
     title: "Loading | todo.",
@@ -109,6 +116,15 @@ for (const [route, meta] of Object.entries(routes)) {
     /<meta\s+property="og:url"\s+content=".*?"\s*\/?>/,
     `<meta property="og:url" content="https://todo.devkantkumar.com/${route}" />`
   );
+
+  const resolvedImage = meta.image
+    ? `https://todo.devkantkumar.com${meta.image}`
+    : "https://todo.devkantkumar.com/og-img-vo.png";
+
+  html = html.replace(
+    /<meta\s+property="og:image"\s+content=".*?"\s*\/?>/,
+    `<meta property="og:image" content="${resolvedImage}" />`
+  );
   
   // Replace Twitter Tags
   html = html.replace(
@@ -118,6 +134,10 @@ for (const [route, meta] of Object.entries(routes)) {
   html = html.replace(
     /<meta\s+name="twitter:description"\s+content=".*?"\s*\/?>/,
     `<meta name="twitter:description" content="${meta.description}" />`
+  );
+  html = html.replace(
+    /<meta\s+name="twitter:image"\s+content=".*?"\s*\/?>/,
+    `<meta name="twitter:image" content="${resolvedImage}" />`
   );
   
   // Replace Canonical Link

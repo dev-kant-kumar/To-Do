@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-function SEO({ title, description, keywords }) {
+function SEO({ title, description, keywords, image }) {
   const location = useLocation();
 
   useEffect(() => {
@@ -43,6 +43,20 @@ function SEO({ title, description, keywords }) {
       ogDescription.setAttribute("content", description);
     }
 
+    const ogImage = document.querySelector('meta[property="og:image"]');
+    const resolvedImage = image
+      ? (image.startsWith("http") ? image : `https://todo.devkantkumar.com${image.startsWith("/") ? "" : "/"}${image}`)
+      : "https://todo.devkantkumar.com/og-img-vo.png";
+
+    if (ogImage) {
+      ogImage.setAttribute("content", resolvedImage);
+    } else {
+      const newOgImage = document.createElement("meta");
+      newOgImage.setAttribute("property", "og:image");
+      newOgImage.setAttribute("content", resolvedImage);
+      document.head.appendChild(newOgImage);
+    }
+
     // 5. Update Twitter Tags
     const twitterTitle = document.querySelector('meta[name="twitter:title"]');
     if (twitterTitle && title) {
@@ -52,6 +66,16 @@ function SEO({ title, description, keywords }) {
     const twitterDescription = document.querySelector('meta[name="twitter:description"]');
     if (twitterDescription && description) {
       twitterDescription.setAttribute("content", description);
+    }
+
+    const twitterImage = document.querySelector('meta[name="twitter:image"]');
+    if (twitterImage) {
+      twitterImage.setAttribute("content", resolvedImage);
+    } else {
+      const newTwitterImage = document.createElement("meta");
+      newTwitterImage.setAttribute("name", "twitter:image");
+      newTwitterImage.setAttribute("content", resolvedImage);
+      document.head.appendChild(newTwitterImage);
     }
 
     // 6. Update Canonical Link
@@ -65,7 +89,7 @@ function SEO({ title, description, keywords }) {
       canonical.setAttribute("href", currentUrl);
       document.head.appendChild(canonical);
     }
-  }, [title, description, keywords, location]);
+  }, [title, description, keywords, location, image]);
 
   return null;
 }

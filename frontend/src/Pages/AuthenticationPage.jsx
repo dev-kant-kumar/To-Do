@@ -149,24 +149,24 @@ function AuthenticationPage() {
               userInfo?.userId ? (
                 <Navigate to="/home" replace />
               ) : (
-                <><SEO title="todo. | Simple, Clean Task Management" description="Organize your day, track your projects, and boost your daily productivity with todo. — a minimalist, high-fidelity task manager." /><LandingPage /></>
+                <><SEO title="todo. | Simple, Clean Task Management" description="Organize your day, track your projects, and boost your daily productivity with todo. — a minimalist, high-fidelity task manager." image="/og-img-vo.png" /><LandingPage /></>
               )
             } />
 
             {/* Auth (Guest Only) */}
             <Route element={<GuestRoute />}>
-              <Route path="/sign-up" element={<><SEO title="Create an Account | todo." description="Join todo. today. Set up your workspace, track your tasks, and achieve your goals with our modern task manager." /><SignUp /></>} />
-              <Route path="/login" element={<><SEO title="Sign In | todo." description="Access your personal workspace on todo. to manage tasks, review starred items, and organize your schedules." /><SignIn /></>} />
-              <Route path="/forgot-password" element={<><SEO title="Forgot Password | todo." description="Recover your account on todo.. Enter your email address to receive a secure password reset link." /><ForgotPasswordForm /></>} />
-              <Route path="/reset-password" element={<><SEO title="Reset Password | todo." description="Create a new secure password for your account on todo. and get back to managing your day." /><ResetPasswordForm /></>} />
-              <Route path="/reset-password/:token" element={<><SEO title="Reset Password | todo." description="Create a new secure password for your account on todo. and get back to managing your day." /><ResetPasswordForm /></>} />
+              <Route path="/sign-up" element={<><SEO title="Create an Account | todo." description="Join todo. today. Set up your workspace, track your tasks, and achieve your goals with our modern task manager." image="/og-img-vo.png" /><SignUp /></>} />
+              <Route path="/login" element={<><SEO title="Sign In | todo." description="Access your personal workspace on todo. to manage tasks, review starred items, and organize your schedules." image="/og-img-vo.png" /><SignIn /></>} />
+              <Route path="/forgot-password" element={<><SEO title="Forgot Password | todo." description="Recover your account on todo.. Enter your email address to receive a secure password reset link." image="/og-img-vo.png" /><ForgotPasswordForm /></>} />
+              <Route path="/reset-password" element={<><SEO title="Reset Password | todo." description="Create a new secure password for your account on todo. and get back to managing your day." image="/og-img-vo.png" /><ResetPasswordForm /></>} />
+              <Route path="/reset-password/:token" element={<><SEO title="Reset Password | todo." description="Create a new secure password for your account on todo. and get back to managing your day." image="/og-img-vo.png" /><ResetPasswordForm /></>} />
             </Route>
 
             {/* App Pages (Protected) */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/home" element={<><SEO title="Dashboard | todo." description="Manage your tasks, filter by Starred, Today, or Deleted, and track your daily lists on todo.." /><Home /></>} />
-              <Route path="/profile" element={<><SEO title="Settings | todo." description="Update your personal information, manage security, and configure your todo. profile." /><ProfilePage /></>} />
-              <Route path="/planner" element={<><SEO title="Planner | todo." description="Plan your week and month tasks visually on a modern calendar view." /><PlannerPage /></>} />
+              <Route path="/home" element={<><SEO title="Dashboard | todo." description="Manage your tasks, filter by Starred, Today, or Deleted, and track your daily lists on todo.." image="/og-img-v2.png" /><Home /></>} />
+              <Route path="/profile" element={<><SEO title="Settings | todo." description="Update your personal information, manage security, and configure your todo. profile." image="/og-img-v1.png" /><ProfilePage /></>} />
+              <Route path="/planner" element={<><SEO title="Planner | todo." description="Plan your week and month tasks visually on a modern calendar view." image="/og-img-v3.png" /><PlannerPage /></>} />
             </Route>
 
             {/* Legal Pages - Nested (Public) */}
@@ -177,20 +177,20 @@ function AuthenticationPage() {
               />
               <Route
                 path="terms-and-conditions"
-                element={<><SEO title="Terms & Conditions | todo." description="Read the terms of service and conditions for using todo. task management tools." /><TermsAndConditions /></>}
+                element={<><SEO title="Terms & Conditions | todo." description="Read the terms of service and conditions for using todo. task management tools." image="/og-img-vo.png" /><TermsAndConditions /></>}
               />
-              <Route path="privacy-policy" element={<><SEO title="Privacy Policy | todo." description="Learn how todo. protects and manages your personal data, verification info, and tasks." /><PrivacyPolicy /></>} />
-              <Route path="cookie-policy" element={<><SEO title="Cookie Policy | todo." description="Read about how todo. uses cookies and local storage to keep you logged in and personalize your settings." /><CookiePolicy /></>} />
-              <Route path="delete-my-data" element={<><SEO title="Delete My Data | todo." description="Request account deletion and complete erasure of your tasks, email, and user data from todo.." /><DeleteMyData /></>} />
-              <Route path="disclaimer" element={<><SEO title="Disclaimer | todo." description="Legal disclaimer and limitations of liability for the todo. productivity application." /><Disclaimer /></>} />
-              <Route path="refund-policy" element={<><SEO title="Refund Policy | todo." description="Learn about billing policies, subscriptions, and refund eligibility for todo. accounts." /><RefundPolicy /></>} />
-              <Route path="accessibility" element={<><SEO title="Accessibility Statement | todo." description="Read about our commitment to making todo. accessible and user-friendly for everyone." /><Accessibility /></>} />
+              <Route path="privacy-policy" element={<><SEO title="Privacy Policy | todo." description="Learn how todo. protects and manages your personal data, verification info, and tasks." image="/og-img-vo.png" /><PrivacyPolicy /></>} />
+              <Route path="cookie-policy" element={<><SEO title="Cookie Policy | todo." description="Read about how todo. uses cookies and local storage to keep you logged in and personalize your settings." image="/og-img-vo.png" /><CookiePolicy /></>} />
+              <Route path="delete-my-data" element={<><SEO title="Delete My Data | todo." description="Request account deletion and complete erasure of your tasks, email, and user data from todo.." image="/og-img-vo.png" /><DeleteMyData /></>} />
+              <Route path="disclaimer" element={<><SEO title="Disclaimer | todo." description="Legal disclaimer and limitations of liability for the todo. productivity application." image="/og-img-vo.png" /><Disclaimer /></>} />
+              <Route path="refund-policy" element={<><SEO title="Refund Policy | todo." description="Learn about billing policies, subscriptions, and refund eligibility for todo. accounts." image="/og-img-vo.png" /><RefundPolicy /></>} />
+              <Route path="accessibility" element={<><SEO title="Accessibility Statement | todo." description="Read about our commitment to making todo. accessible and user-friendly for everyone." image="/og-img-vo.png" /><Accessibility /></>} />
             </Route>
 
             {/* Fallbacks & Debug */}
-            <Route path="/loader" element={<><SEO title="Loading | todo." description="Setting up your workspace..." /><LoadingPage /></>} />
-            <Route path="/error" element={<><SEO title="Page Not Found | todo." description="Oops! The page you are looking for does not exist on todo.." /><ErrorPage /></>} />
-            <Route path="*" element={<><SEO title="Page Not Found | todo." description="Oops! The page you are looking for does not exist on todo.." /><ErrorPage /></>} />
+            <Route path="/loader" element={<><SEO title="Loading | todo." description="Setting up your workspace..." image="/og-img-vo.png" /><LoadingPage /></>} />
+            <Route path="/error" element={<><SEO title="Page Not Found | todo." description="Oops! The page you are looking for does not exist on todo.." image="/og-img-vo.png" /><ErrorPage /></>} />
+            <Route path="*" element={<><SEO title="Page Not Found | todo." description="Oops! The page you are looking for does not exist on todo.." image="/og-img-vo.png" /><ErrorPage /></>} />
           </Routes>
         </Suspense>
       </BrowserRouter>
