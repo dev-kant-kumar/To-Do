@@ -304,6 +304,7 @@ function Header() {
         currentStreak={currentStreak}
         longestStreak={longestStreak}
         activityMap={activityMap}
+        userInfo={userInfo}
       />
 
       {/* Mobile Navigation Sidebar */}
