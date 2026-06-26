@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
@@ -11,6 +12,8 @@ import {
   TrendingUp,
   Calendar,
   AlertTriangle,
+  Award,
+  Lock,
 } from "lucide-react";
 import { fetchStreakData, STREAK_MILESTONES } from "../Store/Reducers/StreakSlice";
 import { CustomBadgeSvg } from "./CustomBadgeSvg";
@@ -121,6 +124,54 @@ const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WEEK_STRIP_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+const getMilestoneCardStyle = (days) => {
+  const styles = {
+    3: {
+      borderUnlocked: "border-amber-500/20 hover:border-amber-500/40",
+      bgUnlocked: "bg-amber-500/[0.03] hover:bg-amber-500/[0.06]",
+      shadowUnlocked: "shadow-[0_8px_30px_rgba(245,158,11,0.06)]",
+      badgeGlow: "bg-amber-500/10 blur-xl",
+      textColor: "text-amber-400"
+    },
+    7: {
+      borderUnlocked: "border-emerald-500/20 hover:border-emerald-500/40",
+      bgUnlocked: "bg-emerald-500/[0.03] hover:bg-emerald-500/[0.06]",
+      shadowUnlocked: "shadow-[0_8px_30px_rgba(16,185,129,0.06)]",
+      badgeGlow: "bg-emerald-500/10 blur-xl",
+      textColor: "text-emerald-400"
+    },
+    14: {
+      borderUnlocked: "border-purple-500/20 hover:border-purple-500/40",
+      bgUnlocked: "bg-purple-500/[0.03] hover:bg-purple-500/[0.06]",
+      shadowUnlocked: "shadow-[0_8px_30px_rgba(168,85,247,0.06)]",
+      badgeGlow: "bg-purple-500/10 blur-xl",
+      textColor: "text-purple-400"
+    },
+    30: {
+      borderUnlocked: "border-cyan-500/20 hover:border-cyan-500/40",
+      bgUnlocked: "bg-cyan-500/[0.03] hover:bg-cyan-500/[0.06]",
+      shadowUnlocked: "shadow-[0_8px_30px_rgba(6,182,212,0.06)]",
+      badgeGlow: "bg-cyan-500/10 blur-xl",
+      textColor: "text-cyan-400"
+    },
+    100: {
+      borderUnlocked: "border-pink-500/20 hover:border-pink-500/40",
+      bgUnlocked: "bg-pink-500/[0.03] hover:bg-pink-500/[0.06]",
+      shadowUnlocked: "shadow-[0_8px_30px_rgba(236,72,153,0.06)]",
+      badgeGlow: "bg-pink-500/10 blur-xl",
+      textColor: "text-pink-400"
+    },
+    365: {
+      borderUnlocked: "border-yellow-500/25 hover:border-yellow-500/55",
+      bgUnlocked: "bg-yellow-500/[0.04] hover:bg-yellow-500/[0.08]",
+      shadowUnlocked: "shadow-[0_8px_35px_rgba(234,179,8,0.1)]",
+      badgeGlow: "bg-yellow-500/15 blur-2xl",
+      textColor: "text-yellow-400"
+    }
+  };
+  return styles[days] || styles[3];
+};
+
 // ─── Portal Tooltip ────────────────────────────────────────────────────────
 function HeatmapTooltip({ tooltip }) {
   if (!tooltip) return null;
@@ -149,10 +200,9 @@ function HeatmapTooltip({ tooltip }) {
 // CustomBadgeSvg is now imported from CustomBadgeSvg.jsx
 
 export function StreakHighlightCard({ currentStreak, longestStreak, activityMap }) {
+  const navigate = useNavigate();
   const { prevMilestone, nextMilestone, progress } = getMilestoneContext(currentStreak);
   const [hoveredDay, setHoveredDay] = useState(null);
-  const [showMilestonesModal, setShowMilestonesModal] = useState(false);
-  const [selectedBadge, setSelectedBadge] = useState(null);
 
   const today = useMemo(() => {
     const t = new Date(); t.setHours(0, 0, 0, 0); return t;
@@ -299,7 +349,7 @@ export function StreakHighlightCard({ currentStreak, longestStreak, activityMap 
 
           {/* Milestone progress bar (Clickable to show details) */}
           <div 
-            onClick={() => setShowMilestonesModal(true)}
+            onClick={() => navigate("/badges")}
             className="flex flex-col gap-1.5 cursor-pointer bg-zinc-900/20 border border-zinc-800/40 rounded-xl p-3 hover:bg-zinc-900/40 transition-all duration-200 group/milestone select-none"
           >
             <div className="flex justify-between items-center px-0.5">
@@ -436,258 +486,6 @@ export function StreakHighlightCard({ currentStreak, longestStreak, activityMap 
           </div>
         </div>
       </motion.div>
-
-      {/* Milestone Modal */}
-      <AnimatePresence>
-        {showMilestonesModal && (
-          <div className="fixed inset-0 z-[9990] bg-zinc-950/98 backdrop-blur-xl overflow-y-auto flex flex-col w-screen h-screen">
-            {/* Modal Box */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: 15 }}
-              transition={{ type: "spring", stiffness: 260, damping: 26 }}
-              className="w-full min-h-screen p-6 sm:p-12 md:p-16 flex flex-col gap-8 text-left relative overflow-x-hidden"
-            >
-              {/* Glow header overlay */}
-              <div 
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] pointer-events-none rounded-full blur-[100px]" 
-                style={{ background: "radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%)" }} 
-              />
-              
-              <div className="flex justify-between items-start border-b border-zinc-900 pb-6 relative z-10">
-                <div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white font-mono uppercase tracking-widest">Streak Milestones</h3>
-                  <p className="text-xs sm:text-sm text-zinc-500 font-semibold mt-2">Complete consecutive daily tasks to unlock premium badges. Click any badge to view full details.</p>
-                </div>
-                <button
-                  onClick={() => setShowMilestonesModal(false)}
-                  className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer font-bold focus:outline-none"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Responsive Badge Grid - Takes full width and spans beautifully */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 relative z-10 w-full mt-4">
-                {STREAK_MILESTONES.map((m) => {
-                  const isUnlocked = currentStreak >= m.days;
-                  const isNext = nextMilestone && nextMilestone.days === m.days;
-                  
-                  return (
-                    <motion.div 
-                      key={m.days} 
-                      onClick={() => {
-                        setSelectedBadge(m);
-                      }}
-                      whileHover={{ scale: 1.05, y: -6 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                      className={`flex flex-col items-center gap-4 border rounded-[28px] p-6 transition-all duration-300 cursor-pointer text-center relative select-none shadow-lg ${
-                        isUnlocked 
-                          ? "bg-amber-500/5 border-amber-500/15 hover:border-amber-500/40 hover:bg-amber-500/10 shadow-[0_4px_20px_rgba(245,158,11,0.04)]" 
-                          : isNext
-                            ? "bg-zinc-900/40 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/60"
-                            : "bg-zinc-900/10 border-zinc-900/60 opacity-50 hover:opacity-75"
-                      }`}
-                    >
-                      {/* Badge Svg inside the Grid cell */}
-                      <div className="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center relative">
-                        {isUnlocked && (
-                          <div className="absolute inset-0 rounded-full bg-amber-500/5 blur-lg" />
-                        )}
-                        <CustomBadgeSvg days={m.days} size={96} isUnlocked={isUnlocked} />
-                      </div>
-
-                      <div className="flex flex-col gap-1 w-full mt-2">
-                        <span className={`text-sm sm:text-base font-extrabold ${isUnlocked ? 'text-amber-300' : 'text-zinc-400'} font-mono uppercase tracking-wide`}>
-                          {m.badge}
-                        </span>
-                        <span className="text-[10px] sm:text-xs font-black text-zinc-500 font-mono tracking-widest uppercase">
-                          {m.days} days streak
-                        </span>
-                      </div>
-
-                      {/* Status indicator tag */}
-                      <div className="mt-auto w-full pt-4 border-t border-zinc-900/80 flex items-center justify-center">
-                        <span className={`text-[10px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-wider font-mono ${
-                          isUnlocked 
-                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" 
-                            : isNext
-                              ? "bg-zinc-900 text-zinc-400 border border-zinc-800"
-                              : "bg-zinc-950 text-zinc-600 border border-transparent"
-                        }`}>
-                          {isUnlocked 
-                            ? "✓ Earned" 
-                            : isNext
-                              ? `Progress: ${currentStreak}/${m.days}d`
-                              : `Locked`}
-                        </span>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Full-Screen Badge Details Overlay */}
-      <AnimatePresence>
-        {selectedBadge && (
-          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-            {/* Dark blur backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedBadge(null)}
-              className="absolute inset-0 bg-black/85 backdrop-blur-md"
-            />
-
-            {/* Glowing Halo Background behind the badge */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] pointer-events-none rounded-full blur-[80px]" style={{
-              background: selectedBadge.days === 3 ? "radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%)"
-                        : selectedBadge.days === 7 ? "radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)"
-                        : selectedBadge.days === 14 ? "radial-gradient(circle, rgba(168,85,247,0.18) 0%, transparent 70%)"
-                        : selectedBadge.days === 30 ? "radial-gradient(circle, rgba(6,182,212,0.18) 0%, transparent 70%)"
-                        : selectedBadge.days === 100 ? "radial-gradient(circle, rgba(236,72,153,0.15) 0%, transparent 70%)"
-                        : "radial-gradient(circle, rgba(251,191,36,0.2) 0%, transparent 70%)"
-            }} />
-
-            {/* Floating Sparkle Particles */}
-            {Array.from({ length: 12 }).map((_, idx) => {
-              const angle = (idx / 12) * Math.PI * 2;
-              const distance = 130 + Math.random() * 40;
-              const targetX = Math.cos(angle) * distance;
-              const targetY = Math.sin(angle) * distance;
-
-              return (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
-                  animate={{ 
-                    opacity: [0, 0.9, 0], 
-                    x: [0, targetX], 
-                    y: [0, targetY], 
-                    scale: [0, 1.2, 0.2] 
-                  }}
-                  transition={{ 
-                    duration: 3 + Math.random() * 2, 
-                    repeat: Infinity,
-                    delay: idx * 0.2,
-                    ease: "easeOut"
-                  }}
-                  className="absolute pointer-events-none text-amber-300 text-xs"
-                >
-                  ✨
-                </motion.div>
-              );
-            })}
-
-            {/* Detail Card Content */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              transition={{ type: "spring", stiffness: 350, damping: 28 }}
-              className="w-full max-w-sm bg-zinc-950 border border-zinc-800/80 rounded-[32px] p-8 shadow-2xl relative z-10 overflow-hidden text-center flex flex-col items-center gap-6"
-            >
-              {/* Radial glow */}
-              <div 
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-32 pointer-events-none" 
-                style={{
-                  background: selectedBadge.days === 3 ? "radial-gradient(ellipse at 50% 0%, rgba(245,158,11,0.06) 0%, transparent 70%)"
-                            : selectedBadge.days === 7 ? "radial-gradient(ellipse at 50% 0%, rgba(16,185,129,0.06) 0%, transparent 70%)"
-                            : selectedBadge.days === 14 ? "radial-gradient(ellipse at 50% 0%, rgba(168,85,247,0.08) 0%, transparent 70%)"
-                            : selectedBadge.days === 30 ? "radial-gradient(ellipse at 50% 0%, rgba(6,182,212,0.08) 0%, transparent 70%)"
-                            : selectedBadge.days === 100 ? "radial-gradient(ellipse at 50% 0%, rgba(236,72,153,0.06) 0%, transparent 70%)"
-                            : "radial-gradient(ellipse at 50% 0%, rgba(251,191,36,0.1) 0%, transparent 70%)"
-                }} 
-              />
-
-              {/* Close Button */}
-              <button
-                onClick={() => setSelectedBadge(null)}
-                className="absolute top-5 right-5 w-8.5 h-8.5 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer focus:outline-none"
-              >
-                ✕
-              </button>
-
-              {/* Header Status Tag */}
-              <div className="mt-4">
-                <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-widest font-mono border ${
-                  currentStreak >= selectedBadge.days 
-                    ? "bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.2)] animate-pulse" 
-                    : "bg-zinc-900/60 text-zinc-500 border-zinc-800"
-                }`}>
-                  {currentStreak >= selectedBadge.days ? "✓ Badge Unlocked" : "🔒 Locked Badge"}
-                </span>
-              </div>
-
-              {/* Large Premium Badge */}
-              <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="relative my-2"
-              >
-                <CustomBadgeSvg days={selectedBadge.days} size={180} isUnlocked={currentStreak >= selectedBadge.days} />
-              </motion.div>
-
-              {/* Texts */}
-              <div className="flex flex-col gap-2">
-                <h2 className="text-xl font-black text-white tracking-tight uppercase font-mono">
-                  {selectedBadge.badge}
-                </h2>
-                <p className="text-xs text-zinc-400 font-semibold px-4">
-                  {selectedBadge.days === 3 ? "You're laying the foundation. Sparking consistency!"
-                  : selectedBadge.days === 7 ? "An entire week of productivity. You are building real momentum."
-                  : selectedBadge.days === 14 ? "Two weeks of focus. A powerful habit has been formed."
-                  : selectedBadge.days === 30 ? "A full month of active task completions. You are a master."
-                  : selectedBadge.days === 100 ? "Centurion level consistency. 100 days of dedication."
-                  : "Legendary status achieved. 365 days of unbeatable consistency."}
-                </p>
-              </div>
-
-              {/* Progress Detail */}
-              <div className="w-full bg-zinc-900/40 border border-zinc-900/80 rounded-2xl p-4 flex flex-col gap-2 mt-2">
-                <div className="flex justify-between items-center text-[10px] font-bold font-mono">
-                  <span className="text-zinc-500 uppercase tracking-wider">Requirement</span>
-                  <span className="text-zinc-300">{selectedBadge.days} Days Streak</span>
-                </div>
-                <div className="flex justify-between items-center text-[10px] font-bold font-mono">
-                  <span className="text-zinc-500 uppercase tracking-wider">Your Streak</span>
-                  <span className={currentStreak >= selectedBadge.days ? "text-amber-400" : "text-zinc-400"}>
-                    {currentStreak} days
-                  </span>
-                </div>
-                {/* Visual Progress Bar */}
-                <div className="relative h-1.5 bg-zinc-800 rounded-full w-full overflow-hidden mt-1">
-                  <div 
-                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-500 to-amber-300 rounded-full"
-                    style={{ width: `${Math.min((currentStreak / selectedBadge.days) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Action Button */}
-              <button
-                onClick={() => setSelectedBadge(null)}
-                style={{
-                  background: selectedBadge.days === 3 || selectedBadge.days === 365 ? "linear-gradient(to right, #f59e0b, #ef4444)"
-                            : selectedBadge.days === 7 ? "linear-gradient(to right, #10b981, #059669)"
-                            : selectedBadge.days === 14 ? "linear-gradient(to right, #a855f7, #ec4899)"
-                            : selectedBadge.days === 30 ? "linear-gradient(to right, #06b6d4, #3b82f6)"
-                            : "linear-gradient(to right, #ec4899, #f43f5e)"
-                }}
-                className="w-full py-3.5 rounded-2xl text-white font-extrabold text-xs uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer font-mono mt-2"
-              >
-                {currentStreak >= selectedBadge.days ? "Awesome!" : "Let's Go!"}
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

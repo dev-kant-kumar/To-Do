@@ -26,6 +26,7 @@ const Home = lazy(() => import("../Pages/Home"));
 const ProfilePage = lazy(() => import("../Pages/ProfilePage"));
 const PlannerPage = lazy(() => import("../Pages/PlannerPage"));
 const LeaderboardPage = lazy(() => import("../Pages/LeaderboardPage"));
+const BadgesPage = lazy(() => import("../Pages/BadgesPage"));
 const ErrorPage = lazy(() => import("../Pages/ErrorPage"));
 const LandingPage = lazy(() => import("./LandingPage/LandingPage"));
 const ForgotPasswordForm = lazy(() => import("../Components/ForgotPasswordForm"));
@@ -169,6 +170,7 @@ function AuthenticationPage() {
               <Route path="/profile" element={<><SEO title="Settings | todo." description="Update your personal information, manage security, and configure your todo. profile." image="/og-img-v1.png" /><ProfilePage /></>} />
               <Route path="/planner" element={<><SEO title="Planner | todo." description="Plan your week and month tasks visually on a modern calendar view." image="/og-img-v3.png" /><PlannerPage /></>} />
               <Route path="/leaderboard" element={<><SEO title="Leaderboard | todo." description="Compete on the community leaderboard, track your XP, level up, and see consistency badges." image="/og-img-v3.png" /><LeaderboardPage /></>} />
+              <Route path="/badges" element={<><SEO title="Streak Badges | todo." description="View consistency badges, check streak milestones, and see your progress on todo.." image="/og-img-v3.png" /><BadgesPage /></>} />
             </Route>
 
             {/* Legal Pages - Nested (Public) */}

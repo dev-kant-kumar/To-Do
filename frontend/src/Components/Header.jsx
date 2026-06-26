@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, SlidersHorizontal, Flame, Calendar, Menu, LayoutDashboard, User, Sparkles, LogOut, Wifi, WifiOff, RefreshCw, Trophy } from "lucide-react";
+import { ChevronDown, SlidersHorizontal, Calendar, Menu, LayoutDashboard, User, Sparkles, LogOut, Wifi, WifiOff, RefreshCw, Trophy } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,12 +7,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { IoSearchOutline } from "react-icons/io5";
 import { RxCross2 } from "react-icons/rx";
 import { setSearchQuery } from "../Store/Reducers/TodoFilterSlice";
-import { fetchStreakData } from "../Store/Reducers/StreakSlice";
 import { clearUserInfo } from "../Store/Reducers/UserSlice";
 import { toast } from "react-toastify";
 import { clearAuth } from "../utils/auth";
 import AccountCenterDropDown from "./AccountCenterDropDown";
-import StreakModal from "./StreakModal";
 import { getOnlineStatus, isSyncingInProgress, syncOfflineQueue, dbGet, addConnectionListener, removeConnectionListener, addSyncListener, removeSyncListener, clearOfflineData } from "../utils/syncManager";
 
 function Header() {
@@ -20,12 +18,8 @@ function Header() {
   const navigate = useNavigate();
   const searchQuery = useSelector((state) => state.TodoFilterSlice.searchQuery);
   const userInfo = useSelector((state) => state.UserSlice);
-  const { currentStreak, longestStreak, activityMap } = useSelector(
-    (state) => state.StreakSlice
-  );
 
   const [isOpen, setIsOpen] = useState(false);
-  const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const dropDownRef = useRef(null);
@@ -75,13 +69,12 @@ function Header() {
     await syncOfflineQueue();
   };
 
-  // Fetch streak data once user is authenticated
+  // Sync any offline updates when logged in
   useEffect(() => {
     if (userInfo?.userId) {
-      dispatch(fetchStreakData());
-      syncOfflineQueue(); // Sync any offline updates when logged in/loaded
+      syncOfflineQueue();
     }
-  }, [userInfo?.userId, dispatch]);
+  }, [userInfo?.userId]);
 
   const handleSearchChange = (e) => {
     dispatch(setSearchQuery(e.target.value));
@@ -180,18 +173,6 @@ function Header() {
 
           {/* ── Right actions ─────────────────────────────────────────── */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-
-            {/* Streak pill — desktop only (lg+) */}
-            {userInfo?.userId && (
-              <button
-                onClick={() => setIsStreakModalOpen(true)}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold select-none shadow-inner hover:bg-amber-500/20 hover:border-amber-500/50 transition-all duration-200 cursor-pointer focus:outline-none"
-                title="View your streak details"
-              >
-                <Flame size={14} className="text-amber-500 fill-amber-500 animate-pulse" />
-                <span>{currentStreak} day{currentStreak !== 1 ? "s" : ""}</span>
-              </button>
-            )}
 
             {/* Planner link — sm+ only */}
             {userInfo?.userId && (
@@ -308,16 +289,6 @@ function Header() {
         </div>
       </header>
 
-
-      {/* Streak Modal */}
-      <StreakModal
-        isOpen={isStreakModalOpen}
-        onClose={() => setIsStreakModalOpen(false)}
-        currentStreak={currentStreak}
-        longestStreak={longestStreak}
-        activityMap={activityMap}
-        userInfo={userInfo}
-      />
 
       {/* Mobile Navigation Sidebar */}
       <AnimatePresence>
@@ -450,18 +421,6 @@ function Header() {
 
               {/* Bottom Section */}
               <div className="p-5 border-t border-zinc-900/80 flex flex-col gap-4">
-                {/* Streak status — tappable, opens StreakModal */}
-                <button
-                  onClick={() => { setIsSidebarOpen(false); setIsStreakModalOpen(true); }}
-                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-amber-500/5 border border-amber-500/10 hover:bg-amber-500/10 hover:border-amber-500/20 transition-all cursor-pointer"
-                >
-                  <span className="text-[10px] font-bold text-zinc-400">Current Streak</span>
-                  <div className="flex items-center gap-1.5 text-xs font-black text-amber-400">
-                    <Flame size={14} className="text-amber-500 fill-amber-500 animate-pulse" />
-                    <span>{currentStreak} day{currentStreak !== 1 ? "s" : ""}</span>
-                  </div>
-                </button>
-
 
                 {/* Logout Button */}
                 <button

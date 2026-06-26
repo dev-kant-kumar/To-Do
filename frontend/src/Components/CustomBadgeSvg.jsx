@@ -1,199 +1,511 @@
 import React from "react";
 
+function renderLockOverlay(isUnlocked) {
+  if (isUnlocked) return null;
+  return (
+    <g className="lock-overlay">
+      {/* Center glass circle */}
+      <circle cx="60" cy="60" r="20" fill="#09090b" fillOpacity="0.65" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1.5" />
+      {/* Padlock Shackle */}
+      <path d="M55,56 V52 A5,5 0 0,1 65,52 V56" stroke="#ffffff" strokeWidth="1.75" fill="none" strokeLinecap="round" opacity="0.9" />
+      {/* Padlock Body */}
+      <rect x="51" y="55" width="18" height="13" rx="3.5" fill="#27272a" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1" />
+      {/* Keyhole */}
+      <circle cx="60" cy="61.5" r="1.5" fill="#ffffff" opacity="0.9" />
+      <path d="M60,63 V65.5" stroke="#ffffff" strokeWidth="1" strokeLinecap="round" opacity="0.9" />
+    </g>
+  );
+}
+
+/**
+ * CustomBadgeSvg
+ * ─────────────────────────────────────────────────────
+ * Premium metallic streak badges — static SVG only.
+ * No CSS animation classes so they render cleanly as
+ * exported PNG images in the share-card flow.
+ *
+ * Badge tiers:
+ *   3   days → Starter Spark   (bronze circle)
+ *   7   days → Week Warrior    (silver shield)
+ *   14  days → Fortnight Force (purple hexagon)
+ *   30  days → Monthly Master  (cyan diamond)
+ *   100 days → Century Centurion (platinum crest)
+ *   365 days → Legendary Streak (gold crown shield)
+ */
 export function CustomBadgeSvg({ days, size = 120, isUnlocked = false }) {
-  const grayscaleFilter = !isUnlocked ? "saturate(0.05) brightness(0.65)" : "none";
-  
+  const opacity = isUnlocked ? 1 : 0.75;
+  const saturation = "none";
+
+  /* ── 3-day: Starter Spark — Bronze Circle ──────────────── */
   if (days === 3) {
     return (
-      <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={{ filter: grayscaleFilter }} className="drop-shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 120 120"
+        fill="none"
+        style={{ filter: saturation, opacity }}
+      >
         <defs>
-          <linearGradient id="bronzeBorder" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#cd7f32" />
-            <stop offset="50%" stopColor="#b87333" />
-            <stop offset="100%" stopColor="#8c5222" />
-          </linearGradient>
-          <linearGradient id="bronzeInner" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#4a2e16" />
-            <stop offset="100%" stopColor="#1a0f07" />
-          </linearGradient>
-          <linearGradient id="sparkGrad" x1="50" y1="20" x2="50" y2="80">
-            <stop offset="0%" stopColor="#fff5e6" />
-            <stop offset="100%" stopColor="#f59e0b" />
+          <radialGradient id="b3_body" cx="40%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="#e8945a" />
+            <stop offset="45%" stopColor="#c4641c" />
+            <stop offset="100%" stopColor="#7a3008" />
+          </radialGradient>
+          <radialGradient id="b3_rim" cx="50%" cy="20%" r="60%">
+            <stop offset="0%" stopColor="#f4b97a" />
+            <stop offset="60%" stopColor="#a0500f" />
+            <stop offset="100%" stopColor="#5c2800" />
+          </radialGradient>
+          <radialGradient id="b3_spark" cx="40%" cy="30%" r="65%">
+            <stop offset="0%" stopColor="#fff7ed" />
+            <stop offset="40%" stopColor="#fbbf24" />
+            <stop offset="100%" stopColor="#d97706" />
+          </radialGradient>
+          <filter id="b3_glow">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+          <linearGradient id="b3_shine" x1="25%" y1="15%" x2="75%" y2="85%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.35" />
+            <stop offset="50%" stopColor="#ffffff" stopOpacity="0.04" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <circle cx="50" cy="50" r="45" stroke="url(#bronzeBorder)" strokeWidth="4" fill="url(#bronzeInner)" />
-        <circle cx="50" cy="50" r="38" stroke="#d97706" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6" />
-        <g className="origin-center animate-[pulse_3s_ease-in-out_infinite]">
-          <path d="M50 20 L53 42 L75 45 L53 48 L50 70 L47 48 L25 45 L47 42 Z" fill="url(#sparkGrad)" />
-          <circle cx="50" cy="45" r="4" fill="#ffffff" className="animate-ping" style={{ animationDuration: '3s' }} />
+
+        {/* Outer rim */}
+        <circle cx="60" cy="60" r="56" fill="url(#b3_rim)" />
+        {/* Rim shadow line */}
+        <circle cx="60" cy="60" r="56" stroke="#5c2800" strokeWidth="1" fill="none" opacity="0.6" />
+        {/* Inner raised edge */}
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#f4b97a" strokeWidth="1.5" opacity="0.4" />
+        {/* Body */}
+        <circle cx="60" cy="60" r="48" fill="url(#b3_body)" />
+
+        {/* Engraved ring detail */}
+        <circle cx="60" cy="60" r="40" fill="none" stroke="#7a3008" strokeWidth="1.5" opacity="0.5" />
+        <circle cx="60" cy="60" r="38" fill="none" stroke="#f4b97a" strokeWidth="0.75" opacity="0.25" />
+
+        {/* Spark / star emblem */}
+        <g filter="url(#b3_glow)">
+          <path
+            d="M60 28 L63.5 50 L85 53 L63.5 57 L60 79 L56.5 57 L35 53 L56.5 50 Z"
+            fill="url(#b3_spark)"
+            stroke="#fde68a"
+            strokeWidth="0.75"
+            strokeLinejoin="round"
+          />
+          {/* Center gem */}
+          <circle cx="60" cy="53" r="5.5" fill="#fff7ed" opacity="0.85" />
+          <circle cx="60" cy="53" r="3" fill="#fbbf24" />
         </g>
-        <text x="50" y="80" textAnchor="middle" fill="#fef3c7" fontSize="14" fontWeight="900" fontFamily="monospace" letterSpacing="0.5">3d</text>
+
+        {/* Shine overlay */}
+        <circle cx="60" cy="60" r="48" fill="url(#b3_shine)" />
+        {/* Top specular */}
+        <ellipse cx="47" cy="38" rx="14" ry="8" fill="white" opacity="0.12" />
+
+        {/* Label band */}
+        <rect x="22" y="88" width="76" height="18" rx="9" fill="#5c2800" opacity="0.85" />
+        <rect x="22" y="88" width="76" height="18" rx="9" fill="none" stroke="#f4b97a" strokeWidth="0.75" opacity="0.5" />
+        <text x="60" y="101" textAnchor="middle" fill="#fde68a" fontSize="10" fontWeight="800" fontFamily="system-ui,sans-serif" letterSpacing="1">3 DAYS</text>
+        {renderLockOverlay(isUnlocked)}
       </svg>
     );
   }
-  
+
+  /* ── 7-day: Week Warrior — Silver Shield ───────────────── */
   if (days === 7) {
     return (
-      <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={{ filter: grayscaleFilter }} className="drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 120 120"
+        fill="none"
+        style={{ filter: saturation, opacity }}
+      >
         <defs>
-          <linearGradient id="silverBorder" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#e2e8f0" />
-            <stop offset="50%" stopColor="#94a3b8" />
-            <stop offset="100%" stopColor="#475569" />
+          <linearGradient id="b7_body" x1="20%" y1="0%" x2="80%" y2="100%">
+            <stop offset="0%" stopColor="#d4dce8" />
+            <stop offset="35%" stopColor="#8ea3b8" />
+            <stop offset="70%" stopColor="#4a637a" />
+            <stop offset="100%" stopColor="#1e2f3f" />
           </linearGradient>
-          <linearGradient id="silverInner" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#1e293b" />
-            <stop offset="100%" stopColor="#0f172a" />
+          <linearGradient id="b7_rim" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f0f4f8" />
+            <stop offset="50%" stopColor="#7a9ab0" />
+            <stop offset="100%" stopColor="#2c4255" />
           </linearGradient>
-          <linearGradient id="emeraldGrad" x1="50" y1="30" x2="50" y2="70">
-            <stop offset="0%" stopColor="#34d399" />
-            <stop offset="100%" stopColor="#059669" />
+          <radialGradient id="b7_trophy" cx="40%" cy="30%" r="65%">
+            <stop offset="0%" stopColor="#e8f5e8" />
+            <stop offset="50%" stopColor="#34d399" />
+            <stop offset="100%" stopColor="#065f46" />
+          </radialGradient>
+          <linearGradient id="b7_shine" x1="15%" y1="8%" x2="70%" y2="65%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <polygon points="50,6 81,19 94,50 81,81 50,94 19,81 6,50 19,19" stroke="url(#silverBorder)" strokeWidth="4" fill="url(#silverInner)" />
-        <polygon points="50,12 76,23 87,50 76,77 50,88 24,77 13,50 24,23" stroke="#64748b" strokeWidth="1" opacity="0.5" />
-        <path d="M15,45 Q28,30 40,40 M85,45 Q72,30 60,40" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" opacity="0.7" />
-        <path d="M18,52 Q28,42 38,48 M82,52 Q72,42 62,48" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" opacity="0.5" />
-        <g transform="translate(38, 28) scale(1.1)">
-          <path d="M5,2 L19,2 L19,8 C19,12 16,15 12,15 C8,15 5,12 5,8 Z" fill="url(#emeraldGrad)" />
-          <path d="M5,4 H2 Q1,4 1,7 Q1,10 5,9 M19,4 H22 Q23,4 23,7 Q23,10 19,9" stroke="#34d399" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M12,15 V19 M8,19 H16" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" />
+
+        {/* Shield outer rim */}
+        <path d="M60 8 L104 26 L104 64 C104 88 60 112 60 112 C60 112 16 88 16 64 L16 26 Z"
+          fill="url(#b7_rim)" />
+        {/* Shadow edge */}
+        <path d="M60 8 L104 26 L104 64 C104 88 60 112 60 112 C60 112 16 88 16 64 L16 26 Z"
+          stroke="#0f2030" strokeWidth="1" fill="none" opacity="0.5" />
+        {/* Shield inner body */}
+        <path d="M60 15 L98 30 L98 64 C98 84 60 106 60 106 C60 106 22 84 22 64 L22 30 Z"
+          fill="url(#b7_body)" />
+        {/* Inner detail border */}
+        <path d="M60 22 L92 35 L92 63 C92 80 60 98 60 98 C60 98 28 80 28 63 L28 35 Z"
+          fill="none" stroke="#c5d5e4" strokeWidth="1" opacity="0.35" />
+
+        {/* Trophy cup emblem */}
+        <g>
+          {/* Cup body */}
+          <path d="M46 38 L74 38 L74 62 C74 70 67 74 60 74 C53 74 46 70 46 62 Z"
+            fill="url(#b7_trophy)" />
+          {/* Cup handles */}
+          <path d="M46 42 L38 42 Q34 42 34 50 Q34 58 46 57"
+            stroke="#34d399" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M74 42 L82 42 Q86 42 86 50 Q86 58 74 57"
+            stroke="#34d399" strokeWidth="3" fill="none" strokeLinecap="round" />
+          {/* Stem */}
+          <rect x="56" y="74" width="8" height="10" rx="2" fill="#34d399" />
+          <rect x="49" y="84" width="22" height="5" rx="2.5" fill="#34d399" />
         </g>
-        <text x="50" y="80" textAnchor="middle" fill="#e2e8f0" fontSize="14" fontWeight="900" fontFamily="monospace" letterSpacing="0.5">7d</text>
+
+        {/* Shine overlay */}
+        <path d="M60 15 L98 30 L98 64 C98 84 60 106 60 106 C60 106 22 84 22 64 L22 30 Z"
+          fill="url(#b7_shine)" />
+        {/* Specular */}
+        <ellipse cx="46" cy="32" rx="16" ry="9" fill="white" opacity="0.15" transform="rotate(-20 46 32)" />
+
+        {/* Label */}
+        <rect x="26" y="90" width="68" height="16" rx="8" fill="#0f2030" opacity="0.9" />
+        <text x="60" y="102" textAnchor="middle" fill="#d4dce8" fontSize="9.5" fontWeight="800" fontFamily="system-ui,sans-serif" letterSpacing="1">7 DAYS</text>
+        {renderLockOverlay(isUnlocked)}
       </svg>
     );
   }
-  
+
+  /* ── 14-day: Fortnight Force — Purple Hexagon ──────────── */
   if (days === 14) {
     return (
-      <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={{ filter: grayscaleFilter }} className="drop-shadow-[0_0_15px_rgba(168,85,247,0.35)]">
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 120 120"
+        fill="none"
+        style={{ filter: saturation, opacity }}
+      >
         <defs>
-          <linearGradient id="purpleBorder" x1="0" y1="0" x2="100" y2="100">
+          <linearGradient id="b14_body" x1="20%" y1="0%" x2="80%" y2="100%">
             <stop offset="0%" stopColor="#c084fc" />
-            <stop offset="50%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#581c87" />
+            <stop offset="40%" stopColor="#7c3aed" />
+            <stop offset="100%" stopColor="#2e1065" />
           </linearGradient>
-          <linearGradient id="purpleInner" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#2e1065" />
-            <stop offset="100%" stopColor="#0f052d" />
+          <linearGradient id="b14_rim" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#e9d5ff" />
+            <stop offset="50%" stopColor="#9333ea" />
+            <stop offset="100%" stopColor="#3b0764" />
           </linearGradient>
-          <linearGradient id="boltGrad" x1="50" y1="20" x2="50" y2="70">
-            <stop offset="0%" stopColor="#f472b6" />
-            <stop offset="100%" stopColor="#a855f7" />
+          <radialGradient id="b14_bolt" cx="40%" cy="25%" r="70%">
+            <stop offset="0%" stopColor="#fdf4ff" />
+            <stop offset="45%" stopColor="#f472b6" />
+            <stop offset="100%" stopColor="#9333ea" />
+          </radialGradient>
+          <linearGradient id="b14_shine" x1="15%" y1="5%" x2="65%" y2="60%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <polygon points="50,6 88,28 88,72 50,94 12,72 12,28" stroke="url(#purpleBorder)" strokeWidth="4" fill="url(#purpleInner)" />
-        <polygon points="50,13 81,31 81,69 50,87 19,69 19,31" stroke="#8b5cf6" strokeWidth="1" opacity="0.4" />
-        <g transform="translate(13, 0)">
-          <path d="M28,22 L40,40 L32,44 L44,68 L24,44 L32,40 Z" fill="url(#boltGrad)" className="animate-pulse" />
-          <path d="M46,22 L58,40 L50,44 L62,68 L42,44 L50,40 Z" fill="url(#boltGrad)" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
+
+        {/* Hexagon outer rim */}
+        <polygon points="60,6 104,30 104,90 60,114 16,90 16,30"
+          fill="url(#b14_rim)" />
+        <polygon points="60,6 104,30 104,90 60,114 16,90 16,30"
+          stroke="#1e0050" strokeWidth="1" fill="none" opacity="0.4" />
+        {/* Inner body */}
+        <polygon points="60,13 98,34 98,86 60,107 22,86 22,34"
+          fill="url(#b14_body)" />
+        {/* Engraved hex detail */}
+        <polygon points="60,22 90,39 90,79 60,96 30,79 30,39"
+          fill="none" stroke="#c084fc" strokeWidth="1" opacity="0.3" />
+
+        {/* Dual lightning bolt emblem */}
+        <g>
+          {/* Left bolt */}
+          <path d="M42 34 L54 56 L46 60 L62 86 L50 64 L58 60 Z"
+            fill="url(#b14_bolt)"
+            stroke="#e9d5ff" strokeWidth="0.75" strokeLinejoin="round" />
+          {/* Right bolt */}
+          <path d="M58 34 L70 56 L62 60 L78 86 L66 64 L74 60 Z"
+            fill="url(#b14_bolt)"
+            stroke="#e9d5ff" strokeWidth="0.75" strokeLinejoin="round" />
         </g>
-        <text x="50" y="82" textAnchor="middle" fill="#f3e8ff" fontSize="13" fontWeight="900" fontFamily="monospace" letterSpacing="0.5">14d</text>
+
+        {/* Shine */}
+        <polygon points="60,13 98,34 98,86 60,107 22,86 22,34"
+          fill="url(#b14_shine)" />
+        <ellipse cx="44" cy="32" rx="16" ry="9" fill="white" opacity="0.14" transform="rotate(-25 44 32)" />
+
+        {/* Label */}
+        <rect x="24" y="90" width="72" height="16" rx="8" fill="#1e0050" opacity="0.9" />
+        <text x="60" y="102" textAnchor="middle" fill="#e9d5ff" fontSize="9" fontWeight="800" fontFamily="system-ui,sans-serif" letterSpacing="1">14 DAYS</text>
+        {renderLockOverlay(isUnlocked)}
       </svg>
     );
   }
-  
+
+  /* ── 30-day: Monthly Master — Cyan Diamond ─────────────── */
   if (days === 30) {
     return (
-      <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={{ filter: grayscaleFilter }} className="drop-shadow-[0_0_18px_rgba(6,182,212,0.35)]">
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 120 120"
+        fill="none"
+        style={{ filter: saturation, opacity }}
+      >
         <defs>
-          <linearGradient id="cyanBorder" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#22d3ee" />
-            <stop offset="50%" stopColor="#0891b2" />
+          <linearGradient id="b30_body" x1="20%" y1="0%" x2="80%" y2="100%">
+            <stop offset="0%" stopColor="#a5f3fc" />
+            <stop offset="40%" stopColor="#0891b2" />
             <stop offset="100%" stopColor="#083344" />
           </linearGradient>
-          <linearGradient id="cyanInner" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#083344" />
-            <stop offset="100%" stopColor="#020617" />
+          <linearGradient id="b30_rim" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#e0f7fa" />
+            <stop offset="55%" stopColor="#0e7490" />
+            <stop offset="100%" stopColor="#042f3e" />
           </linearGradient>
-          <linearGradient id="gemGrad" x1="50" y1="28" x2="50" y2="62">
+          <linearGradient id="b30_gem_top" x1="30%" y1="0%" x2="70%" y2="100%">
             <stop offset="0%" stopColor="#ffffff" />
-            <stop offset="30%" stopColor="#67e8f9" />
-            <stop offset="100%" stopColor="#06b6d4" />
+            <stop offset="35%" stopColor="#67e8f9" />
+            <stop offset="100%" stopColor="#0891b2" />
+          </linearGradient>
+          <linearGradient id="b30_gem_side" x1="0%" y1="0%" x2="100%" y2="50%">
+            <stop offset="0%" stopColor="#22d3ee" />
+            <stop offset="100%" stopColor="#0e4f60" />
+          </linearGradient>
+          <linearGradient id="b30_shine" x1="10%" y1="5%" x2="60%" y2="55%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <polygon points="50,5 88,43 50,95 12,43" stroke="url(#cyanBorder)" strokeWidth="4" fill="url(#cyanInner)" />
-        <polygon points="50,14 80,44 50,86 20,44" stroke="#0891b2" strokeWidth="1" opacity="0.4" />
-        <g className="origin-center animate-[pulse_4s_ease-in-out_infinite]">
-          <polygon points="50,25 35,35 65,35" fill="url(#gemGrad)" />
-          <polygon points="35,35 22,45 35,50" fill="#0891b2" opacity="0.8" />
-          <polygon points="65,35 78,45 65,50" fill="#0891b2" opacity="0.8" />
-          <polygon points="35,35 50,25 35,50 M65,35 50,25 65,50" stroke="#083344" strokeWidth="0.5" />
-          <polygon points="35,50 50,70 65,50" fill="url(#gemGrad)" opacity="0.9" />
-          <polygon points="22,45 50,70 35,50" fill="#06b6d4" opacity="0.7" />
-          <polygon points="78,45 50,70 65,50" fill="#06b6d4" opacity="0.7" />
+
+        {/* Outer diamond rim */}
+        <polygon points="60,5 115,55 60,115 5,55"
+          fill="url(#b30_rim)" />
+        <polygon points="60,5 115,55 60,115 5,55"
+          stroke="#042f3e" strokeWidth="1" fill="none" opacity="0.5" />
+        {/* Inner body */}
+        <polygon points="60,14 106,55 60,106 14,55"
+          fill="url(#b30_body)" />
+        {/* Inner detail */}
+        <polygon points="60,22 98,55 60,98 22,55"
+          fill="none" stroke="#a5f3fc" strokeWidth="0.75" opacity="0.3" />
+
+        {/* Multi-facet gem emblem */}
+        <g>
+          {/* Crown facets */}
+          <polygon points="60,25 42,42 78,42" fill="url(#b30_gem_top)" opacity="0.95" />
+          {/* Left facet */}
+          <polygon points="42,42 26,55 42,68" fill="url(#b30_gem_side)" opacity="0.8" />
+          {/* Right facet */}
+          <polygon points="78,42 94,55 78,68" fill="url(#b30_gem_side)" opacity="0.7" />
+          {/* Middle left */}
+          <polygon points="42,42 60,55 42,68" fill="#0891b2" opacity="0.9" />
+          {/* Middle right */}
+          <polygon points="78,42 60,55 78,68" fill="#0e7490" opacity="0.85" />
+          {/* Bottom facet */}
+          <polygon points="42,68 60,90 78,68 60,55" fill="url(#b30_gem_top)" opacity="0.75" />
+          {/* Top highlight line */}
+          <line x1="42" y1="42" x2="78" y2="42" stroke="white" strokeWidth="1" opacity="0.4" />
+          {/* Center sparkle */}
+          <circle cx="60" cy="55" r="4" fill="white" opacity="0.65" />
         </g>
-        <text x="50" y="85" textAnchor="middle" fill="#ecfeff" fontSize="13" fontWeight="900" fontFamily="monospace" letterSpacing="0.5">30d</text>
+
+        {/* Shine */}
+        <polygon points="60,14 106,55 60,106 14,55"
+          fill="url(#b30_shine)" />
+        <ellipse cx="44" cy="30" rx="15" ry="8" fill="white" opacity="0.18" transform="rotate(-30 44 30)" />
+
+        {/* Label */}
+        <rect x="22" y="88" width="76" height="16" rx="8" fill="#042f3e" opacity="0.9" />
+        <text x="60" y="100" textAnchor="middle" fill="#a5f3fc" fontSize="9" fontWeight="800" fontFamily="system-ui,sans-serif" letterSpacing="1">30 DAYS</text>
+        {renderLockOverlay(isUnlocked)}
       </svg>
     );
   }
-  
+
+  /* ── 100-day: Century Centurion — Platinum Crest ───────── */
   if (days === 100) {
     return (
-      <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={{ filter: grayscaleFilter }} className="drop-shadow-[0_0_20px_rgba(236,72,153,0.3)]">
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 120 120"
+        fill="none"
+        style={{ filter: saturation, opacity }}
+      >
         <defs>
-          <linearGradient id="platBorder" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#f3f4f6" />
-            <stop offset="50%" stopColor="#d1d5db" />
-            <stop offset="100%" stopColor="#9ca3af" />
+          <linearGradient id="b100_body" x1="15%" y1="0%" x2="85%" y2="100%">
+            <stop offset="0%" stopColor="#e8ecf0" />
+            <stop offset="30%" stopColor="#b0bcc8" />
+            <stop offset="70%" stopColor="#6b7f8f" />
+            <stop offset="100%" stopColor="#1a2833" />
           </linearGradient>
-          <linearGradient id="platInner" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#374151" />
-            <stop offset="100%" stopColor="#111827" />
+          <linearGradient id="b100_rim" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f5f7f9" />
+            <stop offset="50%" stopColor="#8fa5b8" />
+            <stop offset="100%" stopColor="#1a2833" />
           </linearGradient>
-          <linearGradient id="goldTrident" x1="50" y1="20" x2="50" y2="65">
-            <stop offset="0%" stopColor="#fbbf24" />
-            <stop offset="50%" stopColor="#f59e0b" />
-            <stop offset="100%" stopColor="#b45309" />
+          <radialGradient id="b100_trident" cx="40%" cy="25%" r="70%">
+            <stop offset="0%" stopColor="#fef3c7" />
+            <stop offset="50%" stopColor="#fbbf24" />
+            <stop offset="100%" stopColor="#92400e" />
+          </radialGradient>
+          <linearGradient id="b100_shine" x1="12%" y1="5%" x2="62%" y2="55%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <path d="M20,10 H80 V45 C80,68 50,90 50,90 C50,90 20,68 20,45 Z" stroke="url(#platBorder)" strokeWidth="4" fill="url(#platInner)" />
-        <path d="M25,15 H75 V45 C75,64 50,82 50,82 C50,82 25,64 25,45 Z" stroke="#9ca3af" strokeWidth="1" opacity="0.3" />
-        <g stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" opacity="0.6">
-          <path d="M12,25 Q6,50 20,75 M88,25 Q94,50 80,75" />
-          <circle cx="10" cy="35" r="1.5" fill="#9ca3af" />
-          <circle cx="8" cy="50" r="1.5" fill="#9ca3af" />
-          <circle cx="12" cy="65" r="1.5" fill="#9ca3af" />
-          <circle cx="90" cy="35" r="1.5" fill="#9ca3af" />
-          <circle cx="92" cy="50" r="1.5" fill="#9ca3af" />
-          <circle cx="88" cy="65" r="1.5" fill="#9ca3af" />
+
+        {/* Shield crest — flat top */}
+        <path d="M18 10 H102 V62 C102 90 60 112 60 112 C60 112 18 90 18 62 Z"
+          fill="url(#b100_rim)" />
+        <path d="M18 10 H102 V62 C102 90 60 112 60 112 C60 112 18 90 18 62 Z"
+          stroke="#0a1520" strokeWidth="1" fill="none" opacity="0.4" />
+        {/* Inner body */}
+        <path d="M24 16 H96 V62 C96 86 60 106 60 106 C60 106 24 86 24 62 Z"
+          fill="url(#b100_body)" />
+        {/* Inner detail border */}
+        <path d="M30 22 H90 V62 C90 82 60 98 60 98 C60 98 30 82 30 62 Z"
+          fill="none" stroke="#c8d5e0" strokeWidth="0.75" opacity="0.3" />
+
+        {/* Crown decoration atop shield */}
+        <path d="M32 12 L32 4 M50 12 L50 2 M68 12 L68 2 M86 12 L86 4"
+          stroke="url(#b100_trident)" strokeWidth="3" strokeLinecap="round" />
+        <rect x="30" y="10" width="60" height="5" rx="2.5" fill="url(#b100_trident)" />
+
+        {/* Trident / centurion emblem */}
+        <g>
+          {/* Center prong */}
+          <line x1="60" y1="34" x2="60" y2="78" stroke="url(#b100_trident)" strokeWidth="4.5" strokeLinecap="round" />
+          {/* Left prong */}
+          <line x1="46" y1="34" x2="46" y2="54" stroke="url(#b100_trident)" strokeWidth="3.5" strokeLinecap="round" />
+          {/* Right prong */}
+          <line x1="74" y1="34" x2="74" y2="54" stroke="url(#b100_trident)" strokeWidth="3.5" strokeLinecap="round" />
+          {/* Cross bar */}
+          <line x1="43" y1="46" x2="77" y2="46" stroke="url(#b100_trident)" strokeWidth="3" strokeLinecap="round" />
+          {/* Tips — arrowheads */}
+          <polygon points="60,26 56,35 64,35" fill="url(#b100_trident)" />
+          <polygon points="46,27 43,34 49,34" fill="url(#b100_trident)" />
+          <polygon points="74,27 71,34 77,34" fill="url(#b100_trident)" />
         </g>
-        <g transform="translate(0, 4)">
-          <line x1="50" y1="28" x2="50" y2="62" stroke="url(#goldTrident)" strokeWidth="3.5" strokeLinecap="round" />
-          <path d="M40,25 Q50,42 60,25" stroke="url(#goldTrident)" strokeWidth="3" fill="none" strokeLinecap="round" />
-          <path d="M50,18 L50,28 M40,20 L40,27 M60,20 L60,27" stroke="url(#goldTrident)" strokeWidth="3" strokeLinecap="round" />
-        </g>
-        <text x="50" y="80" textAnchor="middle" fill="#f9fafb" fontSize="13" fontWeight="900" fontFamily="monospace" letterSpacing="0.5">100d</text>
+
+        {/* Shine */}
+        <path d="M24 16 H96 V62 C96 86 60 106 60 106 C60 106 24 86 24 62 Z"
+          fill="url(#b100_shine)" />
+        <ellipse cx="44" cy="28" rx="18" ry="9" fill="white" opacity="0.16" transform="rotate(-15 44 28)" />
+
+        {/* Label */}
+        <rect x="20" y="88" width="80" height="16" rx="8" fill="#0a1520" opacity="0.9" />
+        <text x="60" y="100" textAnchor="middle" fill="#e8ecf0" fontSize="8.5" fontWeight="800" fontFamily="system-ui,sans-serif" letterSpacing="1">100 DAYS</text>
+        {renderLockOverlay(isUnlocked)}
       </svg>
     );
   }
-  
+
+  /* ── 365-day: Legendary Streak — Gold Crown Shield ─────── */
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={{ filter: grayscaleFilter }} className="drop-shadow-[0_0_25px_rgba(251,191,36,0.45)]">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 120 120"
+      fill="none"
+      style={{ filter: saturation, opacity }}
+    >
       <defs>
-        <linearGradient id="goldBorder" x1="0" y1="0" x2="100" y2="100">
-          <stop offset="0%" stopColor="#fde047" />
+        <linearGradient id="b365_body" x1="15%" y1="0%" x2="85%" y2="100%">
+          <stop offset="0%" stopColor="#fef08a" />
           <stop offset="30%" stopColor="#eab308" />
-          <stop offset="70%" stopColor="#ca8a04" />
-          <stop offset="100%" stopColor="#854d0e" />
+          <stop offset="65%" stopColor="#b45309" />
+          <stop offset="100%" stopColor="#431407" />
         </linearGradient>
-        <linearGradient id="goldInner" x1="0" y1="0" x2="100" y2="100">
-          <stop offset="0%" stopColor="#451a03" />
-          <stop offset="100%" stopColor="#1c1917" />
+        <linearGradient id="b365_rim" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#fef9c3" />
+          <stop offset="45%" stopColor="#d97706" />
+          <stop offset="100%" stopColor="#7c2d12" />
         </linearGradient>
-        <linearGradient id="rubyGrad" x1="50" y1="30" x2="50" y2="70">
-          <stop offset="0%" stopColor="#ef4444" />
-          <stop offset="100%" stopColor="#991b1b" />
+        <radialGradient id="b365_ruby" cx="35%" cy="30%" r="65%">
+          <stop offset="0%" stopColor="#fca5a5" />
+          <stop offset="40%" stopColor="#ef4444" />
+          <stop offset="100%" stopColor="#7f1d1d" />
+        </radialGradient>
+        <radialGradient id="b365_crown_gem" cx="40%" cy="25%" r="65%">
+          <stop offset="0%" stopColor="#fbcfe8" />
+          <stop offset="50%" stopColor="#ec4899" />
+          <stop offset="100%" stopColor="#9d174d" />
+        </radialGradient>
+        <linearGradient id="b365_shine" x1="12%" y1="4%" x2="60%" y2="52%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path d="M30,15 L36,25 L50,18 L64,25 L70,15 L62,30 H38 Z" fill="url(#goldBorder)" stroke="#ca8a04" strokeWidth="1" />
-      <circle cx="30" cy="14" r="1.5" fill="#fde047" />
-      <circle cx="50" cy="17" r="1.5" fill="#fde047" />
-      <circle cx="70" cy="14" r="1.5" fill="#fde047" />
-      <path d="M22,25 H78 V50 C78,72 50,92 50,92 C50,92 22,72 22,50 Z" stroke="url(#goldBorder)" strokeWidth="4.5" fill="url(#goldInner)" />
-      <path d="M27,29 H73 V50 C73,67 50,84 50,84 C50,84 27,67 27,50 Z" stroke="#ca8a04" strokeWidth="1.5" opacity="0.4" />
-      <path d="M50,30 L55,44 L70,44 L58,52 L62,66 L50,58 L38,66 L42,52 L30,44 L45,44 Z" fill="url(#rubyGrad)" stroke="url(#goldBorder)" strokeWidth="1.5" className="origin-center animate-[pulse_2.5s_ease-in-out_infinite]" />
-      <text x="50" y="82" textAnchor="middle" fill="#fef9c3" fontSize="12" fontWeight="950" fontFamily="monospace" letterSpacing="0.5">365d</text>
+
+      {/* ── Crown atop shield ── */}
+      {/* Crown points */}
+      <polygon points="28,22 36,8 44,22" fill="url(#b365_rim)" />
+      <polygon points="52,22 60,6 68,22" fill="url(#b365_rim)" />
+      <polygon points="76,22 84,8 92,22" fill="url(#b365_rim)" />
+      {/* Crown gems on tips */}
+      <circle cx="36" cy="8" r="4.5" fill="url(#b365_crown_gem)" />
+      <circle cx="60" cy="6" r="5.5" fill="url(#b365_crown_gem)" />
+      <circle cx="84" cy="8" r="4.5" fill="url(#b365_crown_gem)" />
+      {/* Crown base band */}
+      <rect x="26" y="20" width="68" height="8" rx="2" fill="url(#b365_rim)" />
+
+      {/* ── Shield body ── */}
+      {/* Outer rim */}
+      <path d="M22 26 H98 V68 C98 94 60 114 60 114 C60 114 22 94 22 68 Z"
+        fill="url(#b365_rim)" />
+      <path d="M22 26 H98 V68 C98 94 60 114 60 114 C60 114 22 94 22 68 Z"
+        stroke="#431407" strokeWidth="1.25" fill="none" opacity="0.4" />
+      {/* Inner body */}
+      <path d="M28 30 H92 V68 C92 90 60 108 60 108 C60 108 28 90 28 68 Z"
+        fill="url(#b365_body)" />
+      {/* Engraved cross lines */}
+      <line x1="60" y1="30" x2="60" y2="108" stroke="#431407" strokeWidth="1" opacity="0.2" />
+      <line x1="28" y1="65" x2="92" y2="65" stroke="#431407" strokeWidth="1" opacity="0.2" />
+      {/* Inner border */}
+      <path d="M34 36 H86 V68 C86 86 60 102 60 102 C60 102 34 86 34 68 Z"
+        fill="none" stroke="#fef08a" strokeWidth="0.75" opacity="0.35" />
+
+      {/* ── Star emblem ── */}
+      <path
+        d="M60 38 L63.5 52 L78 53.5 L66.5 63 L70 77 L60 69 L50 77 L53.5 63 L42 53.5 L56.5 52 Z"
+        fill="url(#b365_ruby)"
+        stroke="#fef08a"
+        strokeWidth="1.25"
+        strokeLinejoin="round"
+      />
+      {/* Star center gem */}
+      <circle cx="60" cy="57" r="5" fill="#fca5a5" opacity="0.9" />
+      <circle cx="60" cy="57" r="2.5" fill="white" opacity="0.8" />
+
+      {/* Shine overlay */}
+      <path d="M28 30 H92 V68 C92 90 60 108 60 108 C60 108 28 90 28 68 Z"
+        fill="url(#b365_shine)" />
+      {/* Specular highlight */}
+      <ellipse cx="44" cy="40" rx="17" ry="9" fill="white" opacity="0.18" transform="rotate(-18 44 40)" />
+
+      {/* Label */}
+      <rect x="20" y="92" width="80" height="16" rx="8" fill="#431407" opacity="0.92" />
+      <rect x="20" y="92" width="80" height="16" rx="8" fill="none" stroke="#fef08a" strokeWidth="0.75" opacity="0.45" />
+      <text x="60" y="104" textAnchor="middle" fill="#fef9c3" fontSize="8.5" fontWeight="800" fontFamily="system-ui,sans-serif" letterSpacing="1">365 DAYS</text>
+      {renderLockOverlay(isUnlocked)}
     </svg>
   );
 }

@@ -439,14 +439,14 @@ function ProfilePage() {
           initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center justify-between"
+          className="flex items-center justify-between mb-2"
         >
           <Link 
             to="/home" 
-            className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-all font-semibold focus:outline-none hover:-translate-x-1 duration-200"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/60 border border-zinc-800/80 text-zinc-300 hover:text-white hover:border-zinc-700 hover:bg-zinc-900/90 hover:scale-[1.02] transition-all text-xs font-black tracking-widest uppercase font-mono shadow-lg w-fit focus:outline-none cursor-pointer group"
           >
-            <ArrowLeft size={18} />
-            Back to Tasks
+            <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" />
+            <span>Dashboard</span>
           </Link>
         </motion.div>
 
@@ -473,7 +473,7 @@ function ProfilePage() {
                   
                   {/* Floating Level Badge Pill */}
                   <div
-                    className={`absolute -bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-zinc-950 border border-zinc-850 text-[10px] font-black tracking-wider text-zinc-300 shadow-xl flex items-center gap-1`}
+                    className={`absolute -bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-zinc-950 border border-zinc-800 text-[10px] font-black tracking-wider text-zinc-300 shadow-xl flex items-center gap-1`}
                     style={{ borderColor: tierStyle.glow.replace("0.5", "0.3") }}
                   >
                     <span>Lv</span>
@@ -747,63 +747,153 @@ function ProfilePage() {
                   </div>
                 ) : (
                   <div className="space-y-6 text-left">
-                    {/* Top Level Summary Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {/* Level Badge Card */}
-                      {(() => {
-                        const xpInfo = computeXPBreakdown(gamificationData.xp);
-                        const tierStyle = getTierGradient(xpInfo.levelTier);
-                        return (
+                    {/* ── Top Stats Strip ── */}
+                    {(() => {
+                      const xpInfo = computeXPBreakdown(gamificationData.xp);
+                      const tierStyle = getTierGradient(xpInfo.levelTier);
+                      return (
+                        <div className="grid grid-cols-3 gap-3">
+
+                          {/* Card 1 — Level */}
                           <div
-                            className="relative overflow-hidden rounded-2xl p-4 bg-zinc-900/40 border border-zinc-800/80 flex flex-col items-center text-center justify-center gap-2"
+                            className="relative overflow-hidden rounded-2xl p-4 flex flex-col items-center text-center justify-center gap-3 border border-zinc-800/60"
+                            style={{
+                              background: `linear-gradient(145deg, #0a0a0f, #0d0b16)`,
+                            }}
                           >
+                            {/* Ambient glow top-right */}
                             <div className="absolute top-0 right-0 w-24 h-24 pointer-events-none"
-                              style={{ background: `radial-gradient(circle, ${tierStyle.glow.replace("0.5","0.08")} 0%, transparent 70%)` }} />
-                            <div
-                              className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${tierStyle.gradient} flex items-center justify-center font-black text-xl text-black shadow-lg`}
-                              style={{ boxShadow: `0 0 16px ${tierStyle.glow}` }}
-                            >
-                              {xpInfo.level}
-                            </div>
+                              style={{ background: `radial-gradient(circle, ${tierStyle.glow.replace("0.5","0.07")} 0%, transparent 70%)`, transform: "translate(30%, -30%)" }} />
+
+                            {/* Level badge — pure inline style, keyed by tier to avoid Tailwind jitter */}
+                            {(() => {
+                              const tierColors = {
+                                bronze:   "linear-gradient(135deg, #b45309, #d97706, #f59e0b)",
+                                silver:   "linear-gradient(135deg, #94a3b8, #cbd5e1, #e2e8f0)",
+                                gold:     "linear-gradient(135deg, #eab308, #facc15, #fef08a)",
+                                platinum: "linear-gradient(135deg, #67e8f9, #7dd3fc, #a5b4fc)",
+                                diamond:  "linear-gradient(135deg, #a78bfa, #c084fc, #e879f9)",
+                              };
+                              return (
+                                <div
+                                  className="relative w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl overflow-hidden"
+                                  style={{
+                                    background: tierColors[xpInfo.levelTier] || tierColors.bronze,
+                                    boxShadow: `0 0 16px ${tierStyle.glow.replace("0.5","0.3")}, 0 4px 12px rgba(0,0,0,0.5)`,
+                                    color: "rgba(0,0,0,0.75)",
+                                  }}
+                                >
+                                  <div className="absolute inset-0 rounded-2xl pointer-events-none"
+                                    style={{ background: "linear-gradient(160deg, rgba(255,255,255,0.22) 0%, transparent 55%)" }} />
+                                  <span className="relative z-10">{xpInfo.level}</span>
+                                </div>
+                              );
+                            })()}
+
                             <div>
-                              <div className="text-sm font-extrabold text-zinc-200">{xpInfo.levelTitle}</div>
-                              <div className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">{xpInfo.levelTier} tier</div>
+                              <div className="text-sm font-extrabold text-zinc-200 leading-tight">{xpInfo.levelTitle}</div>
+                              <div
+                                className="text-[9px] font-black uppercase tracking-widest mt-1 px-2 py-0.5 rounded-full inline-block"
+                                style={{
+                                  background: tierStyle.glow.replace("0.5","0.1"),
+                                  color: tierStyle.glow.replace("rgba(","rgb(").replace(",0.5)",")")
+                                }}
+                              >
+                                {xpInfo.levelTier}
+                              </div>
                             </div>
                           </div>
-                        );
-                      })()}
 
-                      {/* Streak Card */}
-                      <div className="rounded-2xl p-4 bg-zinc-900/40 border border-zinc-800/80 flex flex-col items-center text-center justify-center gap-1.5 relative">
-                        <Flame className="w-9 h-9 text-amber-500 fill-amber-500/25 filter drop-shadow-[0_0_8px_rgba(245,158,11,0.25)]" />
-                        <div>
-                          <div className="text-base font-black text-zinc-150">{gamificationData.currentStreak} Days</div>
-                          <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Current Streak</div>
-                        </div>
-                        <div className="text-[9px] text-zinc-600 font-semibold mt-0.5">
-                          Longest: {gamificationData.longestStreak} days
-                        </div>
-                      </div>
+                          {/* Card 2 — Streak */}
+                          <div
+                            className="relative overflow-hidden rounded-2xl p-4 flex flex-col items-center text-center justify-center gap-3 border border-zinc-800/60"
+                            style={{ background: "linear-gradient(145deg, #0a0a0f, #0d0b0a)" }}
+                          >
+                            {/* Ambient glow */}
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-14 pointer-events-none"
+                              style={{ background: "radial-gradient(ellipse, rgba(245,158,11,0.07) 0%, transparent 70%)" }} />
 
-                      {/* Overview Stats */}
-                      <div className="rounded-2xl p-4 bg-zinc-900/40 border border-zinc-800/80 flex flex-col justify-center gap-2.5">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-semibold text-zinc-500">Global Rank</span>
-                          <span className="font-extrabold text-amber-400 font-mono">#{gamificationData.rank}</span>
+                            {/* Flame icon */}
+                            <div
+                              className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                              style={{
+                                background: "rgba(245,158,11,0.08)",
+                                border: "1px solid rgba(245,158,11,0.18)",
+                              }}
+                            >
+                              <Flame className="w-7 h-7" style={{ color: "#f59e0b", filter: "drop-shadow(0 0 6px rgba(245,158,11,0.5))" }} />
+                            </div>
+
+                            <div>
+                              <div className="text-2xl font-black leading-none" style={{ color: "#fbbf24" }}>
+                                {gamificationData.currentStreak}
+                                <span className="text-sm font-bold ml-1" style={{ color: "#d97706" }}>d</span>
+                              </div>
+                              <div className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 mt-1">Current Streak</div>
+                              <div className="text-[8px] text-zinc-600 font-semibold mt-1">
+                                Best: {gamificationData.longestStreak}d
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Card 3 — Rank */}
+                          <div
+                            className="relative overflow-hidden rounded-2xl p-4 flex flex-col items-center text-center justify-center gap-3 border border-zinc-800/60"
+                            style={{ background: "linear-gradient(145deg, #0a0a0f, #0c0a14)" }}
+                          >
+                            {/* Ambient glow */}
+                            <div className="absolute top-0 right-0 w-20 h-20 pointer-events-none"
+                              style={{
+                                background: gamificationData.rank <= 3
+                                  ? "radial-gradient(circle, rgba(251,191,36,0.07) 0%, transparent 70%)"
+                                  : "radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%)",
+                                transform: "translate(30%, -30%)"
+                              }} />
+
+                            {/* Rank badge */}
+                            <div
+                              className="w-14 h-14 rounded-2xl flex items-center justify-center font-black overflow-hidden relative"
+                              style={{
+                                background: gamificationData.rank === 1
+                                  ? "linear-gradient(145deg, #fde047, #eab308, #ca8a04)"
+                                  : gamificationData.rank === 2
+                                  ? "linear-gradient(145deg, #e2e8f0, #cbd5e1, #94a3b8)"
+                                  : gamificationData.rank === 3
+                                  ? "linear-gradient(145deg, #fdba74, #f97316, #c2410c)"
+                                  : "linear-gradient(145deg, #c084fc, #9333ea, #6b21a8)",
+                                boxShadow: gamificationData.rank <= 3
+                                  ? "0 0 14px rgba(234,179,8,0.25), 0 4px 12px rgba(0,0,0,0.5)"
+                                  : "0 0 14px rgba(139,92,246,0.25), 0 4px 12px rgba(0,0,0,0.5)",
+                                color: "rgba(0,0,0,0.7)"
+                              }}
+                            >
+                              <div className="absolute inset-0 rounded-2xl pointer-events-none"
+                                style={{ background: "linear-gradient(160deg, rgba(255,255,255,0.2) 0%, transparent 55%)" }} />
+                              <span className="relative z-10 text-sm font-black">#{gamificationData.rank}</span>
+                            </div>
+
+                            <div>
+                              <div className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 mb-1">Global Rank</div>
+                              <div className="flex items-center justify-center gap-3 text-[10px]">
+                                <div className="text-center">
+                                  <div className="font-black text-purple-400">{gamificationData.totalCompleted}</div>
+                                  <div className="text-[8px] text-zinc-600 font-semibold">Tasks</div>
+                                </div>
+                                <div className="w-px h-5 bg-zinc-800" />
+                                <div className="text-center">
+                                  <div className="font-black text-violet-400">{gamificationData.badgesEarned}/{STREAK_MILESTONES.length}</div>
+                                  <div className="text-[8px] text-zinc-600 font-semibold">Badges</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
                         </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-semibold text-zinc-500">Tasks Completed</span>
-                          <span className="font-extrabold text-purple-400 font-mono">{gamificationData.totalCompleted}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-semibold text-zinc-500">Badges Earned</span>
-                          <span className="font-extrabold text-violet-400 font-mono">{gamificationData.badgesEarned} / {STREAK_MILESTONES.length}</span>
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })()}
 
                     {/* Progress Bar (Full) */}
-                    <div className="rounded-2xl p-5 bg-zinc-900/30 border border-zinc-850/50">
+                    <div className="rounded-2xl p-5 bg-zinc-900/30 border border-zinc-800/60">
                       <GamificationBar xp={gamificationData.xp} streak={gamificationData.currentStreak} size="lg" showStreak={false} />
                     </div>
 
@@ -814,7 +904,7 @@ function ProfilePage() {
                         <span>Streak Badges ({gamificationData.badgesEarned} Unlocked)</span>
                       </h3>
                       
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {STREAK_MILESTONES.map((badge) => {
                           const isUnlocked = gamificationData.longestStreak >= badge.days;
                           return (
@@ -822,8 +912,8 @@ function ProfilePage() {
                               key={badge.days}
                               className={`rounded-2xl p-3 border flex flex-col items-center text-center justify-center gap-2 transition-all ${
                                 isUnlocked
-                                  ? "bg-zinc-900/40 border-zinc-850 shadow-md"
-                                  : "bg-zinc-950/20 border-zinc-900/50 opacity-40"
+                                  ? "bg-zinc-900/40 border-zinc-800/50 shadow-md hover:border-zinc-700/80"
+                                  : "bg-zinc-950/30 border-zinc-900/60"
                               }`}
                             >
                               <CustomBadgeSvg days={badge.days} size={64} isUnlocked={isUnlocked} />

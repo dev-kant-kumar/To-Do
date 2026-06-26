@@ -1,7 +1,7 @@
 /**
  * GamificationBar.jsx
  * ─────────────────────────────────────────────────────────────────
- * Unified, animated XP / Level progress bar.
+ * Unified, static XP / Level progress bar (animations removed).
  * Used in: Dashboard hero, Profile gamification tab, Leaderboard self-card.
  *
  * Props:
@@ -9,39 +9,28 @@
  *   streak   {number}  – current streak days (optional, for display)
  *   size     {"sm"|"md"|"lg"} – compact vs full layout
  *   showStreak {bool}  – whether to show streak pill
- *   animate  {bool}    – whether to animate on mount
+ *   className {string} – optional extra classes
  */
-import React, { useEffect, useRef, useState } from "react";
-import { motion, useSpring, useTransform } from "framer-motion";
+import React from "react";
 import { Zap, Flame, TrendingUp } from "lucide-react";
 import {
   computeXPBreakdown,
   getTierGradient,
-  getLevelInfo,
 } from "../utils/gamificationUtils";
 
-// Animated counter
-function AnimatedNumber({ value, suffix = "", className = "" }) {
-  const spring = useSpring(0, { stiffness: 80, damping: 20 });
-  const display = useTransform(spring, (v) => Math.round(v).toLocaleString() + suffix);
-
-  useEffect(() => {
-    spring.set(value);
-  }, [value, spring]);
-
-  return (
-    <motion.span className={className}>
-      {display}
-    </motion.span>
-  );
-}
+const tierColors = {
+  bronze:   "linear-gradient(135deg, #b45309, #d97706, #f59e0b)",
+  silver:   "linear-gradient(135deg, #94a3b8, #cbd5e1, #e2e8f0)",
+  gold:     "linear-gradient(135deg, #eab308, #facc15, #fef08a)",
+  platinum: "linear-gradient(135deg, #67e8f9, #7dd3fc, #a5b4fc)",
+  diamond:  "linear-gradient(135deg, #a78bfa, #c084fc, #e879f9)",
+};
 
 export default function GamificationBar({
   xp = 0,
   streak = 0,
   size = "md",
   showStreak = true,
-  animate = true,
   className = "",
 }) {
   const {
@@ -55,14 +44,7 @@ export default function GamificationBar({
   } = computeXPBreakdown(xp);
 
   const tierStyle = getTierGradient(levelTier);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 50);
-    return () => clearTimeout(t);
-  }, []);
-
-  const barWidth = mounted && animate ? `${progressPercent}%` : "0%";
+  const progressPercentValue = Math.min(Math.max(progressPercent, 0), 100);
 
   if (size === "sm") {
     // ── COMPACT (leaderboard self-card) ──
@@ -71,8 +53,11 @@ export default function GamificationBar({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <div
-              className={`w-5 h-5 rounded-md bg-gradient-to-br ${tierStyle.gradient} flex items-center justify-center text-[9px] font-black text-black shadow-lg`}
-              style={{ boxShadow: `0 0 8px ${tierStyle.glow}` }}
+              className="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black text-black shadow-lg"
+              style={{
+                background: tierColors[levelTier] || tierColors.bronze,
+                boxShadow: `0 0 8px ${tierStyle.glow.replace("0.5", "0.25")}`,
+              }}
             >
               {level}
             </div>
@@ -85,19 +70,20 @@ export default function GamificationBar({
                 {streak}d
               </span>
             )}
-            <span className="text-[9px] text-zinc-600 font-mono">
+            <span className="text-[9px] text-zinc-650 font-mono">
               {xpInLevel.toLocaleString()}/{xpForThisLevel.toLocaleString()}
             </span>
           </div>
         </div>
 
         <div className="h-1 w-full rounded-full bg-zinc-800/80 overflow-hidden">
-          <motion.div
-            className={`h-full rounded-full bg-gradient-to-r ${tierStyle.gradient}`}
-            style={{ boxShadow: `0 0 6px ${tierStyle.glow}` }}
-            initial={{ width: 0 }}
-            animate={{ width: barWidth }}
-            transition={{ duration: 1.2, ease: [0.34, 1.56, 0.64, 1], delay: 0.1 }}
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: `${progressPercentValue}%`,
+              background: tierColors[levelTier] || tierColors.bronze,
+              boxShadow: `0 0 6px ${tierStyle.glow.replace("0.5", "0.3")}`,
+            }}
           />
         </div>
       </div>
@@ -107,30 +93,27 @@ export default function GamificationBar({
   if (size === "lg") {
     // ── FULL (dashboard hero, profile tab) ──
     return (
-      <div className={`flex flex-col gap-2 ${className}`}>
+      <div className={`flex flex-col gap-2.5 ${className}`}>
         {/* Top row — level badge + title + XP numbers */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             {/* Level badge */}
-            <motion.div
-              className={`relative w-9 h-9 rounded-xl bg-gradient-to-br ${tierStyle.gradient} flex items-center justify-center font-black text-sm text-black shadow-lg flex-shrink-0`}
-              style={{ boxShadow: `0 0 16px ${tierStyle.glow}` }}
-              whileHover={{ scale: 1.05, rotate: 3 }}
-              transition={{ type: "spring", stiffness: 400 }}
+            <div
+              className="relative w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm text-black shadow-lg flex-shrink-0"
+              style={{
+                background: tierColors[levelTier] || tierColors.bronze,
+                boxShadow: `0 0 16px ${tierStyle.glow.replace("0.5", "0.25")}, 0 4px 12px rgba(0,0,0,0.5)`,
+              }}
             >
-              {level}
-              {/* Shimmer overlay */}
-              <motion.div
-                className="absolute inset-0 rounded-xl bg-gradient-to-tr from-white/0 via-white/20 to-white/0"
-                animate={{ x: ["-100%", "200%"] }}
-                transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3, ease: "linear" }}
-              />
-            </motion.div>
+              <div className="absolute inset-0 rounded-xl pointer-events-none"
+                style={{ background: "linear-gradient(160deg, rgba(255,255,255,0.22) 0%, transparent 55%)" }} />
+              <span className="relative z-10">{level}</span>
+            </div>
 
             <div>
               <div className="flex items-center gap-1.5">
                 <Zap className="w-3 h-3 text-violet-400" />
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-violet-400">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-violet-450">
                   Level {level}
                 </span>
               </div>
@@ -140,17 +123,14 @@ export default function GamificationBar({
 
           <div className="flex items-center gap-3">
             {showStreak && streak > 0 && (
-              <motion.div
-                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20"
-                whileHover={{ scale: 1.04 }}
-              >
+              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
                 <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-400" />
                 <span className="text-xs font-bold text-amber-300">{streak}d</span>
-              </motion.div>
+              </div>
             )}
             <div className="text-right">
               <div className="text-xs font-bold text-zinc-300 font-mono">
-                <AnimatedNumber value={xpInLevel} />
+                <span>{xpInLevel.toLocaleString()}</span>
                 <span className="text-zinc-600">/{xpForThisLevel.toLocaleString()} XP</span>
               </div>
               <div className="text-[9px] text-zinc-600 font-semibold">
@@ -162,39 +142,37 @@ export default function GamificationBar({
 
         {/* Progress bar */}
         <div className="relative h-2 w-full rounded-full bg-zinc-800/80 overflow-hidden">
-          {/* Track shimmer */}
-          <motion.div
-            className="absolute inset-y-0 left-0 right-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
-            animate={{ x: ["-100%", "200%"] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
-          />
           {/* Fill */}
-          <motion.div
-            className={`h-full rounded-full bg-gradient-to-r ${tierStyle.gradient} relative`}
-            style={{ boxShadow: `0 0 10px ${tierStyle.glow}` }}
-            initial={{ width: 0 }}
-            animate={{ width: barWidth }}
-            transition={{ duration: 1.4, ease: [0.34, 1.56, 0.64, 1], delay: 0.2 }}
+          <div
+            className="h-full rounded-full relative"
+            style={{
+              width: `${progressPercentValue}%`,
+              background: tierColors[levelTier] || tierColors.bronze,
+              boxShadow: `0 0 10px ${tierStyle.glow.replace("0.5", "0.3")}`,
+            }}
           >
             {/* Tip glow */}
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/60 blur-[2px]" />
-          </motion.div>
+          </div>
         </div>
 
         {/* Bottom stats row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
             <TrendingUp className="w-3 h-3 text-zinc-600" />
-            <span className="text-[9px] font-semibold text-zinc-600 uppercase tracking-wider">
+            <span className="text-[9px] font-semibold text-zinc-650 uppercase tracking-wider">
               Total: {xp.toLocaleString()} XP
             </span>
           </div>
           <div className="flex items-center gap-1">
             <div
-              className={`w-1.5 h-1.5 rounded-full bg-gradient-to-br ${tierStyle.gradient}`}
-              style={{ boxShadow: `0 0 4px ${tierStyle.glow}` }}
+              className="w-1.5 h-1.5 rounded-full"
+              style={{
+                background: tierColors[levelTier] || tierColors.bronze,
+                boxShadow: `0 0 4px ${tierStyle.glow.replace("0.5", "0.3")}`,
+              }}
             />
-            <span className="text-[9px] text-zinc-600 font-semibold uppercase tracking-wider">
+            <span className="text-[9px] text-zinc-650 font-semibold uppercase tracking-wider">
               {levelTier} tier
             </span>
           </div>
@@ -208,12 +186,15 @@ export default function GamificationBar({
     <div className={`flex flex-col gap-2 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <motion.div
-            className={`w-7 h-7 rounded-lg bg-gradient-to-br ${tierStyle.gradient} flex items-center justify-center font-black text-xs text-black shadow-md`}
-            style={{ boxShadow: `0 0 10px ${tierStyle.glow}` }}
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs text-black shadow-md"
+            style={{
+              background: tierColors[levelTier] || tierColors.bronze,
+              boxShadow: `0 0 10px ${tierStyle.glow.replace("0.5", "0.25")}`,
+            }}
           >
             {level}
-          </motion.div>
+          </div>
           <div>
             <span className="text-[10px] font-bold text-violet-400 block">Lv {level} · {levelTitle}</span>
           </div>
@@ -232,12 +213,13 @@ export default function GamificationBar({
       </div>
 
       <div className="h-1.5 w-full rounded-full bg-zinc-800/80 overflow-hidden">
-        <motion.div
-          className={`h-full rounded-full bg-gradient-to-r ${tierStyle.gradient}`}
-          style={{ boxShadow: `0 0 8px ${tierStyle.glow}` }}
-          initial={{ width: 0 }}
-          animate={{ width: barWidth }}
-          transition={{ duration: 1.3, ease: [0.34, 1.56, 0.64, 1], delay: 0.15 }}
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${progressPercentValue}%`,
+            background: tierColors[levelTier] || tierColors.bronze,
+            boxShadow: `0 0 8px ${tierStyle.glow.replace("0.5", "0.3")}`,
+          }}
         />
       </div>
     </div>
