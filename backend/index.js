@@ -14,6 +14,7 @@ dotenv.config();
 const UserRoutes = require("./src/routes/userRoutes");
 const TodoRoutes = require("./src/routes/todoRoutes");
 const TodoFiltersRoutes = require("./src/routes/todoFiltersRoutes");
+const LeaderboardRoutes = require("./src/routes/leaderboardRoutes");
 
 // App initialization
 const app = express();
@@ -79,6 +80,7 @@ app.use("/todo", TodoRoutes);
 app.use("/filters", TodoFiltersRoutes);
 app.use("/user", UserRoutes);
 app.use("/email", require("./src/routes/emailPreviewRoutes"));
+app.use("/leaderboard", LeaderboardRoutes);
 
 // Server
 app.listen(PORT, () => {

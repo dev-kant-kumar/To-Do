@@ -25,6 +25,7 @@ const SignIn = lazy(() => import("../Components/SigninForm"));
 const Home = lazy(() => import("../Pages/Home"));
 const ProfilePage = lazy(() => import("../Pages/ProfilePage"));
 const PlannerPage = lazy(() => import("../Pages/PlannerPage"));
+const LeaderboardPage = lazy(() => import("../Pages/LeaderboardPage"));
 const ErrorPage = lazy(() => import("../Pages/ErrorPage"));
 const LandingPage = lazy(() => import("./LandingPage/LandingPage"));
 const ForgotPasswordForm = lazy(() => import("../Components/ForgotPasswordForm"));
@@ -68,8 +69,8 @@ function AuthenticationPage() {
       })
       .then(async (res) => {
         if (res.data.status) {
-          const { _id, name, username, email, date } = res.data.data;
-          dispatch(setUserInfo({ _id, name, username, email, date }));
+          const { _id, name, username, email, date, xp, level, points, currentStreak } = res.data.data;
+          dispatch(setUserInfo({ _id, name, username, email, date, xp, level, points, currentStreak }));
         } else {
           // Server explicitly rejected the token — treat as logged out
           await clearOfflineData().catch(console.error);
@@ -167,6 +168,7 @@ function AuthenticationPage() {
               <Route path="/home" element={<><SEO title="Dashboard | todo." description="Manage your tasks, filter by Starred, Today, or Deleted, and track your daily lists on todo.." image="/og-img-v2.png" /><Home /></>} />
               <Route path="/profile" element={<><SEO title="Settings | todo." description="Update your personal information, manage security, and configure your todo. profile." image="/og-img-v1.png" /><ProfilePage /></>} />
               <Route path="/planner" element={<><SEO title="Planner | todo." description="Plan your week and month tasks visually on a modern calendar view." image="/og-img-v3.png" /><PlannerPage /></>} />
+              <Route path="/leaderboard" element={<><SEO title="Leaderboard | todo." description="Compete on the community leaderboard, track your XP, level up, and see consistency badges." image="/og-img-v3.png" /><LeaderboardPage /></>} />
             </Route>
 
             {/* Legal Pages - Nested (Public) */}

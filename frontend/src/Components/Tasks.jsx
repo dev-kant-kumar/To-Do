@@ -12,6 +12,7 @@ import axios from "axios";
 import { setTodo, setTodoLength, setSearchQuery, setFocusTask, setShowCreateTask } from "../Store/Reducers/TodoFilterSlice";
 import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
 import { fetchStreakData, incrementStreakOptimistic, decrementStreakOptimistic } from "../Store/Reducers/StreakSlice";
+import { setUserInfo } from "../Store/Reducers/UserSlice";
 import { toast } from "react-toastify";
 import { 
   Trash2, 
@@ -98,6 +99,7 @@ function Tasks() {
   const [counts, setCounts] = useState({});
   const [draggedTaskId, setDraggedTaskId] = useState(null);
   const [dragOverTaskId, setDragOverTaskId] = useState(null);
+  const [floatingXPs, setFloatingXPs] = useState([]);
 
   // Auto-open modal when notification bell triggers a task focus
   const focusTaskId = useSelector((state) => state.TodoFilterSlice.focusTaskId);
@@ -293,10 +295,32 @@ function Tasks() {
       }
 
       try {
-        await axios.post(`${apiUrl}${endpoint}`, {
+        const response = await axios.post(`${apiUrl}${endpoint}`, {
           taskID,
           userId: userInfo.userId,
         });
+
+        if (response.data?.status) {
+          if (isCompleting && response.data?.user) {
+            const task = todoData.todo?.find((t) => t._id === taskID);
+            if (task) {
+              let xpReward = 10;
+              if (task.priority === "high") xpReward += 10;
+              else if (task.priority === "medium") xpReward += 5;
+              if (task.starred) xpReward += 5;
+              if (userInfo.currentStreak > 0) xpReward += userInfo.currentStreak;
+
+              const id = Math.random().toString();
+              setFloatingXPs((prev) => [...prev, { id, taskId: taskID, text: `+${xpReward} XP` }]);
+              setTimeout(() => {
+                setFloatingXPs((prev) => prev.filter((x) => x.id !== id));
+              }, 1200);
+            }
+          }
+          if (response.data?.user) {
+            dispatch(setUserInfo(response.data.user));
+          }
+        }
 
         await fetchTodo(userInfo.userId);
         // Reconcile with server — ensures streak is authoritative
@@ -312,7 +336,7 @@ function Tasks() {
         toast.error("Failed to update task status. Please try again.");
       }
     },
-    [apiUrl, userInfo.userId, fetchTodo, dispatch]
+    [apiUrl, userInfo.userId, fetchTodo, dispatch, todoData.todo, userInfo.currentStreak]
   );
 
   const toggleStarred = useCallback(
@@ -445,7 +469,7 @@ function Tasks() {
     }
 
     try {
-      await Promise.all(
+      const responses = await Promise.all(
         Array.from(selectedTaskIds).map((id) =>
           axios.post(`${apiUrl}${endpoint}`, {
             taskID: id,
@@ -453,6 +477,10 @@ function Tasks() {
           })
         )
       );
+      const lastWithUser = responses.reverse().find((r) => r.data?.user);
+      if (lastWithUser) {
+        dispatch(setUserInfo(lastWithUser.data.user));
+      }
       setSelectedTaskIds(new Set());
       await fetchTodo(userInfo.userId);
       dispatch(fetchStreakData());
@@ -1069,19 +1097,36 @@ function Tasks() {
                 </div>
 
                 {/* Check Completion button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleTaskComplete(task._id, task.completed);
-                  }}
-                  className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
-                    task.completed 
-                      ? "bg-emerald-500/20 border-emerald-500/35 text-emerald-400" 
-                      : "border-zinc-800 text-zinc-500 hover:border-emerald-500/30 hover:text-emerald-400 hover:bg-emerald-950/10"
-                  }`}
-                >
-                  <Check size={12} className="stroke-[3]" />
-                </button>
+                <div className="relative flex items-center justify-center">
+                  <AnimatePresence>
+                    {floatingXPs.filter(x => x.taskId === task._id).map(x => (
+                      <motion.div
+                        key={x.id}
+                        initial={{ opacity: 0, y: 0, scale: 0.8 }}
+                        animate={{ opacity: [0, 1, 1, 0], y: -45, scale: [0.8, 1.2, 1.2, 1] }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1.2, ease: "easeOut" }}
+                        className="absolute pointer-events-none text-emerald-400 font-extrabold text-xs tracking-wider z-50 drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]"
+                      >
+                        {x.text}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleTaskComplete(task._id, task.completed);
+                    }}
+                    className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                      task.completed 
+                        ? "bg-emerald-500/20 border-emerald-500/35 text-emerald-400" 
+                        : "border-zinc-800 text-zinc-500 hover:border-emerald-500/30 hover:text-emerald-400 hover:bg-emerald-950/10"
+                    }`}
+                  >
+                    <Check size={12} className="stroke-[3]" />
+                  </button>
+                </div>
               </>
             )}
           </div>
@@ -1105,7 +1150,8 @@ function Tasks() {
     handleDragEnd,
     handleDrop,
     isDeletedFilter,
-    restoreTask
+    restoreTask,
+    floatingXPs
   ]);
 
   const Toolbar = useMemo(() => {

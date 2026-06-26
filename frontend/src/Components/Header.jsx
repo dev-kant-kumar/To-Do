@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, SlidersHorizontal, Flame, Calendar, Menu, LayoutDashboard, User, Sparkles, LogOut, Wifi, WifiOff, RefreshCw } from "lucide-react";
+import { ChevronDown, SlidersHorizontal, Flame, Calendar, Menu, LayoutDashboard, User, Sparkles, LogOut, Wifi, WifiOff, RefreshCw, Trophy } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -205,6 +205,18 @@ function Header() {
               </Link>
             )}
 
+            {/* Leaderboard link — sm+ only */}
+            {userInfo?.userId && (
+              <Link
+                to="/leaderboard"
+                className="hidden sm:flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 hover:bg-purple-500/20 hover:text-white text-xs font-bold transition-all duration-200"
+                title="Open Leaderboard"
+              >
+                <Trophy size={13} className="text-purple-400" />
+                <span className="hidden sm:inline">Leaderboard</span>
+              </Link>
+            )}
+
             {/* Sync status */}
             {userInfo?.userId && (
               <div className="flex items-center gap-1.5 sm:gap-2">
@@ -407,6 +419,17 @@ function Header() {
                     <span className="flex items-center gap-2.5">
                       <Calendar size={15} className="text-zinc-500" />
                       <span>Command Planner</span>
+                    </span>
+                  </Link>
+
+                  <Link
+                    to="/leaderboard"
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="flex items-center justify-between px-3.5 py-3 text-zinc-300 hover:text-white rounded-xl hover:bg-zinc-900/40 border border-transparent hover:border-zinc-900/50 transition-all text-xs font-semibold"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Trophy size={15} className="text-zinc-500" />
+                      <span>Leaderboard</span>
                     </span>
                   </Link>
 

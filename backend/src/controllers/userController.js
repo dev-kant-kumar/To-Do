@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const { sendEmail, getTemplateContent } = require("../utils/mailer");
+const { recalculateUserXP, computeXPBreakdown, computeActiveStreak, computeLongestStreak, countEarnedBadges } = require("../utils/xpService");
 require("dotenv").config();
 
 const key = process.env.SECRET_KEY;
@@ -488,6 +489,11 @@ async function getUserData(req, res) {
     if (username) {
       const userData = await user.findOne({ username: { $eq: username } });
       if (userData) {
+        // Silently backfill XP from completed todos (no-op if already up to date)
+        recalculateUserXP(userData._id).catch((e) =>
+          console.error("[getUserData] XP recalc error:", e)
+        );
+
         return res.json({
           status: true,
           data: userData,
@@ -763,6 +769,94 @@ async function deleteAccount(req, res) {
   }
 }
 
+async function getGamificationData(req, res) {
+  try {
+    const username = req.username;
+    if (!username) {
+      return res.status(401).json({
+        status: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const userData = await user.findOne({ username: { $eq: username } });
+    if (!userData) {
+      return res.status(404).json({
+        status: false,
+        message: "User not found",
+      });
+    }
+
+    const userIdStr = userData._id.toString();
+
+    // 1. Live computed active streak and longest streak
+    const currentStreak = await computeActiveStreak(userData._id);
+    const longestStreak = await computeLongestStreak(userData._id);
+
+    // 2. Count completed tasks
+    const Todo = require("../models/todoModel");
+    const totalCompleted = await Todo.countDocuments({
+      userId: userIdStr,
+      completed: true,
+      deleted: false,
+    });
+
+    // 3. Compute XP breakdown
+    const breakdown = computeXPBreakdown(userData.xp || 0);
+
+    // Sync any changes if currentStreak or level are different in DB
+    let needsSave = false;
+    if (userData.currentStreak !== currentStreak) {
+      userData.currentStreak = currentStreak;
+      needsSave = true;
+    }
+    if (userData.level !== breakdown.level) {
+      userData.level = breakdown.level;
+      needsSave = true;
+    }
+    if (needsSave) {
+      await userData.save();
+    }
+
+    // 4. Determine Leaderboard Rank (XP Rank)
+    const allUsers = await user.find({ isVerified: true }, "xp currentStreak");
+    const sorted = allUsers.map(u => ({
+      id: u._id.toString(),
+      xp: u.xp || 0,
+      currentStreak: u.currentStreak || 0
+    })).sort((a, b) => {
+      if (b.xp !== a.xp) return b.xp - a.xp;
+      return b.currentStreak - a.currentStreak;
+    });
+
+    const rankIndex = sorted.findIndex(u => u.id === userIdStr);
+    const rank = rankIndex !== -1 ? rankIndex + 1 : sorted.length + 1;
+
+    res.json({
+      status: true,
+      data: {
+        xp: breakdown.totalXp,
+        level: breakdown.level,
+        xpInLevel: breakdown.xpInLevel,
+        xpForThisLevel: breakdown.xpForThisLevel,
+        xpToNext: breakdown.xpToNext,
+        progressPercent: breakdown.progressPercent,
+        currentStreak,
+        longestStreak,
+        badgesEarned: countEarnedBadges(longestStreak),
+        totalCompleted,
+        rank,
+      }
+    });
+  } catch (err) {
+    console.error("[getGamificationData] Error:", err);
+    res.status(500).json({
+      status: false,
+      message: "Internal server error"
+    });
+  }
+}
+
 module.exports = {
   signUp,
   signIn,
@@ -775,4 +869,5 @@ module.exports = {
   changePassword,
   requestDeleteOtp,
   deleteAccount,
+  getGamificationData,
 };

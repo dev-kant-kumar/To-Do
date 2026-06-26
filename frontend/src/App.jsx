@@ -2,12 +2,15 @@ import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Zap, Flame } from "lucide-react";
 import axios from "axios";
 import Header from "./Components/Header";
 import Tasks from "./Components/Tasks";
 import MobileNav from "./Components/MobileNav";
 import { fetchStreakData } from "./Store/Reducers/StreakSlice";
 import { StreakHighlightCard } from "./Components/ActivityTracker";
+import GamificationBar from "./Components/GamificationBar";
+import LevelUpToast from "./Components/LevelUpToast";
 import { registerSW } from "./utils/serviceWorker";
 import BackgroundLayer from "./Components/BackgroundLayer";
 import { dbGet } from "./utils/syncManager";
@@ -396,6 +399,11 @@ function App() {
                 </div>
               )}
             </div>
+            {/* XP Progress Bar */}
+            <div className="w-full md:w-80">
+              <GamificationBar xp={userInfo.xp || 0} streak={currentStreak || 0} size="lg" className="mt-1" />
+            </div>
+
             {/* Time-of-day illustration */}
             <div className="flex-shrink-0 relative z-10 w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-zinc-900/20 border border-zinc-800/40 backdrop-blur-md flex items-center justify-center p-3 shadow-inner shadow-white/5">
               {renderGreetingIllustration(hr)}
@@ -574,6 +582,9 @@ function App() {
         </div>
 
       </main>
+
+      {/* Level-up celebration toast */}
+      <LevelUpToast />
 
       {/* Mobile bottom navigation — hidden on lg+ */}
       <MobileNav

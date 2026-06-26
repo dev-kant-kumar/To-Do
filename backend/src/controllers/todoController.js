@@ -1,6 +1,7 @@
 const Todo = require("../models/todoModel");
 const User = require("../models/userModel");
 const StreakEntry = require("../models/streakModel");
+const { applyTaskXPChange } = require("../utils/xpService");
 
 // ── Streak helpers ────────────────────────────────────────────────────────────
 
@@ -145,7 +146,8 @@ async function markCompleted(req, res) {
     if (updated) {
       // ── Streak: completion is a historical fact — persisted forever ──
       await incrementStreak(userId);
-      res.send({ status: true, message: "Task successfully marked as completed." });
+      const updatedUser = await applyTaskXPChange(userId, task, true);
+      res.send({ status: true, message: "Task successfully marked as completed.", user: updatedUser });
     } else {
       res.send({ status: false, message: "No such task found!" });
     }
@@ -165,7 +167,7 @@ async function unMarkCompleted(req, res) {
       return res.send({ status: false, message: "No such task found!" });
     }
 
-    if (!task.completed) {
+    if (task.completed === false) {
       // Already not completed — idempotent
       return res.send({ status: true, message: "Task already not completed." });
     }
@@ -190,7 +192,8 @@ async function unMarkCompleted(req, res) {
           await decrementStreak(userId);
         }
       }
-      res.send({ status: true, message: "Task successfully unmarked as completed." });
+      const updatedUser = await applyTaskXPChange(userId, task, false);
+      res.send({ status: true, message: "Task successfully unmarked as completed.", user: updatedUser });
     } else {
       res.send({ status: false, message: "No such task found!" });
     }
@@ -397,6 +400,7 @@ async function updateTask(req, res) {
           updateFields.completed = true;
           updateFields.completedAt = new Date();
           await incrementStreak(userId);
+          await applyTaskXPChange(userId, existingTask, true);
         } else if (completed === false && existingTask.completed) {
           updateFields.completed = false;
           updateFields.completedAt = null;
@@ -408,6 +412,7 @@ async function updateTask(req, res) {
               await decrementStreak(userId);
             }
           }
+          await applyTaskXPChange(userId, existingTask, false);
         }
       }
     }

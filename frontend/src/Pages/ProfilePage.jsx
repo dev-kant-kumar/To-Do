@@ -17,7 +17,12 @@ import {
   Check,
   BarChart2,
   Settings,
-  Palette
+  Palette,
+  Trophy,
+  Award,
+  Flame,
+  Zap,
+  Share2
 } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -27,6 +32,14 @@ import { clearOfflineData } from "../utils/syncManager";
 import ActivityTracker from "../Components/ActivityTracker";
 import BackgroundPicker from "../Components/BackgroundPicker";
 import BackgroundLayer from "../Components/BackgroundLayer";
+import GamificationBar from "../Components/GamificationBar";
+import ShareCardModal from "../Components/ShareCard";
+import { CustomBadgeSvg } from "../Components/CustomBadgeSvg";
+import {
+  computeXPBreakdown,
+  getTierGradient,
+  STREAK_MILESTONES,
+} from "../utils/gamificationUtils";
 
 function ProfilePage() {
   const userInfo = useSelector((state) => state.UserSlice);
@@ -35,6 +48,8 @@ function ProfilePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "activity";
+  const xpInfo = computeXPBreakdown(userInfo.xp || 0);
+  const tierStyle = getTierGradient(xpInfo.levelTier);
 
   const setActiveTab = (tabName) => {
     setSearchParams({ tab: tabName });
@@ -79,6 +94,36 @@ function ProfilePage() {
   const [deleteError, setDeleteError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  // Gamification States
+  const [gamificationData, setGamificationData] = useState(null);
+  const [loadingGamification, setLoadingGamification] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareType, setShareType] = useState("rank");
+
+  useEffect(() => {
+    if (activeTab === "gamification" && userInfo.userId) {
+      const fetchGamification = async () => {
+        setLoadingGamification(true);
+        try {
+          const token = getToken();
+          const res = await axios.get(`${apiUrl}user/gamification`, {
+            headers: {
+              "X-Authorization": `Bearer ${token}`,
+            },
+          });
+          if (res.data?.status) {
+            setGamificationData(res.data.data);
+          }
+        } catch (err) {
+          console.error("Error fetching gamification data:", err);
+        } finally {
+          setLoadingGamification(false);
+        }
+      };
+      fetchGamification();
+    }
+  }, [activeTab, userInfo.userId, apiUrl]);
 
   useEffect(() => {
     setProfileDetails({
@@ -416,11 +461,25 @@ function ProfilePage() {
           {/* Left Panel: Profile Summary Card */}
           <div className="md:col-span-1 bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-6 shadow-2xl flex flex-col items-center justify-between md:min-h-[460px] min-h-0">
             <div className="w-full flex flex-col items-center">
-              {/* Circular Avatar */}
-              <div className="relative mb-4 mt-4">
-                <div className="w-24 h-24 bg-zinc-950 border-2 border-purple-500/20 rounded-full flex items-center justify-center text-4xl font-extrabold text-white shadow-lg relative z-10 bg-gradient-to-tr from-zinc-900 to-zinc-800 ring-4 ring-purple-500/5">
+              {/* Circular Avatar with Level Tier Ring */}
+              <div className="relative mb-6 mt-4">
+                <motion.div
+                  className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl font-black text-black shadow-lg relative z-10 bg-gradient-to-br ${tierStyle.gradient}`}
+                  style={{ boxShadow: `0 0 24px ${tierStyle.glow}` }}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                >
                   {userInfo?.name ? userInfo.name[0].toUpperCase() : "?"}
-                </div>
+                  
+                  {/* Floating Level Badge Pill */}
+                  <div
+                    className={`absolute -bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-zinc-950 border border-zinc-850 text-[10px] font-black tracking-wider text-zinc-300 shadow-xl flex items-center gap-1`}
+                    style={{ borderColor: tierStyle.glow.replace("0.5", "0.3") }}
+                  >
+                    <span>Lv</span>
+                    <span className={`bg-gradient-to-r ${tierStyle.gradient} bg-clip-text text-transparent`}>{xpInfo.level}</span>
+                  </div>
+                </motion.div>
               </div>
 
               {/* Name & Username Subtitle */}
@@ -455,6 +514,18 @@ function ProfilePage() {
                 >
                   <BarChart2 size={15} />
                   <span>Activity Tracker</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab("gamification")}
+                  className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-3 cursor-pointer ${
+                    activeTab === "gamification"
+                      ? "bg-purple-600/15 border border-purple-500/30 text-purple-350 shadow-lg shadow-purple-950/15"
+                      : "bg-transparent border border-transparent text-zinc-405 hover:bg-zinc-900/30 hover:text-zinc-200"
+                  }`}
+                >
+                  <Trophy size={15} />
+                  <span>Progress & Badges</span>
                 </button>
 
                 <button
@@ -506,7 +577,7 @@ function ProfilePage() {
 
           {/* Right Panel: Form Card matching active tab */}
           <div className={`md:col-span-2 bg-zinc-950/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col justify-between md:min-h-[460px] min-h-0 ${
-            activeTab === "activity" ? "overflow-y-auto" : ""
+            (activeTab === "activity" || activeTab === "gamification") ? "overflow-y-auto" : ""
           }`}>
             
             {activeTab === "personal" ? (
@@ -642,6 +713,172 @@ function ProfilePage() {
             ) : activeTab === "activity" ? (
               /* TAB 2: Activity Tracker */
               <ActivityTracker />
+            ) : activeTab === "gamification" ? (
+              /* TAB 6: Progress & Badges (Gamification) */
+              <div className="flex flex-col h-full space-y-6">
+                {/* Header Title */}
+                <div className="border-b border-zinc-900/60 pb-4 flex items-center justify-between flex-wrap gap-3">
+                  <div className="text-left">
+                    <h2 className="text-lg font-bold text-zinc-100">Progress & Badges</h2>
+                    <p className="text-[10px] text-zinc-500 mt-1 font-medium">View your leveling milestones, streak records, and showcase your achievements.</p>
+                  </div>
+                  {gamificationData && (
+                    <button
+                      onClick={() => {
+                        setShareType("rank");
+                        setShowShareModal(true);
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[10px] uppercase tracking-wider transition-colors cursor-pointer shadow-lg shadow-purple-950/20 flex items-center gap-1.5"
+                    >
+                      <Share2 size={12} />
+                      <span>Share Card</span>
+                    </button>
+                  )}
+                </div>
+
+                {loadingGamification ? (
+                  <div className="flex-1 flex flex-col items-center justify-center py-12 gap-3">
+                    <div className="w-8 h-8 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
+                    <span className="text-xs text-zinc-500 font-bold">Unlocking achievements...</span>
+                  </div>
+                ) : !gamificationData ? (
+                  <div className="text-center py-12">
+                    <span className="text-xs text-zinc-500">Failed to load gamification data. Please try again.</span>
+                  </div>
+                ) : (
+                  <div className="space-y-6 text-left">
+                    {/* Top Level Summary Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* Level Badge Card */}
+                      {(() => {
+                        const xpInfo = computeXPBreakdown(gamificationData.xp);
+                        const tierStyle = getTierGradient(xpInfo.levelTier);
+                        return (
+                          <div
+                            className="relative overflow-hidden rounded-2xl p-4 bg-zinc-900/40 border border-zinc-800/80 flex flex-col items-center text-center justify-center gap-2"
+                          >
+                            <div className="absolute top-0 right-0 w-24 h-24 pointer-events-none"
+                              style={{ background: `radial-gradient(circle, ${tierStyle.glow.replace("0.5","0.08")} 0%, transparent 70%)` }} />
+                            <div
+                              className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${tierStyle.gradient} flex items-center justify-center font-black text-xl text-black shadow-lg`}
+                              style={{ boxShadow: `0 0 16px ${tierStyle.glow}` }}
+                            >
+                              {xpInfo.level}
+                            </div>
+                            <div>
+                              <div className="text-sm font-extrabold text-zinc-200">{xpInfo.levelTitle}</div>
+                              <div className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">{xpInfo.levelTier} tier</div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Streak Card */}
+                      <div className="rounded-2xl p-4 bg-zinc-900/40 border border-zinc-800/80 flex flex-col items-center text-center justify-center gap-1.5 relative">
+                        <Flame className="w-9 h-9 text-amber-500 fill-amber-500/25 filter drop-shadow-[0_0_8px_rgba(245,158,11,0.25)]" />
+                        <div>
+                          <div className="text-base font-black text-zinc-150">{gamificationData.currentStreak} Days</div>
+                          <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Current Streak</div>
+                        </div>
+                        <div className="text-[9px] text-zinc-600 font-semibold mt-0.5">
+                          Longest: {gamificationData.longestStreak} days
+                        </div>
+                      </div>
+
+                      {/* Overview Stats */}
+                      <div className="rounded-2xl p-4 bg-zinc-900/40 border border-zinc-800/80 flex flex-col justify-center gap-2.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-semibold text-zinc-500">Global Rank</span>
+                          <span className="font-extrabold text-amber-400 font-mono">#{gamificationData.rank}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-semibold text-zinc-500">Tasks Completed</span>
+                          <span className="font-extrabold text-purple-400 font-mono">{gamificationData.totalCompleted}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-semibold text-zinc-500">Badges Earned</span>
+                          <span className="font-extrabold text-violet-400 font-mono">{gamificationData.badgesEarned} / {STREAK_MILESTONES.length}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar (Full) */}
+                    <div className="rounded-2xl p-5 bg-zinc-900/30 border border-zinc-850/50">
+                      <GamificationBar xp={gamificationData.xp} streak={gamificationData.currentStreak} size="lg" showStreak={false} />
+                    </div>
+
+                    {/* Badges Earned Section */}
+                    <div>
+                      <h3 className="text-xs font-extrabold uppercase tracking-widest text-zinc-400 mb-3 flex items-center gap-1.5">
+                        <Award size={14} className="text-purple-400" />
+                        <span>Streak Badges ({gamificationData.badgesEarned} Unlocked)</span>
+                      </h3>
+                      
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                        {STREAK_MILESTONES.map((badge) => {
+                          const isUnlocked = gamificationData.longestStreak >= badge.days;
+                          return (
+                            <div
+                              key={badge.days}
+                              className={`rounded-2xl p-3 border flex flex-col items-center text-center justify-center gap-2 transition-all ${
+                                isUnlocked
+                                  ? "bg-zinc-900/40 border-zinc-850 shadow-md"
+                                  : "bg-zinc-950/20 border-zinc-900/50 opacity-40"
+                              }`}
+                            >
+                              <CustomBadgeSvg days={badge.days} size={64} isUnlocked={isUnlocked} />
+                              <div className="min-h-[28px] flex flex-col items-center justify-center">
+                                <span className="text-[9px] font-black text-zinc-300 leading-tight">{badge.badge}</span>
+                                <span className="text-[8px] font-bold text-zinc-600 mt-0.5">{badge.days} Day Streak</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Share Cards Panel */}
+                    <div>
+                      <h3 className="text-xs font-extrabold uppercase tracking-widest text-zinc-400 mb-3 flex items-center gap-1.5">
+                        <Share2 size={14} className="text-violet-400" />
+                        <span>Generate Share Cards</span>
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {[
+                          { type: "rank", label: "Rank Card", desc: "Show off your community standing", color: "from-amber-500/10 to-amber-600/5 hover:border-amber-500/35 border-zinc-900", icon: Trophy, iconColor: "text-amber-400" },
+                          { type: "streak", label: "Streak Card", desc: "Celebrate your consecutive days", color: "from-orange-500/10 to-amber-600/5 hover:border-orange-500/35 border-zinc-900", icon: Flame, iconColor: "text-orange-400" },
+                          { type: "achievement", label: "Level Card", desc: "Share your level milestone", color: "from-violet-500/10 to-indigo-600/5 hover:border-violet-500/35 border-zinc-900", icon: Zap, iconColor: "text-violet-400" }
+                        ].map((btn) => {
+                          const BtnIcon = btn.icon;
+                          return (
+                            <button
+                              key={btn.type}
+                              onClick={() => {
+                                setShareType(btn.type);
+                                setShowShareModal(true);
+                              }}
+                              className={`rounded-2xl p-4 bg-gradient-to-br ${btn.color} border text-left flex flex-col gap-2 transition-all cursor-pointer group`}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <div className={`w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:scale-105 transition-all`}>
+                                  <BtnIcon size={14} className={btn.iconColor} />
+                                </div>
+                                <Share2 size={12} className="text-zinc-600 group-hover:text-zinc-300 transition-colors" />
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-extrabold text-zinc-200">{btn.label}</h4>
+                                <p className="text-[9px] text-zinc-500 font-semibold mt-0.5">{btn.desc}</p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+              </div>
             ) : activeTab === "password" ? (
               /* TAB 3: Login & Password */
               <div className="flex flex-col h-full justify-between">
@@ -994,6 +1231,22 @@ function ProfilePage() {
         onCancel={() => setIsLogoutModalOpen(false)}
         type="warning"
       />
+
+      {showShareModal && (
+        <ShareCardModal
+          type={shareType}
+          data={{
+            name: userInfo.name,
+            username: userInfo.username,
+            rank: gamificationData?.rank || 1,
+            level: gamificationData?.level || userInfo.level || 1,
+            xp: gamificationData?.xp || userInfo.xp || 0,
+            currentStreak: gamificationData?.currentStreak || userInfo.currentStreak || 0,
+            longestStreak: gamificationData?.longestStreak || 0,
+          }}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
       </div>
     </div>
   );

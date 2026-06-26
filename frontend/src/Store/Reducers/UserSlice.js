@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { getLevelInfo } from "../../utils/gamificationUtils";
 
 const USER_CACHE_KEY = "todo_user_cache";
 
@@ -40,18 +41,41 @@ const UserSlice = createSlice({
     username: "",
     email: "",
     dateOfAccountCreation: "",
+    xp: 0,
+    level: 1,
+    points: 0,
+    currentStreak: 0,
   },
   reducers: {
     setUserInfo(state, action) {
-      const { _id, name, username, email, date } = action.payload || {};
+      const { _id, name, username, email, date, xp, level, points, currentStreak } = action.payload || {};
+      const oldLevel = state.level;
       state.userId = _id || "";
       state.name = name || "";
       state.username = username || "";
       state.email = email || "";
       state.dateOfAccountCreation = date || "";
+      state.xp = xp ?? state.xp;
+      state.level = level ?? state.level;
+      state.points = points ?? state.points;
+      state.currentStreak = currentStreak ?? state.currentStreak;
+
+      // If the level has increased, trigger the celebration animation!
+      if (oldLevel && state.level > oldLevel) {
+        const info = getLevelInfo(state.level);
+        setTimeout(() => {
+          const ev = new CustomEvent("todo-level-up", {
+            detail: {
+              level: state.level,
+              levelTitle: info.title
+            }
+          });
+          window.dispatchEvent(ev);
+        }, 50);
+      }
 
       // Persist to localStorage for offline rehydration
-      persistUser({ _id, name, username, email, date });
+      persistUser({ _id, name, username, email, date, xp, level, points, currentStreak });
     },
     clearUserInfo(state) {
       state.userId = "";
@@ -59,6 +83,10 @@ const UserSlice = createSlice({
       state.username = "";
       state.email = "";
       state.dateOfAccountCreation = "";
+      state.xp = 0;
+      state.level = 1;
+      state.points = 0;
+      state.currentStreak = 0;
 
       // Remove the cache so a truly logged-out user can't bypass auth
       clearPersistedUser();

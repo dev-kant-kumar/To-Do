@@ -4,6 +4,7 @@ import UserSlice from "./Reducers/UserSlice";
 import Loader from "./Reducers/Loader";
 import ActiveDeletedFilter from "./Reducers/ActiveDeletedFilter";
 import StreakSlice from "./Reducers/StreakSlice";
+import LeaderboardSlice from "./Reducers/LeaderboardSlice";
 
 const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ const store = configureStore({
     Loader: Loader,
     ActiveDeletedFilter: ActiveDeletedFilter,
     StreakSlice: StreakSlice,
+    LeaderboardSlice: LeaderboardSlice,
   },
 });
 

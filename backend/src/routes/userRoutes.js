@@ -12,6 +12,7 @@ const {
   changePassword,
   requestDeleteOtp,
   deleteAccount,
+  getGamificationData,
 } = require("../controllers/userController");
 const auth = require("../middlewares/auth");
 
@@ -22,6 +23,7 @@ UserRoutes.post("/verifyotp", verifyOtp);
 UserRoutes.post("/resendotp", resendOtp);
 UserRoutes.post("/resetpassword", resetPassword);
 UserRoutes.get("/getUserData", auth, getUserData);
+UserRoutes.get("/gamification", auth, getGamificationData);
 UserRoutes.post("/updateprofile", auth, updateProfile);
 UserRoutes.post("/changepassword", auth, changePassword);
 UserRoutes.post("/requestdeleteotp", auth, requestDeleteOtp);
