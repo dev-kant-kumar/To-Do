@@ -12,6 +12,28 @@ import { registerSW } from "./utils/serviceWorker";
 import BackgroundLayer from "./Components/BackgroundLayer";
 import { dbGet } from "./utils/syncManager";
 
+function AnimatedPercent({ value }) {
+  const [displayValue, setDisplayValue] = useState(0);
+  useEffect(() => {
+    let start = displayValue;
+    const end = value;
+    if (start === end) return;
+    const totalDuration = 800; // ms
+    const range = end - start;
+    let startTime = null;
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / totalDuration, 1);
+      setDisplayValue(Math.min(Math.floor(progress * range + start), 100));
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }, [value]);
+  return <span>{displayValue}%</span>;
+}
+
 function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -405,21 +427,22 @@ function App() {
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full rounded-2xl overflow-hidden border border-purple-500/15 relative"
-                style={{ background: "linear-gradient(135deg, #111113 0%, #0e0e10 100%)" }}
+                whileHover={{ scale: 1.015, y: -2 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="w-full rounded-2xl border border-zinc-800/80 backdrop-blur-xl relative overflow-hidden transition-all duration-300 hover:shadow-[0_0_25px_rgba(168,85,247,0.15)] hover:border-purple-500/30 group shadow-2xl"
+                style={{ background: "rgba(9, 9, 11, 0.45)" }}
               >
                 {/* Purple radial glow */}
                 <div
                   className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-32 pointer-events-none"
-                  style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(168,85,247,0.08) 0%, transparent 75%)" }}
+                  style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(168,85,247,0.1) 0%, transparent 75%)" }}
                 />
                 
                 <div className="relative p-5 flex flex-col gap-4 text-left">
                   {/* Header */}
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-zinc-400">Daily Focus</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-950/30 text-purple-400 border border-purple-900/30">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-400/90 font-mono">Daily Focus</span>
+                    <span className="text-[9px] font-extrabold px-2.5 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20 uppercase tracking-wider font-mono">
                       Today
                     </span>
                   </div>
@@ -431,7 +454,7 @@ function App() {
                       {/* Circular Gauge Background Glow */}
                       <div className="absolute inset-0 bg-purple-500/5 rounded-full blur-md" />
                       
-                      <svg width="80" height="80" viewBox="0 0 100 100" className="transform -rotate-90 relative z-10">
+                      <svg width="80" height="80" viewBox="0 0 100 100" className="transform -rotate-90 relative z-10 overflow-visible">
                         <defs>
                           <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" stopColor="#a855f7" />
@@ -448,7 +471,7 @@ function App() {
                           cx="50"
                           cy="50"
                           r="42"
-                          stroke="#1f1f23"
+                          stroke="#18181b"
                           strokeWidth="6"
                           fill="none"
                         />
@@ -465,9 +488,22 @@ function App() {
                           strokeDasharray="264" // 2 * pi * 42 = ~263.89
                           initial={{ strokeDashoffset: 264 }}
                           animate={{ strokeDashoffset: 264 - (264 * todayStats.percent) / 100 }}
-                          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
                           filter="url(#glow)"
                         />
+
+                        {/* Extra Pulsing Glow Ring on 100% completion */}
+                        {todayStats.percent === 100 && (
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="42"
+                            stroke="url(#progressGrad)"
+                            strokeWidth="1.5"
+                            fill="none"
+                            className="origin-center animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] opacity-40"
+                          />
+                        )}
                       </svg>
 
                       {/* Icon inside the circle */}
@@ -479,7 +515,7 @@ function App() {
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ type: "spring", stiffness: 200, damping: 10 }}
                           >
-                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" className="text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]">
+                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" className="text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)]">
                               <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.45 1-1 1H7v2h10v-2h-2c-.55 0-1-.45-1-1v-2.34" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                               <path d="M12 2a4 4 0 0 1 4 4v7a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4Z" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
@@ -487,10 +523,10 @@ function App() {
                         ) : (
                           // Premium Target/Focus SVG Icon
                           <motion.div
-                            animate={{ scale: [1, 1.05, 1] }}
-                            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                            animate={{ scale: [1, 1.08, 1], rotate: [0, 5, -5, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                           >
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-purple-400 drop-shadow-[0_0_6px_rgba(168,85,247,0.3)]">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-purple-400 drop-shadow-[0_0_6px_rgba(168,85,247,0.35)]">
                               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 3"/>
                               <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="2"/>
                               <circle cx="12" cy="12" r="2" fill="currentColor" stroke="currentColor" strokeWidth="1"/>
@@ -504,16 +540,19 @@ function App() {
                     {/* Stats & Description */}
                     <div className="flex-grow flex flex-col justify-center min-w-0">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-extrabold text-white tracking-tight">{todayStats.percent}%</span>
-                        <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">completed</span>
+                        <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-pink-500 tracking-tight">
+                          <AnimatedPercent value={todayStats.percent} />
+                        </span>
+                        <span className="text-[9px] text-zinc-500 font-extrabold uppercase tracking-widest font-mono">completed</span>
                       </div>
                       
-                      <div className="text-[11px] font-semibold text-zinc-400 mt-1 truncate">
+                      <div className="text-[11px] font-bold text-zinc-300 mt-1 flex items-center gap-1.5 font-mono">
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
                         {todayStats.completed} of {todayStats.total} tasks completed
                       </div>
 
                       {/* Motivational subtext */}
-                      <p className="text-[10px] text-zinc-500 mt-1 font-medium leading-relaxed italic">
+                      <p className="text-[10px] text-zinc-400/80 mt-1 font-semibold leading-relaxed italic">
                         {todayStats.percent === 100 
                           ? "Maximum focus achieved! 🌟" 
                           : todayStats.percent >= 50 

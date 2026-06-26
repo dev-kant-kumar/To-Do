@@ -46,6 +46,12 @@ const UserSchema = new Schema({
   deleteAccountOtpExpires: {
     type: Date,
   },
+  lastStreakWarningSentAt: {
+    type: String,
+  },
+  lastStreakLostSentAt: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("user", UserSchema);

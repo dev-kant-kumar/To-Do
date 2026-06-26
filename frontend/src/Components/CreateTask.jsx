@@ -8,6 +8,8 @@ import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { toast } from "react-toastify";
 import { RxCross2 } from "react-icons/rx";
 import { ArrowLeft } from "lucide-react";
+import CustomDateTimePicker from "./CustomDateTimePicker";
+
 
 // Constants
 const MAX_TASK_LENGTH = 80;
@@ -416,14 +418,11 @@ function CreateTask({ onClose, initialDate }) {
               <label htmlFor="dueDate" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
                 Due Date & Time
               </label>
-              <input
-                id="dueDate"
-                type="datetime-local"
+              <CustomDateTimePicker
                 value={dueDate}
+                onChange={setDueDate}
                 min={minDateTime}
-                onChange={(e) => setDueDate(e.target.value)}
                 disabled={isLoading}
-                className="w-full px-3 py-1.5 bg-zinc-900/30 text-zinc-300 rounded-xl border border-zinc-800/60 focus:border-purple-500/40 focus:ring-4 focus:ring-purple-500/5 focus:outline-none text-[11px] font-semibold h-9 custom-datetime-picker transition-all duration-300 cursor-pointer"
               />
             </div>
           </div>

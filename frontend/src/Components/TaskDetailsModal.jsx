@@ -6,6 +6,8 @@ import { toast } from "react-toastify";
 import { getToken } from "../utils/auth";
 import { RxCross2 } from "react-icons/rx";
 import { Calendar, AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2, RefreshCw } from "lucide-react";
+import CustomDateTimePicker from "./CustomDateTimePicker";
+
 
 const getCurrentLocalDateTimeString = () => {
   const d = new Date();
@@ -386,14 +388,11 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
                   Due Date & Time
                 </label>
               </div>
-              <input
-                id="dueDate"
-                type="datetime-local"
+              <CustomDateTimePicker
                 value={dueDate}
+                onChange={setDueDate}
                 min={minDateTime}
-                onChange={(e) => setDueDate(e.target.value)}
                 disabled={isLoading}
-                className="w-full px-3 py-1 bg-zinc-900/50 text-zinc-300 rounded-lg border border-zinc-800 focus:border-[#9040dd] focus:outline-none text-xs h-[30px] custom-datetime-picker"
               />
             </div>
           </div>

@@ -390,6 +390,12 @@ EmailPreviewRoutes.get("/", checkPreviewCode, (req, res) => {
           <li class="nav-item">
             <button class="nav-btn" onclick="loadPreview('goodbye', this)">6. Goodbye Farewell</button>
           </li>
+          <li class="nav-item">
+            <button class="nav-btn" onclick="loadPreview('streak-warning', this)">7. Streak Warning</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-btn" onclick="loadPreview('streak-lost', this)">8. Streak Lost</button>
+          </li>
         </ul>
         <div style="margin-top: auto;">
           <button class="nav-btn" onclick="lockDashboard()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2); justify-content: center;">
@@ -418,7 +424,9 @@ EmailPreviewRoutes.get("/", checkPreviewCode, (req, res) => {
             'reset-password': 'Reset Password OTP',
             'confirmation': 'Security Confirmation',
             'delete-account-otp': 'Delete Account OTP',
-            'goodbye': 'Goodbye Farewell'
+            'goodbye': 'Goodbye Farewell',
+            'streak-warning': 'Streak Warning (At Risk)',
+            'streak-lost': 'Streak Lost Notification'
           };
           document.getElementById('preview-title').innerText = titleMap[template];
           
@@ -499,6 +507,16 @@ EmailPreviewRoutes.get("/delete-account-otp", checkPreviewCode, (req, res) => {
 
 EmailPreviewRoutes.get("/goodbye", checkPreviewCode, (req, res) => {
   const html = getTemplateContent("goodbye", { name: "Dev Kant Kumar" });
+  res.send(html);
+});
+
+EmailPreviewRoutes.get("/streak-warning", checkPreviewCode, (req, res) => {
+  const html = getTemplateContent("streak-warning", { name: "Dev Kant Kumar", streak: "5" });
+  res.send(html);
+});
+
+EmailPreviewRoutes.get("/streak-lost", checkPreviewCode, (req, res) => {
+  const html = getTemplateContent("streak-lost", { name: "Dev Kant Kumar", streak: "7" });
   res.send(html);
 });
 

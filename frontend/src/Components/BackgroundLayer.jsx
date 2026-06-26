@@ -35,7 +35,7 @@ export default function BackgroundLayer() {
               style={{
                 backgroundImage: `url(${image})`,
                 backgroundSize: "cover",
-                backgroundPosition: "center",
+                backgroundPosition: settings.position || "center",
                 backgroundRepeat: "no-repeat",
                 opacity: settings.opacity,
                 filter: settings.blur > 0 ? `blur(${settings.blur}px)` : "none",
