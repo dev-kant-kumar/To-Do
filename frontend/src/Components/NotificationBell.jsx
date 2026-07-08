@@ -9,9 +9,16 @@ import {
   CheckCircle2,
   AlertTriangle,
   Timer,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { setFocusTask } from "../Store/Reducers/TodoFilterSlice";
 import { syncTasksToSW } from "../utils/serviceWorker";
+import {
+  playNotificationSound,
+  isNotificationSoundMuted,
+  setNotificationSoundMuted,
+} from "../utils/notificationSound";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -86,8 +93,12 @@ export default function NotificationBell({ onTaskClick }) {
   const todos = useSelector((state) => state.TodoFilterSlice.todo);
 
   const [open, setOpen] = useState(false);
+  const [muted, setMuted] = useState(isNotificationSoundMuted);
   const panelRef = useRef(null);
   const btnRef = useRef(null);
+  // Baseline for detecting when the urgent count rises. null until the first
+  // task load settles, so we don't chime on initial page load.
+  const prevUrgentRef = useRef(null);
 
   // ── categorise ───────────────────────────────────────────────────────────
   const { overdue, dueToday, comingSoon, urgentCount } = useMemo(() => {
@@ -126,6 +137,21 @@ export default function NotificationBell({ onTaskClick }) {
 
   const hasNotifications =
     overdue.length + dueToday.length + comingSoon.length > 0;
+
+  // ── Chime when the urgent count rises ───────────────────────────────────
+  // Establish a baseline once tasks have loaded (no sound), then play the
+  // notification sound whenever a new task becomes overdue or due today.
+  useEffect(() => {
+    if (!todos || todos.length === 0) return;
+    if (prevUrgentRef.current === null) {
+      prevUrgentRef.current = urgentCount;
+      return;
+    }
+    if (urgentCount > prevUrgentRef.current) {
+      playNotificationSound();
+    }
+    prevUrgentRef.current = urgentCount;
+  }, [urgentCount, todos]);
 
   // ── Sync tasks to the Service Worker ────────────────────────────────────
   // The SW persists them in IndexedDB and fires notifications even when
@@ -218,6 +244,21 @@ export default function NotificationBell({ onTaskClick }) {
                 <span className="text-xs font-extrabold text-zinc-100 tracking-tight">
                   Notifications
                 </span>
+                <button
+                  onClick={() => {
+                    const next = !muted;
+                    setMuted(next);
+                    setNotificationSoundMuted(next);
+                    // Give audible feedback (and unlock the AudioContext) when
+                    // turning sound on.
+                    if (!next) playNotificationSound(true);
+                  }}
+                  className="ml-0.5 text-zinc-500 hover:text-purple-300 transition-colors focus:outline-none cursor-pointer"
+                  title={muted ? "Unmute notification sound" : "Mute notification sound"}
+                  aria-label={muted ? "Unmute notification sound" : "Mute notification sound"}
+                >
+                  {muted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                </button>
               </div>
               {urgentCount > 0 && (
                 <span className="text-[10px] font-bold text-red-400 bg-red-950/40 border border-red-900/40 px-2 py-0.5 rounded-full">
