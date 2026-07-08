@@ -9,7 +9,7 @@ import ImgForTodaysCreatedTasks from "../assets/todayCreatedTasks.png";
 import ImgForDelTasks from "../assets/deleteTasks.png";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import { setTodo, setTodoLength, setSearchQuery, setFocusTask, setShowCreateTask } from "../Store/Reducers/TodoFilterSlice";
+import { setTodo, setTodoLength, setSearchQuery, setFocusTask, setShowCreateTask, updateTodoItem, removeTodoItem } from "../Store/Reducers/TodoFilterSlice";
 import { setActiveDeletedFilter } from "../Store/Reducers/ActiveDeletedFilter";
 import { fetchStreakData, incrementStreakOptimistic, decrementStreakOptimistic } from "../Store/Reducers/StreakSlice";
 import { setUserInfo } from "../Store/Reducers/UserSlice";
@@ -206,15 +206,17 @@ function Tasks() {
     [activeFilter.isDeletedActive]
   );
 
-  // API calls with error handling
+  // API calls with error handling.
+  // `silent` skips the full-screen loader — used for background reconciles
+  // after optimistic updates so operations feel instant.
   const fetchTodo = useCallback(
-    async (userId) => {
+    async (userId, { silent = false } = {}) => {
       if (!userId) {
         console.error("User ID is required for fetching todos");
         return;
       }
 
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       try {
         const filterEndpoint = currentFilterType === FILTER_TYPES.TODO ? "all" : currentFilterType;
         const payload = { userId: userId };
@@ -250,7 +252,7 @@ function Tasks() {
         console.error("Error fetching todos:", error);
         toast.error("Failed to fetch tasks. Please try again.");
       } finally {
-        setIsLoading(false);
+        if (!silent) setIsLoading(false);
       }
     },
     [apiUrl, currentFilterType, dispatch]
@@ -287,9 +289,34 @@ function Tasks() {
       const isCompleting = !status; // status = current completed flag; we flip it
       const endpoint = status ? "todo/unMarkComplete" : "todo/markComplete";
 
-      // ── Optimistic streak update — instant UI feedback ────────────────────
+      // ── Optimistic UI — flip the task instantly, no spinner ───────────────
+      dispatch(
+        updateTodoItem({
+          id: taskID,
+          changes: {
+            completed: isCompleting,
+            completedAt: isCompleting ? new Date().toISOString() : null,
+          },
+        })
+      );
+
+      // ── Optimistic streak + floating XP feedback ──────────────────────────
       if (isCompleting) {
         dispatch(incrementStreakOptimistic());
+        const task = todoData.todo?.find((t) => t._id === taskID);
+        if (task) {
+          let xpReward = 10;
+          if (task.priority === "high") xpReward += 10;
+          else if (task.priority === "medium") xpReward += 5;
+          if (task.starred) xpReward += 5;
+          if (userInfo.currentStreak > 0) xpReward += userInfo.currentStreak;
+
+          const id = Math.random().toString();
+          setFloatingXPs((prev) => [...prev, { id, taskId: taskID, text: `+${xpReward} XP` }]);
+          setTimeout(() => {
+            setFloatingXPs((prev) => prev.filter((x) => x.id !== id));
+          }, 1200);
+        }
       } else {
         dispatch(decrementStreakOptimistic());
       }
@@ -300,33 +327,17 @@ function Tasks() {
           userId: userInfo.userId,
         });
 
-        if (response.data?.status) {
-          if (isCompleting && response.data?.user) {
-            const task = todoData.todo?.find((t) => t._id === taskID);
-            if (task) {
-              let xpReward = 10;
-              if (task.priority === "high") xpReward += 10;
-              else if (task.priority === "medium") xpReward += 5;
-              if (task.starred) xpReward += 5;
-              if (userInfo.currentStreak > 0) xpReward += userInfo.currentStreak;
-
-              const id = Math.random().toString();
-              setFloatingXPs((prev) => [...prev, { id, taskId: taskID, text: `+${xpReward} XP` }]);
-              setTimeout(() => {
-                setFloatingXPs((prev) => prev.filter((x) => x.id !== id));
-              }, 1200);
-            }
-          }
-          if (response.data?.user) {
-            dispatch(setUserInfo(response.data.user));
-          }
+        if (response.data?.status && response.data?.user) {
+          dispatch(setUserInfo(response.data.user));
         }
 
-        await fetchTodo(userInfo.userId);
+        // Reconcile silently in the background — no full-screen loader
+        fetchTodo(userInfo.userId, { silent: true });
         // Reconcile with server — ensures streak is authoritative
         dispatch(fetchStreakData());
       } catch (error) {
-        // Rollback optimistic update on failure
+        // Rollback optimistic updates on failure
+        dispatch(updateTodoItem({ id: taskID, changes: { completed: status } }));
         if (isCompleting) {
           dispatch(decrementStreakOptimistic());
         } else {
@@ -345,24 +356,32 @@ function Tasks() {
 
       const endpoint = status ? "todo/unMarkStarred" : "todo/markStarred";
 
+      // Optimistic UI: flip the star instantly
+      dispatch(updateTodoItem({ id: taskID, changes: { starred: !status } }));
+
       try {
         await axios.post(`${apiUrl}${endpoint}`, {
           taskID,
           userId: userInfo.userId,
         });
 
-        await fetchTodo(userInfo.userId);
+        fetchTodo(userInfo.userId, { silent: true });
       } catch (error) {
+        // Rollback on failure
+        dispatch(updateTodoItem({ id: taskID, changes: { starred: status } }));
         console.error("Error toggling starred status:", error);
         toast.error("Failed to update starred status. Please try again.");
       }
     },
-    [apiUrl, userInfo.userId, fetchTodo]
+    [apiUrl, userInfo.userId, fetchTodo, dispatch]
   );
 
   const deleteTask = useCallback(
     async (taskID, isDeleted) => {
       if (!taskID || !userInfo.userId || isDeleted) return;
+
+      // Optimistic UI: remove the task from the list immediately
+      dispatch(removeTodoItem(taskID));
 
       try {
         const response = await axios.post(`${apiUrl}todo/deleteTask`, {
@@ -371,21 +390,26 @@ function Tasks() {
         });
 
         if (response.data?.status === true) {
-          await fetchTodo(userInfo.userId);
+          fetchTodo(userInfo.userId, { silent: true });
         } else {
           toast.error(response.data?.message || "Failed to delete task");
+          fetchTodo(userInfo.userId, { silent: true }); // restore on server rejection
         }
       } catch (error) {
         console.error("Error deleting task:", error);
         toast.error("Failed to delete task. Please try again.");
+        fetchTodo(userInfo.userId, { silent: true }); // restore on failure
       }
     },
-    [apiUrl, userInfo.userId, fetchTodo]
+    [apiUrl, userInfo.userId, fetchTodo, dispatch]
   );
 
   const restoreTask = useCallback(
     async (taskID) => {
       if (!taskID || !userInfo.userId) return;
+
+      // Optimistic UI: the restored task leaves the Trash view immediately
+      dispatch(removeTodoItem(taskID));
 
       try {
         const response = await axios.post(`${apiUrl}todo/undoDelete`, {
@@ -395,16 +419,18 @@ function Tasks() {
 
         if (response.data?.status === true) {
           toast.success("Task restored successfully!");
-          await fetchTodo(userInfo.userId);
+          fetchTodo(userInfo.userId, { silent: true });
         } else {
           toast.error(response.data?.message || "Failed to restore task");
+          fetchTodo(userInfo.userId, { silent: true }); // restore on server rejection
         }
       } catch (error) {
         console.error("Error restoring task:", error);
         toast.error("Failed to restore task. Please try again.");
+        fetchTodo(userInfo.userId, { silent: true }); // restore on failure
       }
     },
-    [apiUrl, userInfo.userId, fetchTodo]
+    [apiUrl, userInfo.userId, fetchTodo, dispatch]
   );
 
   const deleteAllTaskInDeletedTasks = useCallback(async () => {
@@ -434,43 +460,52 @@ function Tasks() {
 
   const handleConfirmBulkDelete = useCallback(async () => {
     setIsDeleteModalOpen(false);
-    setIsLoading(true);
+    const ids = Array.from(selectedTaskIds);
+    // Optimistic UI: remove all selected tasks immediately
+    ids.forEach((id) => dispatch(removeTodoItem(id)));
+    setSelectedTaskIds(new Set());
     try {
       await Promise.all(
-        Array.from(selectedTaskIds).map((id) =>
+        ids.map((id) =>
           axios.post(`${apiUrl}todo/deleteTask`, {
             taskID: id,
             userId: userInfo.userId,
           })
         )
       );
-      setSelectedTaskIds(new Set());
-      await fetchTodo(userInfo.userId);
+      fetchTodo(userInfo.userId, { silent: true });
       toast.success("Tasks deleted successfully!");
     } catch (error) {
       console.error("Error deleting tasks:", error);
       toast.error("Failed to delete selected tasks");
-    } finally {
-      setIsLoading(false);
+      fetchTodo(userInfo.userId, { silent: true }); // restore on failure
     }
-  }, [apiUrl, userInfo.userId, fetchTodo, selectedTaskIds]);
+  }, [apiUrl, userInfo.userId, fetchTodo, selectedTaskIds, dispatch]);
 
   const handleBulkComplete = useCallback(async (complete = true) => {
     if (selectedTaskIds.size === 0 || !userInfo.userId) return;
 
-    setIsLoading(true);
+    const ids = Array.from(selectedTaskIds);
     const endpoint = complete ? "todo/markComplete" : "todo/unMarkComplete";
 
-    // Optimistic streak update for each selected task
-    if (complete) {
-      selectedTaskIds.forEach(() => dispatch(incrementStreakOptimistic()));
-    } else {
-      selectedTaskIds.forEach(() => dispatch(decrementStreakOptimistic()));
-    }
+    // Optimistic UI: flip completion + streak for each selected task
+    ids.forEach((id) => {
+      dispatch(
+        updateTodoItem({
+          id,
+          changes: {
+            completed: complete,
+            completedAt: complete ? new Date().toISOString() : null,
+          },
+        })
+      );
+      dispatch(complete ? incrementStreakOptimistic() : decrementStreakOptimistic());
+    });
+    setSelectedTaskIds(new Set());
 
     try {
       const responses = await Promise.all(
-        Array.from(selectedTaskIds).map((id) =>
+        ids.map((id) =>
           axios.post(`${apiUrl}${endpoint}`, {
             taskID: id,
             userId: userInfo.userId,
@@ -481,46 +516,48 @@ function Tasks() {
       if (lastWithUser) {
         dispatch(setUserInfo(lastWithUser.data.user));
       }
-      setSelectedTaskIds(new Set());
-      await fetchTodo(userInfo.userId);
+      fetchTodo(userInfo.userId, { silent: true });
       dispatch(fetchStreakData());
     } catch (error) {
       // Rollback on failure
-      if (complete) {
-        selectedTaskIds.forEach(() => dispatch(decrementStreakOptimistic()));
-      } else {
-        selectedTaskIds.forEach(() => dispatch(incrementStreakOptimistic()));
-      }
+      ids.forEach((id) => {
+        dispatch(updateTodoItem({ id, changes: { completed: !complete } }));
+        dispatch(complete ? decrementStreakOptimistic() : incrementStreakOptimistic());
+      });
       console.error("Error updating tasks:", error);
       toast.error("Failed to update selected tasks status");
-    } finally {
-      setIsLoading(false);
+      fetchTodo(userInfo.userId, { silent: true });
     }
   }, [selectedTaskIds, userInfo.userId, fetchTodo, apiUrl, dispatch]);
 
   const handleBulkStar = useCallback(async (star = true) => {
     if (selectedTaskIds.size === 0 || !userInfo.userId) return;
 
-    setIsLoading(true);
+    const ids = Array.from(selectedTaskIds);
     const endpoint = star ? "todo/markStarred" : "todo/unMarkStarred";
+
+    // Optimistic UI: flip star on each selected task
+    ids.forEach((id) => dispatch(updateTodoItem({ id, changes: { starred: star } })));
+    setSelectedTaskIds(new Set());
+
     try {
       await Promise.all(
-        Array.from(selectedTaskIds).map((id) =>
+        ids.map((id) =>
           axios.post(`${apiUrl}${endpoint}`, {
             taskID: id,
             userId: userInfo.userId,
           })
         )
       );
-      setSelectedTaskIds(new Set());
-      await fetchTodo(userInfo.userId);
+      fetchTodo(userInfo.userId, { silent: true });
     } catch (error) {
+      // Rollback on failure
+      ids.forEach((id) => dispatch(updateTodoItem({ id, changes: { starred: !star } })));
       console.error("Error starring tasks:", error);
       toast.error("Failed to update selected tasks star status");
-    } finally {
-      setIsLoading(false);
+      fetchTodo(userInfo.userId, { silent: true });
     }
-  }, [selectedTaskIds, userInfo.userId, fetchTodo, apiUrl]);
+  }, [selectedTaskIds, userInfo.userId, fetchTodo, apiUrl, dispatch]);
 
   // Utility functions
   const formatDate = useCallback((dateString) => {
@@ -748,86 +785,84 @@ function Tasks() {
     if (currentIndex <= 0) return; // Cannot move up
     
     const prevTask = sortedTasks[currentIndex - 1];
-    
+
+    // Build the network requests, applying the same changes optimistically
+    // to the local list so the reorder is reflected instantly.
+    const requests = [];
+    if (prevTask.priority === task.priority) {
+      // Swap rankIndex cleanly. If they are equal, offset them.
+      const prevRank = prevTask.rankIndex || 0;
+      const currentRank = task.rankIndex || 0;
+
+      const newCurrentRank = prevRank === currentRank ? prevRank - 1 : prevRank;
+      const newPrevRank = prevRank === currentRank ? currentRank + 1 : currentRank;
+
+      dispatch(updateTodoItem({ id: task._id, changes: { rankIndex: newCurrentRank } }));
+      dispatch(updateTodoItem({ id: prevTask._id, changes: { rankIndex: newPrevRank } }));
+      requests.push(
+        axios.post(`${apiUrl}todo/updateTask`, { taskID: task._id, rankIndex: newCurrentRank, userId: userInfo.userId }),
+        axios.post(`${apiUrl}todo/updateTask`, { taskID: prevTask._id, rankIndex: newPrevRank, userId: userInfo.userId })
+      );
+    } else {
+      // Shift priority up to prevTask's priority, and set rankIndex to be right next to prevTask
+      const newRank = (prevTask.rankIndex || 0) + 1;
+      dispatch(updateTodoItem({ id: task._id, changes: { priority: prevTask.priority, rankIndex: newRank } }));
+      requests.push(
+        axios.post(`${apiUrl}todo/updateTask`, { taskID: task._id, priority: prevTask.priority, rankIndex: newRank, userId: userInfo.userId })
+      );
+    }
+
     try {
-      if (prevTask.priority === task.priority) {
-        // Swap rankIndex cleanly. If they are equal, offset them.
-        const prevRank = prevTask.rankIndex || 0;
-        const currentRank = task.rankIndex || 0;
-        
-        const newCurrentRank = prevRank === currentRank ? prevRank - 1 : prevRank;
-        const newPrevRank = prevRank === currentRank ? currentRank + 1 : currentRank;
-        
-        await Promise.all([
-          axios.post(`${apiUrl}todo/updateTask`, {
-            taskID: task._id,
-            rankIndex: newCurrentRank,
-            userId: userInfo.userId,
-          }),
-          axios.post(`${apiUrl}todo/updateTask`, {
-            taskID: prevTask._id,
-            rankIndex: newPrevRank,
-            userId: userInfo.userId,
-          })
-        ]);
-      } else {
-        // Shift priority up to prevTask's priority, and set rankIndex to be right next to prevTask
-        await axios.post(`${apiUrl}todo/updateTask`, {
-          taskID: task._id,
-          priority: prevTask.priority,
-          rankIndex: (prevTask.rankIndex || 0) + 1,
-          userId: userInfo.userId,
-        });
-      }
-      await fetchTodo(userInfo.userId);
+      await Promise.all(requests);
+      fetchTodo(userInfo.userId, { silent: true });
     } catch (error) {
       console.error("Error moving task up:", error);
       toast.error("Failed to move task up");
+      fetchTodo(userInfo.userId, { silent: true }); // rollback to server state
     }
-  }, [apiUrl, userInfo.userId, fetchTodo, sortedTasks]);
+  }, [apiUrl, userInfo.userId, fetchTodo, sortedTasks, dispatch]);
 
   const handleMoveDown = useCallback(async (task) => {
     const currentIndex = sortedTasks.findIndex((t) => t._id === task._id);
     if (currentIndex === -1 || currentIndex >= sortedTasks.length - 1) return; // Cannot move down
     
     const nextTask = sortedTasks[currentIndex + 1];
-    
+
+    // Build the network requests, applying the same changes optimistically
+    // to the local list so the reorder is reflected instantly.
+    const requests = [];
+    if (nextTask.priority === task.priority) {
+      // Swap rankIndex cleanly. If they are equal, offset them.
+      const nextRank = nextTask.rankIndex || 0;
+      const currentRank = task.rankIndex || 0;
+
+      const newCurrentRank = nextRank === currentRank ? nextRank + 1 : nextRank;
+      const newNextRank = nextRank === currentRank ? currentRank - 1 : currentRank;
+
+      dispatch(updateTodoItem({ id: task._id, changes: { rankIndex: newCurrentRank } }));
+      dispatch(updateTodoItem({ id: nextTask._id, changes: { rankIndex: newNextRank } }));
+      requests.push(
+        axios.post(`${apiUrl}todo/updateTask`, { taskID: task._id, rankIndex: newCurrentRank, userId: userInfo.userId }),
+        axios.post(`${apiUrl}todo/updateTask`, { taskID: nextTask._id, rankIndex: newNextRank, userId: userInfo.userId })
+      );
+    } else {
+      // Shift priority down to nextTask's priority, and set rankIndex to be right next to nextTask
+      const newRank = (nextTask.rankIndex || 0) - 1;
+      dispatch(updateTodoItem({ id: task._id, changes: { priority: nextTask.priority, rankIndex: newRank } }));
+      requests.push(
+        axios.post(`${apiUrl}todo/updateTask`, { taskID: task._id, priority: nextTask.priority, rankIndex: newRank, userId: userInfo.userId })
+      );
+    }
+
     try {
-      if (nextTask.priority === task.priority) {
-        // Swap rankIndex cleanly. If they are equal, offset them.
-        const nextRank = nextTask.rankIndex || 0;
-        const currentRank = task.rankIndex || 0;
-        
-        const newCurrentRank = nextRank === currentRank ? nextRank + 1 : nextRank;
-        const newNextRank = nextRank === currentRank ? currentRank - 1 : currentRank;
-        
-        await Promise.all([
-          axios.post(`${apiUrl}todo/updateTask`, {
-            taskID: task._id,
-            rankIndex: newCurrentRank,
-            userId: userInfo.userId,
-          }),
-          axios.post(`${apiUrl}todo/updateTask`, {
-            taskID: nextTask._id,
-            rankIndex: newNextRank,
-            userId: userInfo.userId,
-          })
-        ]);
-      } else {
-        // Shift priority down to nextTask's priority, and set rankIndex to be right next to nextTask
-        await axios.post(`${apiUrl}todo/updateTask`, {
-          taskID: task._id,
-          priority: nextTask.priority,
-          rankIndex: (nextTask.rankIndex || 0) - 1,
-          userId: userInfo.userId,
-        });
-      }
-      await fetchTodo(userInfo.userId);
+      await Promise.all(requests);
+      fetchTodo(userInfo.userId, { silent: true });
     } catch (error) {
       console.error("Error moving task down:", error);
       toast.error("Failed to move task down");
+      fetchTodo(userInfo.userId, { silent: true }); // rollback to server state
     }
-  }, [apiUrl, userInfo.userId, fetchTodo, sortedTasks]);
+  }, [apiUrl, userInfo.userId, fetchTodo, sortedTasks, dispatch]);
 
   const handleDragStart = useCallback((e, task) => {
     // Ignore if dragging started from an interactive element (e.g. checkbox, star, buttons)
@@ -937,13 +972,13 @@ function Tasks() {
         rankIndex: newRank,
         userId: userInfo.userId,
       });
-      // Fetch latest from server to ensure perfect sync
-      await fetchTodo(userInfo.userId);
+      // Reconcile silently in the background to ensure perfect sync
+      fetchTodo(userInfo.userId, { silent: true });
     } catch (error) {
       console.error("Error updating task rank via drag-and-drop:", error);
       toast.error("Failed to reorder task");
       // Rollback on error
-      await fetchTodo(userInfo.userId);
+      fetchTodo(userInfo.userId, { silent: true });
     }
   }, [draggedTaskId, sortedTasks, todoData.todo, dispatch, apiUrl, userInfo.userId, fetchTodo]);
 
@@ -1351,7 +1386,7 @@ function Tasks() {
           key={selectedTask._id}
           task={selectedTask}
           onClose={() => setSelectedTask(null)}
-          onUpdate={() => fetchTodo(userInfo.userId)}
+          onUpdate={() => fetchTodo(userInfo.userId, { silent: true })}
         />
       )}
       <ConfirmationModal
