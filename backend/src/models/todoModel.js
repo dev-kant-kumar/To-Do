@@ -48,6 +48,17 @@ const TodoSchema = new Schema(
       type: Number,
       default: 0,
     },
+    // Exact XP / points granted when this task was last marked completed.
+    // Persisted so un-completing reverses precisely what was awarded, instead
+    // of recomputing a streak-dependent value that may have since changed.
+    xpAwarded: {
+      type: Number,
+      default: 0,
+    },
+    pointsAwarded: {
+      type: Number,
+      default: 0,
+    },
     startDate: {
       type: Date,
       default: null,

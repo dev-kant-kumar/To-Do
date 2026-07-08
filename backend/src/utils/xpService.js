@@ -120,19 +120,35 @@ async function applyTaskXPChange(userId, task, isCompleting) {
     const user = await User.findOne({ _id: userId });
     if (!user) return null;
 
-    // Calculate active streak and task rewards
-    const activeStreak = await computeActiveStreak(userId);
-    const reward = calculateTaskXP(task, activeStreak);
-
     if (isCompleting) {
+      // Award based on the streak at completion time and persist the exact
+      // amount on the task so it can be reversed precisely later.
+      const activeStreak = await computeActiveStreak(userId);
+      const reward = calculateTaskXP(task, activeStreak);
       user.xp = (user.xp || 0) + reward.xp;
       user.points = (user.points || 0) + reward.points;
+      user.currentStreak = activeStreak;
+      user.longestStreak = Math.max(user.longestStreak || 0, activeStreak);
+      await Todo.findByIdAndUpdate(task._id, {
+        xpAwarded: reward.xp,
+        pointsAwarded: reward.points,
+      });
     } else {
-      user.xp = Math.max(0, (user.xp || 0) - reward.xp);
-      user.points = Math.max(0, (user.points || 0) - reward.points);
+      // Reverse exactly what was granted at completion time. Fall back to a
+      // recomputed estimate for tasks completed before xpAwarded was tracked.
+      let refundXp = task.xpAwarded;
+      let refundPoints = task.pointsAwarded;
+      if (refundXp == null || refundPoints == null) {
+        const activeStreak = await computeActiveStreak(userId);
+        const reward = calculateTaskXP(task, activeStreak);
+        refundXp = reward.xp;
+        refundPoints = reward.points;
+      }
+      user.xp = Math.max(0, (user.xp || 0) - refundXp);
+      user.points = Math.max(0, (user.points || 0) - refundPoints);
+      user.currentStreak = await computeActiveStreak(userId);
+      await Todo.findByIdAndUpdate(task._id, { xpAwarded: 0, pointsAwarded: 0 });
     }
-
-    user.currentStreak = activeStreak;
 
     // Recalculate level based on cumulative XP: nextLevelThreshold = level * 100
     let calcLevel = 1;
@@ -175,19 +191,39 @@ async function recalculateUserXP(userId) {
 
     let totalXp = 0;
     let totalPoints = 0;
+    const stampOps = [];
 
     for (const todo of completedTodos) {
       const reward = calculateTaskXP(todo, activeStreak);
       totalXp += reward.xp;
       totalPoints += reward.points;
+      stampOps.push({
+        updateOne: {
+          filter: { _id: todo._id },
+          update: { $set: { xpAwarded: reward.xp, pointsAwarded: reward.points } },
+        },
+      });
     }
 
     const userDoc = await User.findById(userId);
     if (!userDoc) return null;
 
-    // Only update if the recalculated value is higher than current
+    // Backfill the all-time longest streak independently of XP so existing
+    // users get permanent-badge data even when their XP is already current.
+    const longestStreak = await computeLongestStreak(userId);
+    if ((userDoc.longestStreak || 0) < longestStreak) {
+      userDoc.longestStreak = longestStreak;
+    }
+
+    // Only update XP if the recalculated value is higher than current
     // (avoids wiping XP that may have been added by future actions)
-    if (totalXp <= (userDoc.xp || 0)) return userDoc;
+    if (totalXp <= (userDoc.xp || 0)) {
+      if (userDoc.isModified("longestStreak")) await userDoc.save();
+      return userDoc;
+    }
+
+    // Persist per-task awards so a later un-complete reverses the exact amount.
+    if (stampOps.length) await Todo.bulkWrite(stampOps);
 
     userDoc.xp = totalXp;
     userDoc.points = totalPoints;

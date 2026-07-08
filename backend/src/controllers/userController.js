@@ -31,6 +31,23 @@ function maskEmail(email) {
   return `${maskedLocal}@${maskedDomain}`;
 }
 
+/**
+ * Strip sensitive fields before sending a user object to the client.
+ * Never expose the password hash or any OTP / reset secrets.
+ */
+function sanitizeUser(userDoc) {
+  if (!userDoc) return userDoc;
+  const u = typeof userDoc.toObject === "function" ? userDoc.toObject() : { ...userDoc };
+  delete u.password;
+  delete u.otp;
+  delete u.otpExpires;
+  delete u.resetPasswordOtp;
+  delete u.resetPasswordOtpExpires;
+  delete u.deleteAccountOtp;
+  delete u.deleteAccountOtpExpires;
+  return u;
+}
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function isValidEmail(email) {
@@ -333,14 +350,17 @@ async function signIn(req, res) {
 
     const checkPwd = await bcrypt.compare(password, existingUser.password);
 
-    const token = jwt.sign({ id: existingUser._id, username: existingUser.username }, key);
-
     if (checkPwd) {
+      const token = jwt.sign(
+        { id: existingUser._id, username: existingUser.username },
+        key,
+        { expiresIn: "30d" }
+      );
       res.send({
         status: true,
         message: "Login successful",
         token: token,
-        userData: existingUser,
+        userData: sanitizeUser(existingUser),
       });
     } else {
       res.send({
@@ -496,7 +516,7 @@ async function getUserData(req, res) {
 
         return res.json({
           status: true,
-          data: userData,
+          data: sanitizeUser(userData),
         });
       }
     }
@@ -560,7 +580,7 @@ async function updateProfile(req, res) {
       res.send({
         status: true,
         message: "Profile updated successfully",
-        userData: updatedUser,
+        userData: sanitizeUser(updatedUser),
       });
     } else {
       res.send({
@@ -812,6 +832,10 @@ async function getGamificationData(req, res) {
     }
     if (userData.level !== breakdown.level) {
       userData.level = breakdown.level;
+      needsSave = true;
+    }
+    if ((userData.longestStreak || 0) < longestStreak) {
+      userData.longestStreak = longestStreak;
       needsSave = true;
     }
     if (needsSave) {

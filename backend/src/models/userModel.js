@@ -68,6 +68,12 @@ const UserSchema = new Schema({
     type: Number,
     default: 0,
   },
+  // Highest streak the user has ever reached. Used for "permanent" badge
+  // awards so earned badges are never lost when the current streak resets.
+  longestStreak: {
+    type: Number,
+    default: 0,
+  },
 });
 
 module.exports = mongoose.model("user", UserSchema);

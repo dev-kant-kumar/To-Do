@@ -231,6 +231,11 @@ const StreakSlice = createSlice({
       })
       .addCase(fetchStreakData.fulfilled, (state, action) => {
         const oldStreak = state.currentStreak;
+        // On the very first fetch we have no meaningful baseline (currentStreak
+        // starts at 0), so a user who already owns a streak would otherwise get
+        // a spurious "milestone reached" toast for the lowest milestone on every
+        // login. Only celebrate transitions once a baseline has been established.
+        const isInitialFetch = state.lastFetched === null;
         state.isLoading      = false;
         state.currentStreak  = action.payload.currentStreak;
         state.longestStreak  = action.payload.longestStreak;
@@ -239,7 +244,9 @@ const StreakSlice = createSlice({
         state.lastFetched    = Date.now();
 
         // Fire milestone toast if server confirms a new streak milestone
-        const hit = checkMilestoneReached(oldStreak, action.payload.currentStreak);
+        const hit = isInitialFetch
+          ? null
+          : checkMilestoneReached(oldStreak, action.payload.currentStreak);
         if (hit && !state.shownMilestones.includes(hit.days)) {
           state.shownMilestones = [...state.shownMilestones, hit.days];
           if (typeof window !== "undefined") {
