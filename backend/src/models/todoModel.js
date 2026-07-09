@@ -61,6 +61,12 @@ const TodoSchema = new Schema(
       type: [SubtaskSchema],
       default: [],
     },
+    // Free-form labels for organizing/filtering tasks.
+    tags: {
+      type: [String],
+      default: [],
+      index: true,
+    },
     // Exact XP / points granted when this task was last marked completed.
     // Persisted so un-completing reverses precisely what was awarded, instead
     // of recomputing a streak-dependent value that may have since changed.

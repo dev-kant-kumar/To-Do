@@ -38,6 +38,27 @@ function sanitizeSubtasks(subtasks) {
     .map((s) => ({ title: s.title.trim().slice(0, 200), done: !!s.done }));
 }
 
+/**
+ * Validate and normalize a tags array: trim, drop empties, cap each tag's
+ * length, dedupe case-insensitively (keeping first-seen casing), cap count.
+ */
+function sanitizeTags(tags) {
+  if (!Array.isArray(tags)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const raw of tags) {
+    if (typeof raw !== "string") continue;
+    const tag = raw.trim().replace(/\s+/g, " ").slice(0, 30);
+    if (!tag) continue;
+    const key = tag.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(tag);
+    if (out.length >= 15) break;
+  }
+  return out;
+}
+
 // ── Streak helpers ────────────────────────────────────────────────────────────
 
 /**
@@ -89,7 +110,7 @@ async function decrementStreak(userId) {
 // ── Task handlers ─────────────────────────────────────────────────────────────
 
 async function addTask(req, res) {
-  const { task, priority, dueDate, description, recurrence, subtasks } = req.body;
+  const { task, priority, dueDate, description, recurrence, subtasks, tags } = req.body;
   const userId = req.id;
 
   if (!task || typeof task !== "string" || task.trim() === "") {
@@ -135,6 +156,7 @@ async function addTask(req, res) {
         dueDate: dueDate || null,
         description: description || "",
         subtasks: sanitizeSubtasks(subtasks),
+        tags: sanitizeTags(tags),
         ...(cleanRecurrence ? { recurrence: cleanRecurrence } : {}),
       });
 
@@ -395,6 +417,7 @@ async function updateTask(req, res) {
     endDate,
     recurrence,
     subtasks,
+    tags,
   } = req.body;
   const userId = req.id;
 
@@ -446,6 +469,9 @@ async function updateTask(req, res) {
     }
     if (subtasks !== undefined) {
       updateFields.subtasks = sanitizeSubtasks(subtasks);
+    }
+    if (tags !== undefined) {
+      updateFields.tags = sanitizeTags(tags);
     }
 
     // If completion status is changing via updateTask, handle streak correctly

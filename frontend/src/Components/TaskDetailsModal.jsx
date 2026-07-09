@@ -9,6 +9,7 @@ import { Calendar, AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2, Refre
 import CustomDateTimePicker from "./CustomDateTimePicker";
 import RecurrencePicker, { emptyRecurrence } from "./RecurrencePicker";
 import SubtaskEditor from "./SubtaskEditor";
+import TagInput from "./TagInput";
 
 
 const getCurrentLocalDateTimeString = () => {
@@ -41,6 +42,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
       ? task.subtasks.map((s) => ({ title: s.title || "", done: !!s.done }))
       : []
   );
+  const [tags, setTags] = useState(() => (Array.isArray(task.tags) ? task.tags : []));
   const [recurrence, setRecurrence] = useState(() => {
     const r = task.recurrence;
     if (!r || !r.frequency || r.frequency === "none") return emptyRecurrence();
@@ -112,6 +114,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
           starred: isStarred,
           recurrence,
           subtasks,
+          tags,
         },
         {
           headers: {
@@ -415,6 +418,9 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
               />
             </div>
           </div>
+
+          {/* Tags */}
+          <TagInput value={tags} onChange={setTags} disabled={isLoading} />
 
           {/* Subtasks */}
           <SubtaskEditor value={subtasks} onChange={setSubtasks} disabled={isLoading} />

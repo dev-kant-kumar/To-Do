@@ -301,6 +301,7 @@ async function handleOfflineWrite(endpoint, payload, headers) {
       updatedAt: new Date().toISOString(),
       ...(payload.recurrence ? { recurrence: payload.recurrence } : {}),
       ...(payload.subtasks ? { subtasks: payload.subtasks } : {}),
+      ...(payload.tags ? { tags: payload.tags } : {}),
     };
 
     queueItem.tempId = tempId;
@@ -322,6 +323,7 @@ async function handleOfflineWrite(endpoint, payload, headers) {
       if (payload.rankIndex !== undefined) task.rankIndex = payload.rankIndex;
       if (payload.recurrence !== undefined) task.recurrence = payload.recurrence;
       if (payload.subtasks !== undefined) task.subtasks = payload.subtasks;
+      if (payload.tags !== undefined) task.tags = payload.tags;
       task.updatedAt = new Date().toISOString();
     }
   } else if (endpoint === "todo/deleteTask") {

@@ -30,9 +30,14 @@ import {
   ChevronUp,
   ChevronDown,
   GripVertical,
-  Repeat
+  Repeat,
+  Tag as TagIcon,
+  X
 } from "lucide-react";
 import { describeRecurrence } from "./RecurrencePicker";
+import { tagStyle } from "../utils/tagColors";
+
+const TAG_FILTER_STORAGE_KEY = "todo-tag-filter";
 
 // Constants
 const FILTER_TYPES = {
@@ -102,6 +107,23 @@ function Tasks() {
   const [draggedTaskId, setDraggedTaskId] = useState(null);
   const [dragOverTaskId, setDragOverTaskId] = useState(null);
   const [floatingXPs, setFloatingXPs] = useState([]);
+  // Persisted tag filter (a lightweight "saved smart filter"). Tasks are
+  // filtered to those carrying ANY of the selected tags.
+  const [selectedTags, setSelectedTags] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(TAG_FILTER_STORAGE_KEY) || "[]");
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(TAG_FILTER_STORAGE_KEY, JSON.stringify(selectedTags));
+    } catch {
+      /* ignore storage failures */
+    }
+  }, [selectedTags]);
 
   // Auto-open modal when notification bell triggers a task focus
   const focusTaskId = useSelector((state) => state.TodoFilterSlice.focusTaskId);
@@ -167,11 +189,32 @@ function Tasks() {
       list = list.filter(
         (t) =>
           t.task?.toLowerCase().includes(q) ||
-          t.description?.toLowerCase().includes(q)
+          t.description?.toLowerCase().includes(q) ||
+          (Array.isArray(t.tags) && t.tags.some((tag) => tag.toLowerCase().includes(q)))
+      );
+    }
+    if (selectedTags.length > 0) {
+      list = list.filter(
+        (t) => Array.isArray(t.tags) && t.tags.some((tag) => selectedTags.includes(tag))
       );
     }
     return list;
-  }, [todoData.todo, todoData.searchQuery, currentFilterType]);
+  }, [todoData.todo, todoData.searchQuery, currentFilterType, selectedTags]);
+
+  // All tags currently in use across non-deleted tasks (for the filter bar).
+  const allTags = useMemo(() => {
+    const set = new Set();
+    (todoData.todo || []).forEach((t) => {
+      if (!t.deleted && Array.isArray(t.tags)) t.tags.forEach((tag) => set.add(tag));
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [todoData.todo]);
+
+  const toggleTagFilter = useCallback((tag) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((x) => x !== tag) : [...prev, tag]
+    );
+  }, []);
 
 
   const displayedTodoList = useMemo(() => {
@@ -1083,6 +1126,28 @@ function Tasks() {
           </p>
         )}
 
+        {/* Tags */}
+        {Array.isArray(task.tags) && task.tags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1 -mt-1">
+            {task.tags.map((tag) => (
+              <button
+                key={tag}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTagFilter(tag);
+                }}
+                style={tagStyle(tag)}
+                title={`Filter by ${tag}`}
+                className={`text-[9px] font-semibold px-1.5 py-0.5 rounded border transition-all cursor-pointer ${
+                  selectedTags.includes(tag) ? "ring-1 ring-white/40" : "hover:brightness-125"
+                }`}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Card Footer: Due Date Badge & Priority Shift controls */}
         <div className="flex items-center justify-between mt-1 pt-2 border-t border-zinc-900/60 flex-shrink-0">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -1215,7 +1280,9 @@ function Tasks() {
     handleDrop,
     isDeletedFilter,
     restoreTask,
-    floatingXPs
+    floatingXPs,
+    selectedTags,
+    toggleTagFilter
   ]);
 
   const Toolbar = useMemo(() => {
@@ -1399,6 +1466,41 @@ function Tasks() {
           );
         })}
       </div>
+
+      {/* Tag filter bar — a lightweight saved smart filter (persisted) */}
+      {allTags.length > 0 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-1 scrollbar-none flex-shrink-0 border-b border-zinc-900/40 -mx-4 lg:-mx-6 px-4 lg:px-6">
+          <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500 flex-shrink-0 select-none">
+            <TagIcon size={11} /> Tags
+          </span>
+          {allTags.map((tag) => {
+            const active = selectedTags.includes(tag);
+            return (
+              <button
+                key={tag}
+                onClick={() => toggleTagFilter(tag)}
+                style={active ? tagStyle(tag) : undefined}
+                className={`flex items-center text-[10px] font-semibold px-2 py-1 rounded-lg border flex-shrink-0 transition-all cursor-pointer ${
+                  active
+                    ? "ring-1 ring-white/30"
+                    : "bg-zinc-900/40 border-zinc-800/40 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/80"
+                }`}
+              >
+                #{tag}
+              </button>
+            );
+          })}
+          {selectedTags.length > 0 && (
+            <button
+              onClick={() => setSelectedTags([])}
+              className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg text-zinc-500 hover:text-zinc-300 flex-shrink-0 cursor-pointer"
+              title="Clear tag filter"
+            >
+              <X size={11} /> Clear
+            </button>
+          )}
+        </div>
+      )}
 
       {originalListIsEmpty ? (
         EmptyTasksView

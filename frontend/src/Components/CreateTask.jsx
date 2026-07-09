@@ -11,6 +11,7 @@ import { ArrowLeft } from "lucide-react";
 import CustomDateTimePicker from "./CustomDateTimePicker";
 import RecurrencePicker, { emptyRecurrence } from "./RecurrencePicker";
 import SubtaskEditor from "./SubtaskEditor";
+import TagInput from "./TagInput";
 
 
 // Constants
@@ -36,6 +37,7 @@ function CreateTask({ onClose, initialDate }) {
   const [description, setDescription] = useState("");
   const [recurrence, setRecurrence] = useState(emptyRecurrence());
   const [subtasks, setSubtasks] = useState([]);
+  const [tags, setTags] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -165,6 +167,7 @@ function CreateTask({ onClose, initialDate }) {
           description: description.trim(),
           recurrence: recurrence.frequency !== "none" ? recurrence : undefined,
           subtasks: subtasks.length ? subtasks : undefined,
+          tags: tags.length ? tags : undefined,
         });
 
         if (response.data?.status) {
@@ -189,7 +192,7 @@ function CreateTask({ onClose, initialDate }) {
         setIsLoading(false);
       }
     },
-    [apiUrl, userInfo?.userId, fetchTodos, priority, dueDate, description, recurrence, subtasks]
+    [apiUrl, userInfo?.userId, fetchTodos, priority, dueDate, description, recurrence, subtasks, tags]
   );
 
   // Handle close with proper cleanup
@@ -227,6 +230,7 @@ function CreateTask({ onClose, initialDate }) {
         setDescription("");
         setRecurrence(emptyRecurrence());
         setSubtasks([]);
+        setTags([]);
         setError("");
         handleClose();
       }
@@ -434,6 +438,9 @@ function CreateTask({ onClose, initialDate }) {
               />
             </div>
           </div>
+
+          {/* Tags */}
+          <TagInput value={tags} onChange={setTags} disabled={isLoading} />
 
           {/* Subtasks */}
           <SubtaskEditor value={subtasks} onChange={setSubtasks} disabled={isLoading} />
