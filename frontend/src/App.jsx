@@ -66,17 +66,23 @@ function App() {
 
       const todayTasks = tasks.filter((t) => {
         if (t.deleted) return false;
-        
-        const createdDate = t.date ? new Date(t.date) : new Date(t.createdAt || Date.now());
-        const isCreatedToday = createdDate >= startOfDay && createdDate <= endOfDay;
-        
-        const completedDate = t.completedAt ? new Date(t.completedAt) : null;
-        const isCompletedToday = t.completed && completedDate && completedDate >= startOfDay && completedDate <= endOfDay;
-        
-        const dueDate = t.dueDate ? new Date(t.dueDate) : null;
-        const isPendingAndDueTodayOrOverdue = !t.completed && dueDate && dueDate <= endOfDay;
 
-        return isCreatedToday || isCompletedToday || isPendingAndDueTodayOrOverdue;
+        // Completed tasks only count toward today if they were completed today.
+        if (t.completed) {
+          const completedDate = t.completedAt ? new Date(t.completedAt) : null;
+          return !!(completedDate && completedDate >= startOfDay && completedDate <= endOfDay);
+        }
+
+        // Pending tasks count toward today unless they are deferred to a future
+        // date (a future due date or a future start date). This keeps the
+        // dashboard honest: overdue tasks and undated backlog created on any
+        // earlier day still count as pending, so we never falsely report
+        // "all caught up" while actionable work remains.
+        const dueDate = t.dueDate ? new Date(t.dueDate) : null;
+        const startDate = t.startDate ? new Date(t.startDate) : null;
+        const deferredToFuture =
+          (dueDate && dueDate > endOfDay) || (startDate && startDate > endOfDay);
+        return !deferredToFuture;
       });
 
       const total = todayTasks.length;
@@ -378,7 +384,7 @@ function App() {
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1">
-                            <span>out of {todayStats.total} scheduled today. Let's check them off!</span>
+                            <span>out of {todayStats.total} on your plate today. Let's check them off!</span>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400 animate-pulse ml-0.5 inline-block align-text-bottom">
                               <circle cx="12" cy="12" r="10" />
                               <circle cx="12" cy="12" r="6" />
