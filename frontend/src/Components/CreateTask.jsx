@@ -10,6 +10,7 @@ import { RxCross2 } from "react-icons/rx";
 import { ArrowLeft } from "lucide-react";
 import CustomDateTimePicker from "./CustomDateTimePicker";
 import RecurrencePicker, { emptyRecurrence } from "./RecurrencePicker";
+import SubtaskEditor from "./SubtaskEditor";
 
 
 // Constants
@@ -34,6 +35,7 @@ function CreateTask({ onClose, initialDate }) {
   const [dueDate, setDueDate] = useState(initialDate ? `${initialDate}T09:00` : "");
   const [description, setDescription] = useState("");
   const [recurrence, setRecurrence] = useState(emptyRecurrence());
+  const [subtasks, setSubtasks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -162,6 +164,7 @@ function CreateTask({ onClose, initialDate }) {
           dueDate: dueDate ? new Date(dueDate).toISOString() : null,
           description: description.trim(),
           recurrence: recurrence.frequency !== "none" ? recurrence : undefined,
+          subtasks: subtasks.length ? subtasks : undefined,
         });
 
         if (response.data?.status) {
@@ -186,7 +189,7 @@ function CreateTask({ onClose, initialDate }) {
         setIsLoading(false);
       }
     },
-    [apiUrl, userInfo?.userId, fetchTodos, priority, dueDate, description, recurrence]
+    [apiUrl, userInfo?.userId, fetchTodos, priority, dueDate, description, recurrence, subtasks]
   );
 
   // Handle close with proper cleanup
@@ -223,6 +226,7 @@ function CreateTask({ onClose, initialDate }) {
         setDueDate("");
         setDescription("");
         setRecurrence(emptyRecurrence());
+        setSubtasks([]);
         setError("");
         handleClose();
       }
@@ -430,6 +434,9 @@ function CreateTask({ onClose, initialDate }) {
               />
             </div>
           </div>
+
+          {/* Subtasks */}
+          <SubtaskEditor value={subtasks} onChange={setSubtasks} disabled={isLoading} />
 
           {/* Recurrence */}
           <RecurrencePicker value={recurrence} onChange={setRecurrence} disabled={isLoading} />

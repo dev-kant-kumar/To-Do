@@ -8,6 +8,7 @@ import { RxCross2 } from "react-icons/rx";
 import { Calendar, AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2, RefreshCw } from "lucide-react";
 import CustomDateTimePicker from "./CustomDateTimePicker";
 import RecurrencePicker, { emptyRecurrence } from "./RecurrencePicker";
+import SubtaskEditor from "./SubtaskEditor";
 
 
 const getCurrentLocalDateTimeString = () => {
@@ -35,6 +36,11 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
   });
   const [description, setDescription] = useState(task.description || "");
   const [isStarred, setIsStarred] = useState(task.starred || false);
+  const [subtasks, setSubtasks] = useState(() =>
+    Array.isArray(task.subtasks)
+      ? task.subtasks.map((s) => ({ title: s.title || "", done: !!s.done }))
+      : []
+  );
   const [recurrence, setRecurrence] = useState(() => {
     const r = task.recurrence;
     if (!r || !r.frequency || r.frequency === "none") return emptyRecurrence();
@@ -105,6 +111,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
           description: description.trim(),
           starred: isStarred,
           recurrence,
+          subtasks,
         },
         {
           headers: {
@@ -408,6 +415,9 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
               />
             </div>
           </div>
+
+          {/* Subtasks */}
+          <SubtaskEditor value={subtasks} onChange={setSubtasks} disabled={isLoading} />
 
           {/* Recurrence */}
           <RecurrencePicker value={recurrence} onChange={setRecurrence} disabled={isLoading} />

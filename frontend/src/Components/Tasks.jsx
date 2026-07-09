@@ -1097,6 +1097,24 @@ function Tasks() {
                 {describeRecurrence(task.recurrence)}
               </span>
             )}
+            {task.subtasks && task.subtasks.length > 0 && (() => {
+              const done = task.subtasks.filter((s) => s.done).length;
+              const total = task.subtasks.length;
+              const allDone = done === total;
+              return (
+                <span
+                  className={`flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
+                    allDone
+                      ? "text-emerald-400 bg-emerald-950/20 border-emerald-900/30"
+                      : "text-zinc-400 bg-zinc-900/40 border-zinc-800"
+                  }`}
+                  title={`${done} of ${total} subtasks done`}
+                >
+                  <CheckSquare size={10} className={allDone ? "text-emerald-400" : "text-zinc-500"} />
+                  {done}/{total}
+                </span>
+              );
+            })()}
           </div>
 
           <div className="flex items-center gap-2">

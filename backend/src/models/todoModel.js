@@ -1,6 +1,14 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const SubtaskSchema = new Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    done: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
 const TodoSchema = new Schema(
   {
     userId: {
@@ -47,6 +55,11 @@ const TodoSchema = new Schema(
     rankIndex: {
       type: Number,
       default: 0,
+    },
+    // Checklist items belonging to this task.
+    subtasks: {
+      type: [SubtaskSchema],
+      default: [],
     },
     // Exact XP / points granted when this task was last marked completed.
     // Persisted so un-completing reverses precisely what was awarded, instead

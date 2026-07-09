@@ -26,6 +26,18 @@ function sanitizeRecurrence(recurrence) {
   return { frequency, interval, daysOfWeek, endDate };
 }
 
+/**
+ * Validate and normalize a subtasks array from the request body.
+ * Drops empty titles, trims, caps length. Returns a clean array (may be empty).
+ */
+function sanitizeSubtasks(subtasks) {
+  if (!Array.isArray(subtasks)) return [];
+  return subtasks
+    .filter((s) => s && typeof s.title === "string" && s.title.trim() !== "")
+    .slice(0, 50) // guard against unbounded lists
+    .map((s) => ({ title: s.title.trim().slice(0, 200), done: !!s.done }));
+}
+
 // ── Streak helpers ────────────────────────────────────────────────────────────
 
 /**
@@ -77,7 +89,7 @@ async function decrementStreak(userId) {
 // ── Task handlers ─────────────────────────────────────────────────────────────
 
 async function addTask(req, res) {
-  const { task, priority, dueDate, description, recurrence } = req.body;
+  const { task, priority, dueDate, description, recurrence, subtasks } = req.body;
   const userId = req.id;
 
   if (!task || typeof task !== "string" || task.trim() === "") {
@@ -122,6 +134,7 @@ async function addTask(req, res) {
         priority: priority || "low",
         dueDate: dueDate || null,
         description: description || "",
+        subtasks: sanitizeSubtasks(subtasks),
         ...(cleanRecurrence ? { recurrence: cleanRecurrence } : {}),
       });
 
@@ -381,6 +394,7 @@ async function updateTask(req, res) {
     startDate,
     endDate,
     recurrence,
+    subtasks,
   } = req.body;
   const userId = req.id;
 
@@ -429,6 +443,9 @@ async function updateTask(req, res) {
     if (recurrence !== undefined) {
       const cleanRecurrence = sanitizeRecurrence(recurrence);
       updateFields.recurrence = cleanRecurrence || { frequency: "none", interval: 1, daysOfWeek: [], endDate: null };
+    }
+    if (subtasks !== undefined) {
+      updateFields.subtasks = sanitizeSubtasks(subtasks);
     }
 
     // If completion status is changing via updateTask, handle streak correctly
