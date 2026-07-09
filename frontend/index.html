@@ -9,10 +9,6 @@
       name="description"
       content="A simple and efficient To-Do app to manage your daily tasks and boost productivity. Add, update, and track your tasks easily."
     />
-    <meta
-      name="keywords"
-      content="To Do app, task manager, productivity, todo list, daily planner, task tracker"
-    />
     <meta name="author" content="Dev Kant Kumar" />
     <meta name="robots" content="index, follow" />
 
@@ -37,6 +33,7 @@
     />
     <meta property="og:url" content="https://todo.devkantkumar.com" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="todo." />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -59,6 +56,40 @@
     <!-- Manifest & Theme (for PWA or better mobile support) -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#05050a" />
+
+    <!-- Structured data (JSON-LD) — helps search engines understand the app -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://todo.devkantkumar.com/#organization",
+            "name": "todo.",
+            "url": "https://todo.devkantkumar.com/",
+            "logo": "https://todo.devkantkumar.com/list.png",
+            "founder": { "@type": "Person", "name": "Dev Kant Kumar" }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://todo.devkantkumar.com/#website",
+            "name": "todo.",
+            "url": "https://todo.devkantkumar.com/",
+            "publisher": { "@id": "https://todo.devkantkumar.com/#organization" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "todo. — Task Manager",
+            "url": "https://todo.devkantkumar.com/",
+            "applicationCategory": "ProductivityApplication",
+            "operatingSystem": "Web, Android, iOS (PWA)",
+            "description": "A free, gamified task manager with streaks, XP, recurring tasks, subtasks, tags, reminders, and offline support.",
+            "publisher": { "@id": "https://todo.devkantkumar.com/#organization" },
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+          }
+        ]
+      }
+    </script>
 
   </head>
   <body>

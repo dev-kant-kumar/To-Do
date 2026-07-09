@@ -24,6 +24,38 @@ import {
 } from "lucide-react";
 import { getToken } from "../../utils/auth";
 
+// Single source of truth for the FAQ — used for both the rendered accordion
+// and the FAQPage structured data so they can never drift apart.
+const FAQ_ITEMS = [
+  {
+    q: "How does todo. keep my tasks in sync?",
+    a: "todo. automatically syncs your tasks across all your devices in real-time. Any changes you make are saved instantly, so you can access your up-to-date checklist on any device.",
+  },
+  {
+    q: "Is this application free to use?",
+    a: "Yes, todo. is completely free to use. Create an account, manage your lists, and enjoy all task management features with zero subscriptions.",
+  },
+  {
+    q: "Can I access my tasks offline?",
+    a: "Your active session is stored securely in your browser so you can view tasks on the go. An active connection is needed to save new tasks and sync updates to your other devices.",
+  },
+  {
+    q: "How do I request complete erasure of my data?",
+    a: "We take privacy seriously. You can navigate to settings or the dedicated data removal request page (/legal/delete-my-data) to permanently erase your profile, credentials, and all tasks from our servers.",
+  },
+];
+
+// FAQPage structured data derived from FAQ_ITEMS.
+const FAQ_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
 // Reusable scroll-triggered fade-in component
 function FadeInWhenVisible({ children, delay = 0, className = "" }) {
   const ref = useRef(null);
@@ -588,6 +620,11 @@ function LandingPage() {
         {/* FAQ Section */}
         <FadeInWhenVisible>
         <section id="faq" className="py-20 border-t border-zinc-900/30">
+          {/* FAQPage structured data for rich results / AI answers */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
+          />
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-16 select-none">
               <h2 className="text-3xl font-extrabold text-white mb-4 tracking-tight leading-normal flex items-center justify-center gap-2">
@@ -600,24 +637,7 @@ function LandingPage() {
             </div>
 
             <div className="flex flex-col gap-4">
-              {[
-                {
-                  q: "How does todo. keep my tasks in sync?",
-                  a: "todo. automatically syncs your tasks across all your devices in real-time. Any changes you make are saved instantly, so you can access your up-to-date checklist on any device."
-                },
-                {
-                  q: "Is this application free to use?",
-                  a: "Yes, todo. is completely free to use. Create an account, manage your lists, and enjoy all task management features with zero subscriptions."
-                },
-                {
-                  q: "Can I access my tasks offline?",
-                  a: "Your active session is stored securely in your browser so you can view tasks on the go. An active connection is needed to save new tasks and sync updates to your other devices."
-                },
-                {
-                  q: "How do I request complete erasure of my data?",
-                  a: "We take privacy seriously. You can navigate to settings or the dedicated data removal request page (/legal/delete-my-data) to permanently erase your profile, credentials, and all tasks from our servers."
-                }
-              ].map((faq, idx) => (
+              {FAQ_ITEMS.map((faq, idx) => (
                 <div 
                   key={idx}
                   className="bg-zinc-950/45 border border-zinc-900 rounded-2xl overflow-hidden"
