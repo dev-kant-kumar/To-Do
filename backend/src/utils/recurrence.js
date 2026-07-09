@@ -83,6 +83,16 @@ async function spawnNextOccurrence(task) {
     startDate = new Date(due.getTime() - offsetMs);
   }
 
+  // Advance the reminder alongside the due date, preserving any offset
+  // (recurring tasks set reminderAt === dueDate, so it tracks the occurrence).
+  let reminderAt = null;
+  if (task.reminderAt && task.dueDate) {
+    const offsetMs = new Date(task.dueDate).getTime() - new Date(task.reminderAt).getTime();
+    reminderAt = new Date(due.getTime() - offsetMs);
+  } else if (task.reminderAt) {
+    reminderAt = new Date(due);
+  }
+
   const child = new Todo({
     userId: task.userId,
     task: task.task,
@@ -100,7 +110,7 @@ async function spawnNextOccurrence(task) {
     subtasks: Array.isArray(task.subtasks)
       ? task.subtasks.map((s) => ({ title: s.title, done: false }))
       : [],
-    reminderAt: null,
+    reminderAt,
     recurrence: {
       frequency: task.recurrence.frequency,
       interval: task.recurrence.interval,

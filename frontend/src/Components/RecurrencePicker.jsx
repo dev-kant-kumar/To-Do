@@ -1,4 +1,4 @@
-import { Repeat } from "lucide-react";
+import { Repeat, Clock } from "lucide-react";
 
 /**
  * RecurrencePicker
@@ -24,6 +24,7 @@ export const emptyRecurrence = () => ({
   interval: 1,
   daysOfWeek: [],
   endDate: null,
+  timeOfDay: "09:00",
 });
 
 /** Human-readable summary of a recurrence rule (e.g. "Every 2 weeks on Mon, Fri"). */
@@ -125,6 +126,22 @@ export default function RecurrencePicker({ value, onChange, disabled }) {
               })}
             </div>
           )}
+
+          {/* Time of day — for recurring tasks this replaces due date & reminder */}
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <span className="flex items-center gap-1 font-medium">
+              <Clock size={12} className="text-zinc-500" />
+              At
+            </span>
+            <input
+              type="time"
+              value={rec.timeOfDay || "09:00"}
+              disabled={disabled}
+              onChange={(e) => set({ timeOfDay: e.target.value || "09:00" })}
+              className="px-2 py-1 bg-zinc-900/50 text-zinc-200 rounded-lg border border-zinc-800/60 focus:border-[#9040dd] focus:outline-none text-xs [color-scheme:dark]"
+            />
+            <span className="text-[10px] text-zinc-600">each occurrence</span>
+          </div>
 
           {/* Optional end date */}
           <div className="flex items-center gap-2 text-xs text-zinc-400">

@@ -1154,7 +1154,8 @@ function Tasks() {
           <div className="flex items-center gap-1.5 flex-wrap">
             {getPriorityBadge(task.priority)}
             {getDueDateBadge(task)}
-            {task.reminderAt && !task.completed && (
+            {task.reminderAt && !task.completed &&
+              !(task.recurrence && task.recurrence.frequency && task.recurrence.frequency !== "none") && (
               <span
                 className="flex items-center gap-1 text-[10px] font-semibold text-sky-300 bg-sky-950/20 px-1.5 py-0.5 rounded border border-sky-900/30"
                 title={`Reminder: ${new Date(task.reminderAt).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}`}

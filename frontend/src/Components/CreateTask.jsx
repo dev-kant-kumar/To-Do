@@ -7,9 +7,10 @@ import ConfirmationModal from "./Common/ConfirmationModal";
 import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { toast } from "react-toastify";
 import { RxCross2 } from "react-icons/rx";
-import { ArrowLeft, Bell } from "lucide-react";
-import CustomDateTimePicker from "./CustomDateTimePicker";
-import RecurrencePicker, { emptyRecurrence } from "./RecurrencePicker";
+import { ArrowLeft } from "lucide-react";
+import { emptyRecurrence } from "./RecurrencePicker";
+import SchedulingFields from "./SchedulingFields";
+import { buildSchedulePayload } from "../utils/recurrenceTime";
 import SubtaskEditor from "./SubtaskEditor";
 import TagInput from "./TagInput";
 
@@ -160,14 +161,15 @@ function CreateTask({ onClose, initialDate }) {
 
       setIsLoading(true);
       try {
+        const schedule = buildSchedulePayload(recurrence, dueDate, reminderAt);
         const response = await axios.post(`${apiUrl}todo/addTask`, {
           task: taskText.trim(),
           userId: userInfo.userId,
           priority: priority,
-          dueDate: dueDate ? new Date(dueDate).toISOString() : null,
-          reminderAt: reminderAt ? new Date(reminderAt).toISOString() : undefined,
+          dueDate: schedule.dueDate,
+          reminderAt: schedule.reminderAt,
+          recurrence: schedule.recurrence,
           description: description.trim(),
-          recurrence: recurrence.frequency !== "none" ? recurrence : undefined,
           subtasks: subtasks.length ? subtasks : undefined,
           tags: tags.length ? tags : undefined,
         });
@@ -397,73 +399,52 @@ function CreateTask({ onClose, initialDate }) {
             </div>
           </div>
 
-          {/* Priority & Due Date Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-            {/* Priority Selection */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
-                Priority
-              </span>
-              <div className="flex rounded-xl overflow-hidden border border-zinc-800/60 bg-zinc-900/30 p-1 h-9">
-                {["low", "medium", "high"].map((p) => {
-                  const isActive = priority === p;
-                  const getBtnColor = () => {
-                    if (!isActive) return "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/40";
-                    if (p === "low") return "bg-zinc-800/80 text-zinc-200 border-zinc-700/50 shadow-sm";
-                    if (p === "medium") return "bg-amber-500/10 border-amber-500/20 text-amber-400 shadow-sm";
-                    return "bg-red-500/10 border-red-500/20 text-red-400 shadow-sm";
-                  };
-                  return (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setPriority(p)}
-                      disabled={isLoading}
-                      className={`flex-1 text-[10px] font-extrabold uppercase tracking-wider rounded-lg border border-transparent transition-all duration-300 focus:outline-none cursor-pointer ${getBtnColor()}`}
-                    >
-                      {p}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Due Date & Time Picker */}
-            <div className="space-y-1.5">
-              <label htmlFor="dueDate" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
-                Due Date & Time
-              </label>
-              <CustomDateTimePicker
-                value={dueDate}
-                onChange={setDueDate}
-                min={minDateTime}
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-
-          {/* Reminder */}
+          {/* Priority */}
           <div className="space-y-1.5 text-left">
-            <label htmlFor="reminderAt" className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
-              <Bell size={11} className="text-zinc-500" />
-              Reminder
-            </label>
-            <CustomDateTimePicker
-              value={reminderAt}
-              onChange={setReminderAt}
-              min={minDateTime}
-              disabled={isLoading}
-            />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
+              Priority
+            </span>
+            <div className="flex rounded-xl overflow-hidden border border-zinc-800/60 bg-zinc-900/30 p-1 h-9">
+              {["low", "medium", "high"].map((p) => {
+                const isActive = priority === p;
+                const getBtnColor = () => {
+                  if (!isActive) return "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/40";
+                  if (p === "low") return "bg-zinc-800/80 text-zinc-200 border-zinc-700/50 shadow-sm";
+                  if (p === "medium") return "bg-amber-500/10 border-amber-500/20 text-amber-400 shadow-sm";
+                  return "bg-red-500/10 border-red-500/20 text-red-400 shadow-sm";
+                };
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPriority(p)}
+                    disabled={isLoading}
+                    className={`flex-1 text-[10px] font-extrabold uppercase tracking-wider rounded-lg border border-transparent transition-all duration-300 focus:outline-none cursor-pointer ${getBtnColor()}`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {/* Scheduling — repeat first, then due date & reminder (one-time only) */}
+          <SchedulingFields
+            recurrence={recurrence}
+            onRecurrenceChange={setRecurrence}
+            dueDate={dueDate}
+            onDueDateChange={setDueDate}
+            reminderAt={reminderAt}
+            onReminderChange={setReminderAt}
+            minDateTime={minDateTime}
+            disabled={isLoading}
+          />
 
           {/* Tags */}
           <TagInput value={tags} onChange={setTags} disabled={isLoading} />
 
           {/* Subtasks */}
           <SubtaskEditor value={subtasks} onChange={setSubtasks} disabled={isLoading} />
-
-          {/* Recurrence */}
-          <RecurrencePicker value={recurrence} onChange={setRecurrence} disabled={isLoading} />
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-2">

@@ -6,7 +6,7 @@
 
 'use strict';
 
-const SW_VERSION  = '2.1.0';
+const SW_VERSION  = '2.2.0';
 
 // ── Cache Names ────────────────────────────────────────────────────────────────
 const SHELL_CACHE = `todo-shell-v${SW_VERSION}`;
@@ -111,7 +111,11 @@ async function checkAndNotify(tasks) {
     }
 
     // ── Due-date notification (overdue / due today) ─────────────────────────
-    if (task.dueDate && !shownIds.has(task._id)) {
+    // Recurring tasks fire only their precise reminder (above), so skip the
+    // redundant "due today" alert for them.
+    const isRecurringTask =
+      task.recurrence && task.recurrence.frequency && task.recurrence.frequency !== 'none';
+    if (task.dueDate && !isRecurringTask && !shownIds.has(task._id)) {
       const dueMs      = new Date(task.dueDate).getTime();
       const isOverdue  = dueMs < now;
       const isDueToday = dueMs >= now && dueMs <= endOfTodayMs;

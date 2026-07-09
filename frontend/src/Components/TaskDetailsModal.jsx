@@ -5,9 +5,10 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { getToken } from "../utils/auth";
 import { RxCross2 } from "react-icons/rx";
-import { Calendar, AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2, RefreshCw, Bell } from "lucide-react";
-import CustomDateTimePicker from "./CustomDateTimePicker";
-import RecurrencePicker, { emptyRecurrence } from "./RecurrencePicker";
+import { AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2, RefreshCw } from "lucide-react";
+import { emptyRecurrence } from "./RecurrencePicker";
+import SchedulingFields from "./SchedulingFields";
+import { buildSchedulePayload, timeOfDayFromDate } from "../utils/recurrenceTime";
 import SubtaskEditor from "./SubtaskEditor";
 import TagInput from "./TagInput";
 
@@ -61,6 +62,8 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
       interval: r.interval || 1,
       daysOfWeek: Array.isArray(r.daysOfWeek) ? r.daysOfWeek : [],
       endDate: r.endDate || null,
+      // Recurring tasks store their occurrence time in dueDate/reminderAt.
+      timeOfDay: timeOfDayFromDate(task.reminderAt || task.dueDate),
     };
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -113,17 +116,18 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
     const token = getToken();
 
     try {
+      const schedule = buildSchedulePayload(recurrence, dueDate, reminderAt);
       const response = await axios.post(
         `${apiUrl}todo/updateTask`,
         {
           taskID: task._id,
           task: taskText.trim(),
           priority,
-          dueDate: dueDate ? new Date(dueDate).toISOString() : null,
-          reminderAt: reminderAt ? new Date(reminderAt).toISOString() : null,
+          dueDate: schedule.dueDate,
+          reminderAt: schedule.reminderAt,
+          recurrence: schedule.recurrence,
           description: description.trim(),
           starred: isStarred,
-          recurrence,
           subtasks,
           tags,
         },
@@ -379,81 +383,55 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
             </div>
           </div>
 
-          {/* Priority & Due Date Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-            {/* Priority Selector */}
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1.5 text-zinc-400">
-                <AlertCircle size={14} />
-                <span className="text-xs font-semibold uppercase tracking-wider">
-                  Priority
-                </span>
-              </div>
-              <div className="flex rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900/50 p-1">
-                {["low", "medium", "high"].map((p) => {
-                  const isActive = priority === p;
-                  const getBtnColor = () => {
-                    if (!isActive) return "text-zinc-500 hover:text-zinc-300";
-                    if (p === "low") return "bg-zinc-800 text-zinc-300 border-zinc-700";
-                    if (p === "medium") return "bg-amber-950/40 text-amber-400 border-amber-900/60";
-                    return "bg-red-950/40 text-red-400 border-red-900/60";
-                  };
-                  return (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setPriority(p)}
-                      disabled={isLoading}
-                      className={`flex-1 py-1 text-xs font-bold rounded capitalize border border-transparent transition-all focus:outline-none ${getBtnColor()}`}
-                    >
-                      {p}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Due Date & Time Picker */}
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1.5 text-zinc-400">
-                <Calendar size={14} />
-                <label htmlFor="dueDate" className="text-xs font-semibold uppercase tracking-wider">
-                  Due Date & Time
-                </label>
-              </div>
-              <CustomDateTimePicker
-                value={dueDate}
-                onChange={setDueDate}
-                min={minDateTime}
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-
-          {/* Reminder */}
+          {/* Priority */}
           <div className="space-y-1.5 text-left">
             <div className="flex items-center gap-1.5 text-zinc-400">
-              <Bell size={14} />
-              <label htmlFor="reminderAt" className="text-xs font-semibold uppercase tracking-wider">
-                Reminder
-              </label>
+              <AlertCircle size={14} />
+              <span className="text-xs font-semibold uppercase tracking-wider">
+                Priority
+              </span>
             </div>
-            <CustomDateTimePicker
-              value={reminderAt}
-              onChange={setReminderAt}
-              min={minDateTime}
-              disabled={isLoading}
-            />
+            <div className="flex rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900/50 p-1">
+              {["low", "medium", "high"].map((p) => {
+                const isActive = priority === p;
+                const getBtnColor = () => {
+                  if (!isActive) return "text-zinc-500 hover:text-zinc-300";
+                  if (p === "low") return "bg-zinc-800 text-zinc-300 border-zinc-700";
+                  if (p === "medium") return "bg-amber-950/40 text-amber-400 border-amber-900/60";
+                  return "bg-red-950/40 text-red-400 border-red-900/60";
+                };
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPriority(p)}
+                    disabled={isLoading}
+                    className={`flex-1 py-1 text-xs font-bold rounded capitalize border border-transparent transition-all focus:outline-none ${getBtnColor()}`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {/* Scheduling — repeat first, then due date & reminder (one-time only) */}
+          <SchedulingFields
+            recurrence={recurrence}
+            onRecurrenceChange={setRecurrence}
+            dueDate={dueDate}
+            onDueDateChange={setDueDate}
+            reminderAt={reminderAt}
+            onReminderChange={setReminderAt}
+            minDateTime={minDateTime}
+            disabled={isLoading}
+          />
 
           {/* Tags */}
           <TagInput value={tags} onChange={setTags} disabled={isLoading} />
 
           {/* Subtasks */}
           <SubtaskEditor value={subtasks} onChange={setSubtasks} disabled={isLoading} />
-
-          {/* Recurrence */}
-          <RecurrencePicker value={recurrence} onChange={setRecurrence} disabled={isLoading} />
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-3 border-t border-zinc-900">
