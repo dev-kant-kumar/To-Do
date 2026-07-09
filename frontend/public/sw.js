@@ -6,7 +6,7 @@
 
 'use strict';
 
-const SW_VERSION  = '2.0.0';
+const SW_VERSION  = '2.1.0';
 
 // ── Cache Names ────────────────────────────────────────────────────────────────
 const SHELL_CACHE = `todo-shell-v${SW_VERSION}`;
@@ -83,35 +83,62 @@ async function checkAndNotify(tasks) {
   let changed    = false;
 
   for (const task of tasks) {
-    if (!task.dueDate || task.completed || task.deleted) continue;
-    if (shownIds.has(task._id)) continue;
+    if (task.completed || task.deleted) continue;
 
-    const dueMs    = new Date(task.dueDate).getTime();
-    const isOverdue  = dueMs < now;
-    const isDueToday = dueMs >= now && dueMs <= endOfTodayMs;
+    // ── Reminder notification (explicit reminder time) ──────────────────────
+    // Fires once the reminder moment has passed. Tracked separately from the
+    // due-date notification so both can fire for the same task.
+    if (task.reminderAt) {
+      const remKey = `reminder-${task._id}`;
+      const remMs  = new Date(task.reminderAt).getTime();
+      if (!isNaN(remMs) && remMs <= now && !shownIds.has(remKey)) {
+        await self.registration.showNotification('⏰ Reminder — todo.', {
+          body    : task.task,
+          icon    : '/list.png',
+          badge   : '/list.png',
+          tag     : `task-reminder-${task._id}`,
+          renotify: false,
+          data    : { taskId: task._id },
+          vibrate : [100, 50, 100],
+          actions : [
+            { action: 'open',    title: 'Open Task' },
+            { action: 'dismiss', title: 'Dismiss'   },
+          ],
+        });
+        shownIds.add(remKey);
+        changed = true;
+      }
+    }
 
-    if (!isOverdue && !isDueToday) continue;
+    // ── Due-date notification (overdue / due today) ─────────────────────────
+    if (task.dueDate && !shownIds.has(task._id)) {
+      const dueMs      = new Date(task.dueDate).getTime();
+      const isOverdue  = dueMs < now;
+      const isDueToday = dueMs >= now && dueMs <= endOfTodayMs;
 
-    const title = isOverdue
-      ? '⚠️ Overdue Task — todo.'
-      : '🔔 Task Due Today — todo.';
+      if (isOverdue || isDueToday) {
+        const title = isOverdue
+          ? '⚠️ Overdue Task — todo.'
+          : '🔔 Task Due Today — todo.';
 
-    await self.registration.showNotification(title, {
-      body    : task.task,
-      icon    : '/list.png',
-      badge   : '/list.png',
-      tag     : `task-notif-${task._id}`,
-      renotify: false,
-      data    : { taskId: task._id },
-      vibrate : isOverdue ? [200, 100, 200] : [100],
-      actions : [
-        { action: 'open',    title: 'Open Task' },
-        { action: 'dismiss', title: 'Dismiss'   },
-      ],
-    });
+        await self.registration.showNotification(title, {
+          body    : task.task,
+          icon    : '/list.png',
+          badge   : '/list.png',
+          tag     : `task-notif-${task._id}`,
+          renotify: false,
+          data    : { taskId: task._id },
+          vibrate : isOverdue ? [200, 100, 200] : [100],
+          actions : [
+            { action: 'open',    title: 'Open Task' },
+            { action: 'dismiss', title: 'Dismiss'   },
+          ],
+        });
 
-    shownIds.add(task._id);
-    changed = true;
+        shownIds.add(task._id);
+        changed = true;
+      }
+    }
   }
 
   if (changed) await saveShownIds(shownIds);
@@ -291,6 +318,7 @@ self.addEventListener('message', (e) => {
       (async () => {
         const shownIds = await getShownIds();
         shownIds.delete(e.data.taskId);
+        shownIds.delete(`reminder-${e.data.taskId}`);
         await saveShownIds(shownIds);
       })()
     );

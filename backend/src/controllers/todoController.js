@@ -110,7 +110,7 @@ async function decrementStreak(userId) {
 // ── Task handlers ─────────────────────────────────────────────────────────────
 
 async function addTask(req, res) {
-  const { task, priority, dueDate, description, recurrence, subtasks, tags } = req.body;
+  const { task, priority, dueDate, description, recurrence, subtasks, tags, reminderAt } = req.body;
   const userId = req.id;
 
   if (!task || typeof task !== "string" || task.trim() === "") {
@@ -154,6 +154,7 @@ async function addTask(req, res) {
         date: new Date(),
         priority: priority || "low",
         dueDate: dueDate || null,
+        reminderAt: reminderAt || null,
         description: description || "",
         subtasks: sanitizeSubtasks(subtasks),
         tags: sanitizeTags(tags),
@@ -409,6 +410,7 @@ async function updateTask(req, res) {
     task,
     priority,
     dueDate,
+    reminderAt,
     description,
     completed,
     starred,
@@ -458,6 +460,7 @@ async function updateTask(req, res) {
     if (task !== undefined) updateFields.task = task;
     if (priority !== undefined) updateFields.priority = priority;
     if (dueDate !== undefined) updateFields.dueDate = dueDate;
+    if (reminderAt !== undefined) updateFields.reminderAt = reminderAt || null;
     if (description !== undefined) updateFields.description = description;
     if (starred !== undefined) updateFields.starred = starred;
     if (rankIndex !== undefined) updateFields.rankIndex = rankIndex;

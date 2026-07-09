@@ -292,6 +292,7 @@ async function handleOfflineWrite(endpoint, payload, headers) {
       description: payload.description || "",
       priority: payload.priority || "none",
       dueDate: payload.dueDate || null,
+      reminderAt: payload.reminderAt || null,
       startDate: payload.startDate || null,
       completed: false,
       starred: false,
@@ -315,6 +316,7 @@ async function handleOfflineWrite(endpoint, payload, headers) {
       if (payload.description !== undefined) task.description = payload.description;
       if (payload.priority !== undefined) task.priority = payload.priority;
       if (payload.dueDate !== undefined) task.dueDate = payload.dueDate;
+      if (payload.reminderAt !== undefined) task.reminderAt = payload.reminderAt;
       if (payload.startDate !== undefined) task.startDate = payload.startDate;
       if (payload.endDate !== undefined) task.endDate = payload.endDate;
       if (payload.starred !== undefined) task.starred = payload.starred;

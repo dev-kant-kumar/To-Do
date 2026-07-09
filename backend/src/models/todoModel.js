@@ -45,6 +45,12 @@ const TodoSchema = new Schema(
     dueDate: {
       type: Date,
     },
+    // Explicit reminder time, independent of the due date. When set, the
+    // service worker fires a notification once this moment passes.
+    reminderAt: {
+      type: Date,
+      default: null,
+    },
     description: {
       type: String,
     },

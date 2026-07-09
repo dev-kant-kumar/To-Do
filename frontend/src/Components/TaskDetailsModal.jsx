@@ -5,7 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { getToken } from "../utils/auth";
 import { RxCross2 } from "react-icons/rx";
-import { Calendar, AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2, RefreshCw } from "lucide-react";
+import { Calendar, AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2, RefreshCw, Bell } from "lucide-react";
 import CustomDateTimePicker from "./CustomDateTimePicker";
 import RecurrencePicker, { emptyRecurrence } from "./RecurrencePicker";
 import SubtaskEditor from "./SubtaskEditor";
@@ -29,6 +29,16 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
     try {
       const date = new Date(task.dueDate);
       // Format to YYYY-MM-DDTHH:MM for datetime-local input
+      const pad = (num) => String(num).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    } catch {
+      return "";
+    }
+  });
+  const [reminderAt, setReminderAt] = useState(() => {
+    if (!task.reminderAt) return "";
+    try {
+      const date = new Date(task.reminderAt);
       const pad = (num) => String(num).padStart(2, "0");
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
     } catch {
@@ -110,6 +120,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
           task: taskText.trim(),
           priority,
           dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+          reminderAt: reminderAt ? new Date(reminderAt).toISOString() : null,
           description: description.trim(),
           starred: isStarred,
           recurrence,
@@ -417,6 +428,22 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
                 disabled={isLoading}
               />
             </div>
+          </div>
+
+          {/* Reminder */}
+          <div className="space-y-1.5 text-left">
+            <div className="flex items-center gap-1.5 text-zinc-400">
+              <Bell size={14} />
+              <label htmlFor="reminderAt" className="text-xs font-semibold uppercase tracking-wider">
+                Reminder
+              </label>
+            </div>
+            <CustomDateTimePicker
+              value={reminderAt}
+              onChange={setReminderAt}
+              min={minDateTime}
+              disabled={isLoading}
+            />
           </div>
 
           {/* Tags */}

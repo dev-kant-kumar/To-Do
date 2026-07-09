@@ -7,7 +7,7 @@ import ConfirmationModal from "./Common/ConfirmationModal";
 import { setTodo, setTodoLength } from "../Store/Reducers/TodoFilterSlice";
 import { toast } from "react-toastify";
 import { RxCross2 } from "react-icons/rx";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Bell } from "lucide-react";
 import CustomDateTimePicker from "./CustomDateTimePicker";
 import RecurrencePicker, { emptyRecurrence } from "./RecurrencePicker";
 import SubtaskEditor from "./SubtaskEditor";
@@ -34,6 +34,7 @@ function CreateTask({ onClose, initialDate }) {
   const [inputValue, setInputValue] = useState("");
   const [priority, setPriority] = useState("low");
   const [dueDate, setDueDate] = useState(initialDate ? `${initialDate}T09:00` : "");
+  const [reminderAt, setReminderAt] = useState("");
   const [description, setDescription] = useState("");
   const [recurrence, setRecurrence] = useState(emptyRecurrence());
   const [subtasks, setSubtasks] = useState([]);
@@ -164,6 +165,7 @@ function CreateTask({ onClose, initialDate }) {
           userId: userInfo.userId,
           priority: priority,
           dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+          reminderAt: reminderAt ? new Date(reminderAt).toISOString() : undefined,
           description: description.trim(),
           recurrence: recurrence.frequency !== "none" ? recurrence : undefined,
           subtasks: subtasks.length ? subtasks : undefined,
@@ -192,7 +194,7 @@ function CreateTask({ onClose, initialDate }) {
         setIsLoading(false);
       }
     },
-    [apiUrl, userInfo?.userId, fetchTodos, priority, dueDate, description, recurrence, subtasks, tags]
+    [apiUrl, userInfo?.userId, fetchTodos, priority, dueDate, reminderAt, description, recurrence, subtasks, tags]
   );
 
   // Handle close with proper cleanup
@@ -227,6 +229,7 @@ function CreateTask({ onClose, initialDate }) {
         setInputValue("");
         setPriority("low");
         setDueDate("");
+        setReminderAt("");
         setDescription("");
         setRecurrence(emptyRecurrence());
         setSubtasks([]);
@@ -437,6 +440,20 @@ function CreateTask({ onClose, initialDate }) {
                 disabled={isLoading}
               />
             </div>
+          </div>
+
+          {/* Reminder */}
+          <div className="space-y-1.5 text-left">
+            <label htmlFor="reminderAt" className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
+              <Bell size={11} className="text-zinc-500" />
+              Reminder
+            </label>
+            <CustomDateTimePicker
+              value={reminderAt}
+              onChange={setReminderAt}
+              min={minDateTime}
+              disabled={isLoading}
+            />
           </div>
 
           {/* Tags */}

@@ -81,9 +81,10 @@ export async function syncTasksToSW(tasks) {
   const sw = await getActiveSW();
   if (!sw) return;
 
-  // Only send tasks that have a due date and are not completed/deleted
+  // Only send tasks that need a background notification (a due date or an
+  // explicit reminder) and are not completed/deleted.
   const relevant = (tasks || []).filter(
-    (t) => !t.completed && !t.deleted && t.dueDate
+    (t) => !t.completed && !t.deleted && (t.dueDate || t.reminderAt)
   );
   sw.postMessage({ type: 'TASKS_UPDATE', tasks: relevant });
 }

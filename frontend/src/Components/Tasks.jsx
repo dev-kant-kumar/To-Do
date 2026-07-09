@@ -32,7 +32,8 @@ import {
   GripVertical,
   Repeat,
   Tag as TagIcon,
-  X
+  X,
+  Bell
 } from "lucide-react";
 import { describeRecurrence } from "./RecurrencePicker";
 import { tagStyle } from "../utils/tagColors";
@@ -1153,6 +1154,15 @@ function Tasks() {
           <div className="flex items-center gap-1.5 flex-wrap">
             {getPriorityBadge(task.priority)}
             {getDueDateBadge(task)}
+            {task.reminderAt && !task.completed && (
+              <span
+                className="flex items-center gap-1 text-[10px] font-semibold text-sky-300 bg-sky-950/20 px-1.5 py-0.5 rounded border border-sky-900/30"
+                title={`Reminder: ${new Date(task.reminderAt).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}`}
+              >
+                <Bell size={10} className="text-sky-400" />
+                {new Date(task.reminderAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+              </span>
+            )}
             {task.recurrence && task.recurrence.frequency && task.recurrence.frequency !== "none" && (
               <span
                 className="flex items-center gap-1 text-[10px] font-semibold text-purple-300 bg-purple-950/20 px-1.5 py-0.5 rounded border border-purple-900/30"
