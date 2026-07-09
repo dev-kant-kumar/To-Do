@@ -23,27 +23,7 @@ import {
   SlidersHorizontal
 } from "lucide-react";
 import { getToken } from "../../utils/auth";
-
-// Single source of truth for the FAQ — used for both the rendered accordion
-// and the FAQPage structured data so they can never drift apart.
-const FAQ_ITEMS = [
-  {
-    q: "How does todo. keep my tasks in sync?",
-    a: "todo. automatically syncs your tasks across all your devices in real-time. Any changes you make are saved instantly, so you can access your up-to-date checklist on any device.",
-  },
-  {
-    q: "Is this application free to use?",
-    a: "Yes, todo. is completely free to use. Create an account, manage your lists, and enjoy all task management features with zero subscriptions.",
-  },
-  {
-    q: "Can I access my tasks offline?",
-    a: "Your active session is stored securely in your browser so you can view tasks on the go. An active connection is needed to save new tasks and sync updates to your other devices.",
-  },
-  {
-    q: "How do I request complete erasure of my data?",
-    a: "We take privacy seriously. You can navigate to settings or the dedicated data removal request page (/legal/delete-my-data) to permanently erase your profile, credentials, and all tasks from our servers.",
-  },
-];
+import { FAQ_ITEMS } from "../../data/faq.js";
 
 // FAQPage structured data derived from FAQ_ITEMS.
 const FAQ_JSON_LD = {
