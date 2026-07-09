@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { RxCross2 } from "react-icons/rx";
 import { ArrowLeft } from "lucide-react";
 import CustomDateTimePicker from "./CustomDateTimePicker";
+import RecurrencePicker, { emptyRecurrence } from "./RecurrencePicker";
 
 
 // Constants
@@ -32,6 +33,7 @@ function CreateTask({ onClose, initialDate }) {
   const [priority, setPriority] = useState("low");
   const [dueDate, setDueDate] = useState(initialDate ? `${initialDate}T09:00` : "");
   const [description, setDescription] = useState("");
+  const [recurrence, setRecurrence] = useState(emptyRecurrence());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -159,6 +161,7 @@ function CreateTask({ onClose, initialDate }) {
           priority: priority,
           dueDate: dueDate ? new Date(dueDate).toISOString() : null,
           description: description.trim(),
+          recurrence: recurrence.frequency !== "none" ? recurrence : undefined,
         });
 
         if (response.data?.status) {
@@ -183,7 +186,7 @@ function CreateTask({ onClose, initialDate }) {
         setIsLoading(false);
       }
     },
-    [apiUrl, userInfo?.userId, fetchTodos, priority, dueDate, description]
+    [apiUrl, userInfo?.userId, fetchTodos, priority, dueDate, description, recurrence]
   );
 
   // Handle close with proper cleanup
@@ -219,6 +222,7 @@ function CreateTask({ onClose, initialDate }) {
         setPriority("low");
         setDueDate("");
         setDescription("");
+        setRecurrence(emptyRecurrence());
         setError("");
         handleClose();
       }
@@ -228,13 +232,13 @@ function CreateTask({ onClose, initialDate }) {
 
   // Handle cancel button
   const cancelBtn = useCallback(() => {
-    if (inputValue.trim() || description.trim() || dueDate || priority !== "low") {
+    if (inputValue.trim() || description.trim() || dueDate || priority !== "low" || recurrence.frequency !== "none") {
       // Show confirmation if user has typed something
       setShowCancelConfirm(true);
     } else {
       handleClose();
     }
-  }, [inputValue, description, dueDate, priority, handleClose]);
+  }, [inputValue, description, dueDate, priority, recurrence, handleClose]);
 
   // Handle form submission via Enter key
   const handleKeyPress = useCallback(
@@ -426,6 +430,9 @@ function CreateTask({ onClose, initialDate }) {
               />
             </div>
           </div>
+
+          {/* Recurrence */}
+          <RecurrencePicker value={recurrence} onChange={setRecurrence} disabled={isLoading} />
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-2">

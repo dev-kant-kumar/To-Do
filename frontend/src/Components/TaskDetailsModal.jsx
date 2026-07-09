@@ -7,6 +7,7 @@ import { getToken } from "../utils/auth";
 import { RxCross2 } from "react-icons/rx";
 import { Calendar, AlertCircle, Edit3, AlignLeft, ArrowLeft, Star, Trash2, RefreshCw } from "lucide-react";
 import CustomDateTimePicker from "./CustomDateTimePicker";
+import RecurrencePicker, { emptyRecurrence } from "./RecurrencePicker";
 
 
 const getCurrentLocalDateTimeString = () => {
@@ -34,6 +35,16 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
   });
   const [description, setDescription] = useState(task.description || "");
   const [isStarred, setIsStarred] = useState(task.starred || false);
+  const [recurrence, setRecurrence] = useState(() => {
+    const r = task.recurrence;
+    if (!r || !r.frequency || r.frequency === "none") return emptyRecurrence();
+    return {
+      frequency: r.frequency,
+      interval: r.interval || 1,
+      daysOfWeek: Array.isArray(r.daysOfWeek) ? r.daysOfWeek : [],
+      endDate: r.endDate || null,
+    };
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -93,6 +104,7 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
           dueDate: dueDate ? new Date(dueDate).toISOString() : null,
           description: description.trim(),
           starred: isStarred,
+          recurrence,
         },
         {
           headers: {
@@ -396,6 +408,9 @@ function TaskDetailsModal({ task, onClose, onUpdate }) {
               />
             </div>
           </div>
+
+          {/* Recurrence */}
+          <RecurrencePicker value={recurrence} onChange={setRecurrence} disabled={isLoading} />
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-3 border-t border-zinc-900">

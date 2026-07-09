@@ -2,6 +2,29 @@ const Todo = require("../models/todoModel");
 const User = require("../models/userModel");
 const StreakEntry = require("../models/streakModel");
 const { applyTaskXPChange } = require("../utils/xpService");
+const { spawnNextOccurrence, removeSpawnedOccurrence } = require("../utils/recurrence");
+
+// ── Recurrence helpers ──────────────────────────────────────────────────────
+
+const VALID_FREQUENCIES = ["none", "daily", "weekly", "monthly"];
+
+/**
+ * Validate and normalize a recurrence rule from the request body.
+ * Returns a clean recurrence object, or null if invalid / not recurring.
+ */
+function sanitizeRecurrence(recurrence) {
+  if (!recurrence || typeof recurrence !== "object") return null;
+  const frequency = VALID_FREQUENCIES.includes(recurrence.frequency) ? recurrence.frequency : "none";
+  if (frequency === "none") return { frequency: "none", interval: 1, daysOfWeek: [], endDate: null };
+
+  const interval = Math.max(1, Math.min(365, parseInt(recurrence.interval, 10) || 1));
+  const daysOfWeek = Array.isArray(recurrence.daysOfWeek)
+    ? [...new Set(recurrence.daysOfWeek.map(Number).filter((d) => d >= 0 && d <= 6))]
+    : [];
+  const endDate = recurrence.endDate ? new Date(recurrence.endDate) : null;
+
+  return { frequency, interval, daysOfWeek, endDate };
+}
 
 // ── Streak helpers ────────────────────────────────────────────────────────────
 
@@ -54,7 +77,7 @@ async function decrementStreak(userId) {
 // ── Task handlers ─────────────────────────────────────────────────────────────
 
 async function addTask(req, res) {
-  const { task, priority, dueDate, description } = req.body;
+  const { task, priority, dueDate, description, recurrence } = req.body;
   const userId = req.id;
 
   if (!task || typeof task !== "string" || task.trim() === "") {
@@ -88,6 +111,7 @@ async function addTask(req, res) {
   try {
     const existingUser = await User.findOne({ _id: userId });
     if (existingUser) {
+      const cleanRecurrence = sanitizeRecurrence(recurrence);
       const newTask = new Todo({
         userId: userId,
         task: task.trim(),
@@ -98,6 +122,7 @@ async function addTask(req, res) {
         priority: priority || "low",
         dueDate: dueDate || null,
         description: description || "",
+        ...(cleanRecurrence ? { recurrence: cleanRecurrence } : {}),
       });
 
       await newTask.save();
@@ -147,7 +172,14 @@ async function markCompleted(req, res) {
       // ── Streak: completion is a historical fact — persisted forever ──
       await incrementStreak(userId);
       const updatedUser = await applyTaskXPChange(userId, task, true);
-      res.send({ status: true, message: "Task successfully marked as completed.", user: updatedUser });
+      // ── Recurrence: spawn the next occurrence (history is preserved) ──
+      const spawnedTask = await spawnNextOccurrence(task);
+      res.send({
+        status: true,
+        message: "Task successfully marked as completed.",
+        user: updatedUser,
+        spawnedTask: spawnedTask || undefined,
+      });
     } else {
       res.send({ status: false, message: "No such task found!" });
     }
@@ -193,6 +225,8 @@ async function unMarkCompleted(req, res) {
         }
       }
       const updatedUser = await applyTaskXPChange(userId, task, false);
+      // ── Recurrence: undo the spawn so we don't leave a duplicate ──
+      await removeSpawnedOccurrence(task);
       res.send({ status: true, message: "Task successfully unmarked as completed.", user: updatedUser });
     } else {
       res.send({ status: false, message: "No such task found!" });
@@ -346,6 +380,7 @@ async function updateTask(req, res) {
     rankIndex,
     startDate,
     endDate,
+    recurrence,
   } = req.body;
   const userId = req.id;
 
@@ -391,6 +426,10 @@ async function updateTask(req, res) {
     if (rankIndex !== undefined) updateFields.rankIndex = rankIndex;
     if (startDate !== undefined) updateFields.startDate = startDate;
     if (endDate !== undefined) updateFields.endDate = endDate;
+    if (recurrence !== undefined) {
+      const cleanRecurrence = sanitizeRecurrence(recurrence);
+      updateFields.recurrence = cleanRecurrence || { frequency: "none", interval: 1, daysOfWeek: [], endDate: null };
+    }
 
     // If completion status is changing via updateTask, handle streak correctly
     if (completed !== undefined) {
@@ -401,6 +440,7 @@ async function updateTask(req, res) {
           updateFields.completedAt = new Date();
           await incrementStreak(userId);
           await applyTaskXPChange(userId, existingTask, true);
+          await spawnNextOccurrence(existingTask);
         } else if (completed === false && existingTask.completed) {
           updateFields.completed = false;
           updateFields.completedAt = null;
@@ -413,6 +453,7 @@ async function updateTask(req, res) {
             }
           }
           await applyTaskXPChange(userId, existingTask, false);
+          await removeSpawnedOccurrence(existingTask);
         }
       }
     }

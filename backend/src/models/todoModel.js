@@ -67,6 +67,47 @@ const TodoSchema = new Schema(
       type: Date,
       default: null,
     },
+    // ── Recurrence ──────────────────────────────────────────────────────────
+    // When set, completing this task spawns the next occurrence. Completion
+    // history is preserved (this task stays completed), which keeps the streak
+    // and XP engine working unchanged.
+    recurrence: {
+      // "none" | "daily" | "weekly" | "monthly"
+      frequency: {
+        type: String,
+        enum: ["none", "daily", "weekly", "monthly"],
+        default: "none",
+      },
+      // Repeat every N days/weeks/months.
+      interval: {
+        type: Number,
+        default: 1,
+        min: 1,
+      },
+      // For weekly recurrence: specific weekdays (0=Sun … 6=Sat). Empty = same
+      // weekday as the due date.
+      daysOfWeek: {
+        type: [Number],
+        default: [],
+      },
+      // Optional last date the series may recur to (inclusive).
+      endDate: {
+        type: Date,
+        default: null,
+      },
+    },
+    // Links a spawned occurrence back to the task whose completion created it,
+    // so an un-complete can cleanly remove the untouched child.
+    recurrenceParentId: {
+      type: String,
+      default: null,
+    },
+    // Set on the parent once it has spawned its next occurrence, preventing
+    // duplicate spawns and enabling clean undo.
+    recurrenceSpawnedChildId: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

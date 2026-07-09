@@ -29,8 +29,10 @@ import {
   Check,
   ChevronUp,
   ChevronDown,
-  GripVertical
+  GripVertical,
+  Repeat
 } from "lucide-react";
+import { describeRecurrence } from "./RecurrencePicker";
 
 // Constants
 const FILTER_TYPES = {
@@ -1086,6 +1088,15 @@ function Tasks() {
           <div className="flex items-center gap-1.5 flex-wrap">
             {getPriorityBadge(task.priority)}
             {getDueDateBadge(task)}
+            {task.recurrence && task.recurrence.frequency && task.recurrence.frequency !== "none" && (
+              <span
+                className="flex items-center gap-1 text-[10px] font-semibold text-purple-300 bg-purple-950/20 px-1.5 py-0.5 rounded border border-purple-900/30"
+                title={describeRecurrence(task.recurrence) || "Repeats"}
+              >
+                <Repeat size={10} className="text-purple-400" />
+                {describeRecurrence(task.recurrence)}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

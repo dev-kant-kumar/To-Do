@@ -299,6 +299,7 @@ async function handleOfflineWrite(endpoint, payload, headers) {
       date: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      ...(payload.recurrence ? { recurrence: payload.recurrence } : {}),
     };
 
     queueItem.tempId = tempId;
