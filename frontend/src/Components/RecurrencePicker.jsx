@@ -84,24 +84,6 @@ export default function RecurrencePicker({ value, onChange, disabled }) {
 
       {rec.frequency && rec.frequency !== "none" && (
         <div className="space-y-3 rounded-xl border border-zinc-800/50 bg-zinc-900/20 p-3">
-          {/* Interval */}
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
-            <span className="font-medium">Every</span>
-            <input
-              type="number"
-              min={1}
-              max={365}
-              value={rec.interval || 1}
-              disabled={disabled}
-              onChange={(e) => set({ interval: Math.max(1, Math.min(365, parseInt(e.target.value, 10) || 1)) })}
-              className="w-14 px-2 py-1 bg-zinc-900/50 text-zinc-100 rounded-lg border border-zinc-800/60 focus:border-[#9040dd] focus:outline-none text-center text-xs font-semibold"
-            />
-            <span className="font-medium">
-              {UNIT[rec.frequency]}
-              {(rec.interval || 1) > 1 ? "s" : ""}
-            </span>
-          </div>
-
           {/* Weekday selector */}
           {rec.frequency === "weekly" && (
             <div className="flex items-center gap-1">
